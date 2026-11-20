@@ -37,7 +37,7 @@ Este plan se ajusta según prioridades: lo de arriba se hace primero.
 - [ ] Cada plantilla declara **ranuras** de imagen (fondo, cabeza, botones…) con su
       tamaño recomendado. *(Headspace ya funciona así: el cuerpo es el dibujo o una imagen,
       y la pantalla, botones, ojos, boca y parlantes se ubican por zonas en %.)*
-- [x] Headspace: cuerpos "Y2K" y "Gel" de video maker (WebP en `web/img/headspace/`, PNG originales en `arte/`).
+- [x] Headspace: cuerpos "Y2K" (translúcido con circuitos, elegido por José) y "Gel" de video maker; sin el dibujo SVG (WebP en `web/img/headspace/`, PNG originales en `arte/`).
 - [ ] Headspace: evaluar un cuerpo distinto por color (~0,09 USD por imagen con video maker).
 - [ ] Subir una imagen a una ranura desde la app (sin tocar carpetas ni código).
       Si la ranura está vacía, se usa el dibujo original.
