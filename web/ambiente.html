@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ambiente</title>
+<link rel="preload" href="fonts/InstrumentSerif-normal-latin-9b8dd1ec.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="fonts/geist.css">
+<link rel="stylesheet" href="fonts/ambiente.css">
+<script src="hls.min.js"></script>
+<style>
+  /* Los 3 colores salen de la carátula; registrados para que cambien con transición */
+  @property --c1 { syntax: "<color>"; inherits: true; initial-value: #9aa4b8; }
+  @property --c2 { syntax: "<color>"; inherits: true; initial-value: #6d7890; }
+  @property --c3 { syntax: "<color>"; inherits: true; initial-value: #3b4152; }
+  :root { --p: 0%; --v: 80%; transition: --c1 1.2s, --c2 1.2s, --c3 1.2s; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #08080a; color: #f4f1ee;
+    font-family: Geist, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  .mono { font: 11px "Geist Mono", monospace; letter-spacing: .12em; text-transform: uppercase; color: rgba(244,241,238,.55); }
+
+  #fondoImg { position: fixed; inset: -12%; background-size: cover; background-position: center;
+    filter: blur(70px) saturate(1.4) brightness(.42); transition: background-image .8s; }
+  #luces { position: fixed; inset: 0; width: 100%; height: 100%; mix-blend-mode: screen; }
+  #velo { position: fixed; inset: 0; background: radial-gradient(ellipse at 30% 40%, transparent 30%, rgba(5,5,8,.7)); }
+
+  #app { position: relative; height: 100%; display: grid; grid-template-rows: 1fr 96px; }
+  main { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 48px; padding: 40px 48px 24px; min-height: 0; }
+  .izq { display: flex; flex-direction: column; gap: 18px; justify-content: center; min-height: 0; }
+  #portada { width: min(54vh, 40vw); height: min(54vh, 40vw); display: block; border-radius: 6px;
+    box-shadow: 0 40px 90px rgba(0,0,0,.6), 0 0 120px color-mix(in srgb, var(--c1) 35%, transparent); transition: transform .08s linear; }
+  #onda { width: min(54vh, 40vw); height: 56px; display: block; cursor: pointer; }
+  .der { display: flex; flex-direction: column; gap: 22px; min-height: 0; padding-top: 12px; }
+  .encabezado .mono span { color: var(--c1); }
+  #grandeTitulo { font: 400 clamp(40px, 5.4vw, 84px)/0.98 "Instrument Serif", Georgia, serif; letter-spacing: -.01em; margin: 10px 0 0;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-wrap: balance; }
+  #grandeArtista { font: italic 400 clamp(20px, 2vw, 30px) "Instrument Serif", Georgia, serif; color: var(--c1); margin-top: 8px; }
+  #lista { flex: 1; min-height: 0; overflow-y: auto; border-radius: 14px; padding: 8px 0;
+    background: rgba(8,8,12,.32); border: 1px solid rgba(255,255,255,.07); -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px);
+    scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--c1) 60%, transparent) transparent; }
+  .fila { display: grid; grid-template-columns: 40px 28px 1fr 48px; align-items: center; gap: 12px; padding: 6px 16px;
+    font-size: 14px; cursor: pointer; color: rgba(244,241,238,.62); }
+  .fila:hover { background: rgba(255,255,255,.05); color: #fff; }
+  .fila.sonando { color: #fff; background: linear-gradient(90deg, color-mix(in srgb, var(--c1) 30%, transparent), transparent); }
+  .fila.sonando .n { color: var(--c1); }
+  .fila img { width: 40px; height: 40px; object-fit: cover; border-radius: 4px; }
+  .fila .n, .fila .dur { font: 12px "Geist Mono", monospace; }
+  .fila .nombre { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  footer { display: grid; grid-template-columns: 56px minmax(0, 240px) auto minmax(0, 1fr) 150px 36px; align-items: center; gap: 18px;
+    padding: 0 28px; background: rgba(10,10,14,.5); border-top: 1px solid rgba(255,255,255,.07);
+    -webkit-backdrop-filter: blur(24px); backdrop-filter: blur(24px); }
+  #caratula { width: 56px; height: 56px; object-fit: cover; border-radius: 4px; }
+  #titulo { font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #artista { color: rgba(244,241,238,.6); font-size: 13px; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .botones { display: flex; align-items: center; gap: 14px; }
+  .botones button, #bDuo { background: none; border: none; color: #f4f1ee; cursor: pointer; font-size: 18px; padding: 4px;
+    font-family: "Segoe UI Symbol", system-ui, sans-serif; opacity: .8; transition: opacity .15s, transform .1s; }
+  .botones button:hover, #bDuo:hover { opacity: 1; }
+  .botones button:active { transform: scale(.92); }
+  #bPlay { width: 48px; height: 48px; border-radius: 50%; opacity: 1; font-size: 17px; color: #0a0a0d; background: var(--c1);
+    box-shadow: 0 0 30px color-mix(in srgb, var(--c1) 55%, transparent); }
+  .linea { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; }
+  #tiempo { font: 12px "Geist Mono", monospace; color: rgba(244,241,238,.55); }
+  input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 4px; margin: 0; border-radius: 2px; cursor: pointer;
+    background: linear-gradient(90deg, var(--c1) var(--p), rgba(255,255,255,.15) var(--p)); }
+  #volumen { --p: var(--v); }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%; background: #fff;
+    box-shadow: 0 0 10px var(--c1); }
+  input[type=range]:disabled { opacity: .35; }
+  #bDuo.activo { color: var(--c1); }
+</style>
+</head>
+<body>
+<div id="fondoImg"></div>
+<canvas id="luces"></canvas>
+<div id="velo"></div>
+<div id="app">
+  <main>
+    <div class="izq">
+      <canvas id="portada" width="560" height="560"></canvas>
+      <canvas id="onda" title="Adelantar"></canvas>
+    </div>
+    <div class="der">
+      <div class="encabezado">
+        <div class="mono"><span>●</span> Ahora suena · <b id="nombreFuente"></b></div>
+        <h1 id="grandeTitulo">—</h1>
+        <div id="grandeArtista"></div>
+      </div>
+      <div id="lista"></div>
+    </div>
+  </main>
+  <footer>
+    <img id="caratula" alt="">
+    <div><div id="titulo">—</div><div id="artista"></div></div>
+    <div class="botones">
+      <button id="bAnt" title="Anterior">&#x23EE;&#xFE0E;</button>
+      <button id="bPlay" title="Play / pausa">▶</button>
+      <button id="bSig" title="Siguiente">&#x23ED;&#xFE0E;</button>
+    </div>
+    <div class="linea"><input id="barra" type="range" min="0" max="1000" value="0" title="Avance"><span id="tiempo">0:00 / 0:00</span></div>
+    <input id="volumen" type="range" min="0" max="100" value="80" title="Volumen">
+    <button id="bDuo" title="Carátula en duotono u original">◐</button>
+  </footer>
+</div>
+
+<script src="nucleo.js"></script>
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const raiz = document.documentElement.style;
+$("nombreFuente").textContent = { soundcloud: "SoundCloud", musica: "Mi música", pc: "En el PC" }[R.fuente];
+let duotono = true;
+try { duotono = localStorage.getItem("duotono-ambiente") !== "0"; } catch (e) {}
+$("bDuo").classList.toggle("activo", duotono);
+
+// ---- Colores de la carátula ----
+function hsl([r, g, b]) {
+  r /= 255; g /= 255; b /= 255;
+  const mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2;
+  let h = 0, s = 0;
+  if (mx !== mn) {
+    const d = mx - mn; s = l > .5 ? d / (2 - mx - mn) : d / (mx + mn);
+    h = 60 * (mx === r ? (g - b) / d + (g < b ? 6 : 0) : mx === g ? (b - r) / d + 2 : (r - g) / d + 4);
+  }
+  return [h, s, l];
+}
+// Acento legible sobre fondo oscuro: claro y, si la carátula tiene color, saturado.
+function acento(c, lMin) {
+  const [h, s, l] = hsl(c), sat = s > .12 ? Math.max(s, .55) : s;
+  return `hsl(${h.toFixed(0)} ${(sat * 100).toFixed(0)}% ${(Math.min(.8, Math.max(lMin, l)) * 100).toFixed(0)}%)`;
+}
+let colores = [[154, 164, 184], [109, 120, 144], [59, 65, 82]], imagen = null;
+const muestra = document.createElement("canvas"); muestra.width = muestra.height = 24;
+function leerColores(img) {
+  const g = muestra.getContext("2d"); g.drawImage(img, 0, 0, 24, 24);
+  const px = g.getImageData(0, 0, 24, 24).data, lista = [];   // falla si la imagen no deja leerse
+  for (let i = 0; i < px.length; i += 4) {
+    const c = [px[i], px[i + 1], px[i + 2]], mx = Math.max(...c), mn = Math.min(...c);
+    lista.push({ c, s: (mx - mn) * (mx > 40 ? 1 : 0.1) });
+  }
+  lista.sort((a, b) => b.s - a.s);
+  colores = [lista[0].c, lista[Math.floor(lista.length * .08)].c, lista[Math.floor(lista.length * .25)].c];
+  raiz.setProperty("--c1", acento(colores[0], .62));
+  raiz.setProperty("--c2", acento(colores[1], .5));
+  raiz.setProperty("--c3", acento(colores[2], .35));
+}
+
+// ---- Carátula grande: duotono con los colores del tema (o la original) ----
+function pintarPortada() {
+  const c = $("portada"), g = c.getContext("2d"), S = c.width;
+  g.fillStyle = "#111"; g.fillRect(0, 0, S, S);
+  if (!imagen) return;
+  g.drawImage(imagen, 0, 0, S, S);
+  if (!duotono) return;
+  try {
+    const d = g.getImageData(0, 0, S, S), px = d.data;
+    const oscuro = colores[2].map(v => v * .16), claro = colores[0].map(v => v + (255 - v) * .5);
+    for (let i = 0; i < px.length; i += 4) {
+      const l = (0.299 * px[i] + 0.587 * px[i + 1] + 0.114 * px[i + 2]) / 255, k = l * l * (3 - 2 * l);   // curva en S: más contraste
+      px[i] = oscuro[0] + (claro[0] - oscuro[0]) * k; px[i + 1] = oscuro[1] + (claro[1] - oscuro[1]) * k; px[i + 2] = oscuro[2] + (claro[2] - oscuro[2]) * k;
+    }
+    g.putImageData(d, 0, 0);
+  } catch (e) { /* la imagen no deja leerse: queda la original */ }
+}
+function cargarImagen(src, conCors = true) {
+  if (!src) { imagen = null; pintarPortada(); return; }
+  const img = new Image();
+  if (conCors) img.crossOrigin = "anonymous";
+  img.onload = () => { imagen = img; try { leerColores(img); } catch (e) {} pintarPortada(); };
+  img.onerror = () => { if (conCors) cargarImagen(src, false); };
+  img.src = src;
+}
+$("bDuo").onclick = () => {
+  duotono = !duotono; $("bDuo").classList.toggle("activo", duotono);
+  try { localStorage.setItem("duotono-ambiente", duotono ? "1" : "0"); } catch (e) {}
+  pintarPortada();
+};
+let ondaActual = [], ultimaCaratula = null;
+R.alCambiar((p) => {
+  $("grandeTitulo").textContent = p.titulo; $("grandeArtista").textContent = p.artista;
+  ondaActual = p.onda || [];
+  if (p.caratula !== ultimaCaratula) {   // alCambiar se repite cuando llega la onda: no recargar la imagen
+    ultimaCaratula = p.caratula;
+    cargarImagen(p.caratula);
+    $("fondoImg").style.backgroundImage = p.caratula ? `url("${p.caratula}")` : "none";
+  }
+});
+$("volumen").addEventListener("input", (e) => raiz.setProperty("--v", e.target.value + "%"));
+
+function lienzo(c) {
+  const r = c.getBoundingClientRect();
+  if (c.width !== Math.round(r.width) || c.height !== Math.round(r.height)) { c.width = Math.round(r.width); c.height = Math.round(r.height); }
+  return c.width && c.height ? c.getContext("2d") : null;
+}
+// ---- Onda real de SoundCloud bajo la carátula; con las otras fuentes, el espectro en espejo ----
+const oc = $("onda");
+oc.addEventListener("click", (e) => { const r = oc.getBoundingClientRect(); R.saltarA((e.clientX - r.left) / r.width); });
+function dibujarOnda(d) {
+  const g = lienzo(oc); if (!g) return;
+  const w = oc.width, h = oc.height, c1 = getComputedStyle(document.documentElement).getPropertyValue("--c1");
+  g.clearRect(0, 0, w, h);
+  if (ondaActual.length) {
+    const n = ondaActual.length, ancho = w / n, prog = R.progreso();
+    for (let i = 0; i < n; i++) {
+      const v = Math.max(0.05, ondaActual[i]) * h * .95;
+      g.fillStyle = i / n < prog ? c1 : "rgba(255,255,255,.22)";
+      g.fillRect(i * ancho, (h - v) / 2, Math.max(1, ancho - 1), v);
+    }
+  } else {
+    const n = 80, ancho = w / n;
+    g.fillStyle = c1;
+    for (let i = 0; i < n; i++) {
+      const v = Math.max(0.04, Math.pow(R.energia(d, Math.floor(2 * Math.pow(150, i / n)), Math.floor(2 * Math.pow(150, (i + 1) / n)) + 1), 1.4)) * h * .95;
+      g.fillRect(i * ancho, (h - v) / 2, Math.max(1, ancho - 2), v);
+    }
+  }
+}
+
+// ---- Luces: manchas con los colores de la carátula que flotan y laten ----
+const luces = $("luces");
+let golpe = 0;
+function dibujarLuces(t, bajo) {
+  if (luces.width !== innerWidth || luces.height !== innerHeight) { luces.width = innerWidth; luces.height = innerHeight; }
+  const g = luces.getContext("2d"), w = luces.width, h = luces.height;
+  if (!w || !h) return;
+  golpe = Math.max(golpe * 0.9, bajo);
+  g.clearRect(0, 0, w, h);
+  colores.forEach((c, i) => {
+    const x = w * (0.3 + 0.35 * Math.sin(t * 0.13 + i * 2.1)), y = h * (0.45 + 0.3 * Math.cos(t * 0.11 + i * 1.7));
+    const r = Math.max(w, h) * (0.3 + golpe * 0.18);
+    const grad = g.createRadialGradient(x, y, 0, x, y, r);
+    grad.addColorStop(0, `rgba(${c[0]},${c[1]},${c[2]},${0.22 + golpe * 0.3})`);
+    grad.addColorStop(1, "rgba(0,0,0,0)");
+    g.fillStyle = grad; g.fillRect(0, 0, w, h);
+  });
+}
+
+let suave = 0;
+R.cadaCuadro((t) => {
+  const d = R.espectro(), bajo = R.energia(d, 1, 8);
+  suave += (bajo - suave) * 0.25;
+  dibujarLuces(t, bajo);
+  dibujarOnda(d);
+  raiz.setProperty("--p", (R.progreso() * 100).toFixed(2) + "%");
+  $("portada").style.transform = `scale(${(1 + suave * 0.025).toFixed(3)})`;
+  $("fondoImg").style.transform = `scale(${(1 + suave * 0.1).toFixed(3)})`;
+});
+</script>
+</body>
+</html>

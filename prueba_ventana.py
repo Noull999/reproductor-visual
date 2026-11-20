@@ -21,7 +21,7 @@ def prueba():
     ir("/index.html?fuente=musica")
     js("document.querySelectorAll('#carpetas button')[1].click()", espera=2)
     print("carpeta guardada:", js("sessionStorage.getItem('carpeta')"))
-    ir("/oscuro.html?fuente=musica")
+    ir("/ambiente.html?fuente=musica")
     print("mi música:", js("JSON.stringify({pistas: R.pistas.length, titulo: document.getElementById('titulo').textContent, artista: document.getElementById('artista').textContent})", espera=3))
     js("R.cargar(0)")
     print("sonando:", js("JSON.stringify({t: R.audio.currentTime.toFixed(1), pausado: R.audio.paused, espectro: Math.max(...R.espectro())})", espera=5))

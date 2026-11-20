@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Líquido — prototipo</title>
+<title>Líquido</title>
 <link rel="stylesheet" href="vidrio-liquido.css">
 <script src="hls.min.js"></script>
 <style>
@@ -11,10 +11,14 @@
   .capa { position: relative; z-index: 1; height: 100%; display: grid; grid-template-rows: 1fr auto; gap: 18px;
     padding: 22px 26px; box-sizing: border-box; }
   main { display: grid; grid-template-columns: minmax(0, 420px) 1fr; gap: 18px; min-height: 0; }
-  .ahora { padding: 22px; display: flex; flex-direction: column; gap: 16px; min-height: 0; }
-  #grande { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 16px; display: block;
-    box-shadow: 0 20px 60px rgba(0,0,0,.5), 0 0 0 1px var(--borde); }
-  #titulo { font-size: 22px; font-weight: 600; letter-spacing: -.02em; line-height: 1.2; }
+  /* La carátula flota detrás de la tarjeta: arriba se ve nítida, abajo la deforma el vidrio */
+  .izq { position: relative; min-height: 0; }
+  #grande { position: absolute; left: 50%; top: 0; width: min(96%, 66vh); aspect-ratio: 1; object-fit: cover; border-radius: 18px;
+    transform: translateX(-50%) rotate(var(--giro, -3deg)) scale(var(--latido, 1));
+    box-shadow: 0 30px 80px rgba(0,0,0,.55), 0 0 90px rgba(255,45,61,.25); }
+  .ahora { position: absolute; left: 0; right: 0; bottom: 0; padding: 22px 24px; display: flex; flex-direction: column; gap: 10px; }
+  #titulo { font-size: 28px; font-weight: 600; letter-spacing: -.03em; line-height: 1.1;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
   #artista { color: var(--suave); margin-top: 6px; }
   .lista-caja { padding: 16px 0 10px; display: flex; flex-direction: column; min-height: 0; }
   .lista-caja .mono { padding: 0 22px 10px; color: var(--suave); display: flex; justify-content: space-between; }
@@ -28,13 +32,24 @@
   .fila .nombre { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   footer { display: grid; grid-template-columns: 52px minmax(0, 220px) auto 1fr 140px; align-items: center; gap: 16px;
     padding: 10px 22px 10px 10px; }
-  #caratula { width: 52px; height: 52px; border-radius: 50%; object-fit: cover; }
+  /* Mini carátula como vinilo: gira solo mientras suena */
+  #caratula { width: 52px; height: 52px; border-radius: 50%; object-fit: cover; animation: girar 9s linear infinite paused;
+    box-shadow: 0 0 0 2px rgba(255,255,255,.18), 0 0 0 7px rgba(0,0,0,.35); }
+  body.sonando #caratula { animation-play-state: running; }
+  @keyframes girar { to { transform: rotate(360deg); } }
   #tituloBarra { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   #tiempo { color: var(--suave); }
   .botones { display: flex; align-items: center; gap: 10px; }
   .botones .btn { width: 42px; height: 42px; padding: 0; justify-content: center; font-size: 15px; }
   #bPlay { width: 50px; height: 50px; font-size: 17px; }
-  input[type=range] { width: 100%; accent-color: var(--rojo); }
+  /* Barras de vidrio con relleno rojo encendido */
+  input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 8px; margin: 0; border-radius: 999px; cursor: pointer;
+    background: linear-gradient(90deg, var(--rojo), #ff8a94 calc(var(--p) - 1%), rgba(255,255,255,.1) var(--p));
+    box-shadow: inset 0 1px 2px rgba(0,0,0,.5), inset 0 0 0 .8px rgba(255,255,255,.12), 0 0 18px rgba(255,45,61,calc(var(--brillo, 0) * .6)); }
+  #volumen { --p: var(--v, 80%); }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #fff, #ffd6d8 60%, #ffb3b8); box-shadow: 0 0 0 1px rgba(255,255,255,.5), 0 0 14px rgba(255,45,61,.8); }
+  input[type=range]:disabled { opacity: .35; }
 </style>
 </head>
 <body>
@@ -47,10 +62,12 @@
 
 <div class="capa">
   <main>
-    <section class="ahora vidrio tarjeta">
+    <section class="izq">
       <img id="grande" alt="">
-      <div><div class="mono" style="color:var(--suave)"><span class="punto"></span> Ahora suena</div>
-        <div id="titulo" style="margin-top:10px">—</div><div id="artista"></div></div>
+      <div class="ahora vidrio tarjeta">
+        <div class="mono" style="color:var(--suave)"><span class="punto"></span> Ahora suena</div>
+        <div id="titulo">—</div><div id="artista"></div>
+      </div>
     </section>
     <section class="lista-caja vidrio tarjeta">
       <div class="mono"><span>Tus likes</span><span id="cuenta"></span></div>
@@ -61,9 +78,9 @@
     <img id="caratula" alt="">
     <div><div id="tituloBarra">—</div><div id="tiempo" class="mono">0:00 / 0:00</div></div>
     <div class="botones">
-      <button class="btn vidrio pastilla" id="bAnt" title="Anterior">⏮</button>
+      <button class="btn vidrio pastilla" id="bAnt" title="Anterior">&#x23EE;&#xFE0E;</button>
       <button class="btn btn-principal" id="bPlay" title="Play / pausa">▶</button>
-      <button class="btn vidrio pastilla" id="bSig" title="Siguiente">⏭</button>
+      <button class="btn vidrio pastilla" id="bSig" title="Siguiente">&#x23ED;&#xFE0E;</button>
     </div>
     <input id="barra" type="range" min="0" max="1000" value="0">
     <input id="volumen" type="range" min="0" max="100" value="80" title="Volumen">
@@ -79,12 +96,23 @@ const NOMBRES = { soundcloud: "Tus likes", musica: "Tu música", pc: "Sonando en
 document.querySelector(".lista-caja .mono span").textContent = NOMBRES[R.fuente];
 R.alCambiar((p) => {
   $("cuenta").textContent = R.fuente === "pc" ? "" : `${R.pistas.length} temas`; $("grande").src = p.caratula || ""; $("tituloBarra").textContent = p.titulo; });
+$("volumen").addEventListener("input", (e) => document.documentElement.style.setProperty("--v", e.target.value + "%"));
+$("grande").onerror = () => { $("grande").style.visibility = "hidden"; };
+$("grande").onload = () => { $("grande").style.visibility = "visible"; };
 // El haz late con el bajo; sin música, pulso suave (lo resuelve R.espectro).
 let suave = 0;
 iniciarHaz($("haz"), () => {
   const e = R.energia(R.espectro(), 1, 10);
   suave += (e - suave) * 0.3;
   return Math.min(1, suave * 1.3);
+});
+const raiz = document.documentElement.style;
+R.cadaCuadro((t) => {
+  raiz.setProperty("--p", (R.progreso() * 100).toFixed(2) + "%");
+  raiz.setProperty("--brillo", Math.min(1, suave * 1.5).toFixed(2));
+  raiz.setProperty("--latido", (1 + suave * 0.03).toFixed(3));
+  raiz.setProperty("--giro", (-3 + Math.sin(t * 0.25) * 2).toFixed(2) + "deg");
+  document.body.classList.toggle("sonando", $("bPlay").textContent === "❚❚");
 });
 </script>
 </body>
