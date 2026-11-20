@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Líquido — prototipo</title>
+<link rel="stylesheet" href="vidrio-liquido.css">
+<script src="hls.min.js"></script>
+<style>
+  body { overflow: hidden; }
+  .capa { position: relative; z-index: 1; height: 100%; display: grid; grid-template-rows: 1fr auto; gap: 18px;
+    padding: 22px 26px; box-sizing: border-box; }
+  main { display: grid; grid-template-columns: minmax(0, 420px) 1fr; gap: 18px; min-height: 0; }
+  .ahora { padding: 22px; display: flex; flex-direction: column; gap: 16px; min-height: 0; }
+  #grande { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 16px; display: block;
+    box-shadow: 0 20px 60px rgba(0,0,0,.5), 0 0 0 1px var(--borde); }
+  #titulo { font-size: 22px; font-weight: 600; letter-spacing: -.02em; line-height: 1.2; }
+  #artista { color: var(--suave); margin-top: 6px; }
+  .lista-caja { padding: 16px 0 10px; display: flex; flex-direction: column; min-height: 0; }
+  .lista-caja .mono { padding: 0 22px 10px; color: var(--suave); display: flex; justify-content: space-between; }
+  #lista { overflow-y: auto; }
+  .fila { display: grid; grid-template-columns: 40px 26px 1fr 48px; align-items: center; gap: 12px;
+    padding: 7px 22px; font-size: 14px; cursor: pointer; color: var(--suave); }
+  .fila:hover { background: rgba(255,255,255,.05); color: var(--texto); }
+  .fila.sonando { color: var(--texto); background: rgba(255,45,61,.12); }
+  .fila img { width: 40px; height: 40px; object-fit: cover; border-radius: 6px; }
+  .fila .n, .fila .dur { font: 12px "Geist Mono", monospace; }
+  .fila .nombre { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  footer { display: grid; grid-template-columns: 52px minmax(0, 220px) auto 1fr 140px; align-items: center; gap: 16px;
+    padding: 10px 22px 10px 10px; }
+  #caratula { width: 52px; height: 52px; border-radius: 50%; object-fit: cover; }
+  #tituloBarra { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #tiempo { color: var(--suave); }
+  .botones { display: flex; align-items: center; gap: 10px; }
+  .botones .btn { width: 42px; height: 42px; padding: 0; justify-content: center; font-size: 15px; }
+  #bPlay { width: 50px; height: 50px; font-size: 17px; }
+  input[type=range] { width: 100%; accent-color: var(--rojo); }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute"><filter id="liquido" x="0%" y="0%" width="100%" height="100%" color-interpolation-filters="sRGB">
+  <feTurbulence type="fractalNoise" baseFrequency="0.006 0.009" numOctaves="2" seed="11" result="ruido"/>
+  <feGaussianBlur in="ruido" stdDeviation="2.5" result="suave"/>
+  <feDisplacementMap in="SourceGraphic" in2="suave" scale="70" xChannelSelector="R" yChannelSelector="G"/>
+</filter></svg>
+<canvas id="haz"></canvas>
+
+<div class="capa">
+  <main>
+    <section class="ahora vidrio tarjeta">
+      <img id="grande" alt="">
+      <div><div class="mono" style="color:var(--suave)"><span class="punto"></span> Ahora suena</div>
+        <div id="titulo" style="margin-top:10px">—</div><div id="artista"></div></div>
+    </section>
+    <section class="lista-caja vidrio tarjeta">
+      <div class="mono"><span>Tus likes</span><span id="cuenta"></span></div>
+      <div id="lista"></div>
+    </section>
+  </main>
+  <footer class="vidrio pastilla">
+    <img id="caratula" alt="">
+    <div><div id="tituloBarra">—</div><div id="tiempo" class="mono">0:00 / 0:00</div></div>
+    <div class="botones">
+      <button class="btn vidrio pastilla" id="bAnt" title="Anterior">⏮</button>
+      <button class="btn btn-principal" id="bPlay" title="Play / pausa">▶</button>
+      <button class="btn vidrio pastilla" id="bSig" title="Siguiente">⏭</button>
+    </div>
+    <input id="barra" type="range" min="0" max="1000" value="0">
+    <input id="volumen" type="range" min="0" max="100" value="80" title="Volumen">
+  </footer>
+</div>
+
+<script src="haz.js"></script>
+<script src="nucleo.js"></script>
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const NOMBRES = { soundcloud: "Tus likes", musica: "Tu música", pc: "Sonando en el PC" };
+document.querySelector(".lista-caja .mono span").textContent = NOMBRES[R.fuente];
+R.alCambiar((p) => {
+  $("cuenta").textContent = R.fuente === "pc" ? "" : `${R.pistas.length} temas`; $("grande").src = p.caratula || ""; $("tituloBarra").textContent = p.titulo; });
+// El haz late con el bajo; sin música, pulso suave (lo resuelve R.espectro).
+let suave = 0;
+iniciarHaz($("haz"), () => {
+  const e = R.energia(R.espectro(), 1, 10);
+  suave += (e - suave) * 0.3;
+  return Math.min(1, suave * 1.3);
+});
+</script>
+</body>
+</html>

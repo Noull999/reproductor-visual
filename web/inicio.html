@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inicio — prototipo</title>
+<link rel="stylesheet" href="vidrio-liquido.css">
+<style>
+  body { overflow: hidden; }
+  .capa { position: relative; z-index: 1; height: 100%; display: flex; flex-direction: column; padding: 18px 28px; box-sizing: border-box; }
+  nav { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px 10px 20px; }
+  nav b { display: flex; align-items: center; gap: 10px; font-weight: 600; }
+  main { flex: 1; display: flex; flex-direction: column; justify-content: center; max-width: 1100px; }
+  .etiqueta { align-self: flex-start; padding: 7px 14px; display: flex; gap: 8px; align-items: center; color: var(--suave); }
+  h1 { font-size: clamp(40px, 6vw, 76px); font-weight: 500; letter-spacing: -.035em; line-height: 1.02; margin: 22px 0 14px; }
+  h1 span { background: linear-gradient(90deg, #fff3f2, #ff6b78); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .sub { color: var(--suave); font-size: 17px; max-width: 520px; margin: 0 0 34px; }
+  .fuentes { display: grid; grid-template-columns: repeat(3, minmax(0, 300px)); gap: 16px; }
+  .fuente { padding: 22px; text-decoration: none; color: inherit; display: flex; flex-direction: column; gap: 10px;
+    transition: transform .25s cubic-bezier(.2,.8,.2,1), box-shadow .25s; cursor: pointer; }
+  .fuente:hover { transform: translateY(-4px); box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 18px 50px rgba(255,45,61,.25); }
+  .fuente .icono { font-size: 26px; }
+  .fuente b { font-size: 18px; font-weight: 600; }
+  .fuente p { margin: 0; color: var(--suave); font-size: 14px; line-height: 1.45; }
+  .fuente .estado { margin-top: auto; color: var(--suave); }
+  .fuente.pronto { opacity: .55; cursor: default; }
+  .fuente.pronto:hover { transform: none; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute"><filter id="liquido" x="0%" y="0%" width="100%" height="100%" color-interpolation-filters="sRGB">
+  <feTurbulence type="fractalNoise" baseFrequency="0.006 0.009" numOctaves="2" seed="11" result="ruido"/>
+  <feGaussianBlur in="ruido" stdDeviation="2.5" result="suave"/>
+  <feDisplacementMap in="SourceGraphic" in2="suave" scale="70" xChannelSelector="R" yChannelSelector="G"/>
+</filter></svg>
+<canvas id="haz"></canvas>
+
+<div class="capa">
+  <nav class="vidrio pastilla"><b><span class="punto"></span>Reproductor <span class="mono" style="color:var(--suave)">· sin nombre aún</span></b>
+    <a class="btn vidrio pastilla" href="index.html" style="padding:9px 18px">Plantillas</a></nav>
+  <main>
+    <div class="etiqueta vidrio pastilla mono"><span class="punto" style="background:#3ddc84;box-shadow:0 0 10px #3ddc84"></span>Elige de dónde suena</div>
+    <h1>Tu música,<br><span>a tu manera.</span></h1>
+    <p class="sub">Escucha tus likes, tus carpetas o lo que ya suena en el PC, con la pantalla que tú elijas.</p>
+    <div class="fuentes">
+      <a class="fuente vidrio tarjeta" href="index.html?fuente=soundcloud">
+        <span class="icono">☁️</span><b>SoundCloud</b>
+        <p>Tus likes, completos, dentro de la app. Eliges, saltas y la pantalla sigue el ritmo exacto.</p>
+        <span class="estado mono">Disponible →</span></a>
+      <a class="fuente vidrio tarjeta" href="index.html?fuente=musica">
+        <span class="icono">💽</span><b>Mi música</b>
+        <p>Tus carpetas del PC. Cada carpeta es una lista.</p>
+        <span class="estado mono">Elegir carpeta →</span></a>
+      <a class="fuente vidrio tarjeta" href="index.html?fuente=pc">
+        <span class="icono">🎧</span><b>Lo que suena en el PC</b>
+        <p>Spotify o el navegador: ves qué suena, controlas el tema y la pantalla reacciona al audio.</p>
+        <span class="estado mono">Disponible →</span></a>
+    </div>
+  </main>
+</div>
+<script src="haz.js"></script>
+<script>iniciarHaz(document.getElementById("haz"));</script>
+</body>
+</html>

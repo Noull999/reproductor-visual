@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plantillas — prototipo</title>
+<link rel="stylesheet" href="vidrio-liquido.css">
+<style>
+  body { overflow: hidden; }
+  .capa { position: relative; z-index: 1; height: 100%; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: 22px; padding: 24px; box-sizing: border-box; }
+  h1 { font-size: 34px; font-weight: 500; letter-spacing: -.03em; margin: 0; }
+  .grilla { display: grid; grid-template-columns: repeat(3, 250px); gap: 16px; }
+  a.tarjeta { display: flex; flex-direction: column; gap: 6px; padding: 20px; text-decoration: none; color: inherit;
+    transition: transform .25s cubic-bezier(.2,.8,.2,1); }
+  a.tarjeta:hover { transform: translateY(-4px); }
+  a b { font-size: 17px; font-weight: 600; }
+  a span { color: var(--suave); font-size: 13px; line-height: 1.45; }
+  .pie { color: var(--suave); }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute"><filter id="liquido" x="0%" y="0%" width="100%" height="100%" color-interpolation-filters="sRGB">
+  <feTurbulence type="fractalNoise" baseFrequency="0.006 0.009" numOctaves="2" seed="11" result="ruido"/>
+  <feGaussianBlur in="ruido" stdDeviation="2.5" result="suave"/>
+  <feDisplacementMap in="SourceGraphic" in2="suave" scale="70" xChannelSelector="R" yChannelSelector="G"/>
+</filter></svg>
+<canvas id="haz"></canvas>
+<div class="capa">
+  <div class="mono pie"><a href="inicio.html" style="color:inherit">← Inicio</a> · Fuente: SoundCloud</div>
+  <h1>Elige tu pantalla</h1>
+  <div class="grilla">
+    <a class="vidrio tarjeta" href="liquido.html"><b>Líquido</b><span>Vidrio sobre un haz de luz que late con el bajo</span></a>
+    <a class="vidrio tarjeta" href="headspace.html"><b>Headspace</b><span>Cabeza de plástico con el reproductor adentro y fondo de fuego</span></a>
+    <a class="vidrio tarjeta" href="dosmil.html"><b>2000s</b><span>Barras y ondas al estilo Windows Media Player</span></a>
+    <a class="vidrio tarjeta" href="oscuro.html"><b>Oscuro</b><span>Carátula, lista de likes y onda de SoundCloud</span></a>
+    <a class="vidrio tarjeta" href="vidrio.html"><b>Vidrio</b><span>Carátula desenfocada que late con el bajo</span></a>
+  </div>
+  <div class="mono pie">Si un tema no suena: corre actualizar_pistas.py</div>
+</div>
+<script src="haz.js"></script>
+<script>iniciarHaz(document.getElementById("haz"));</script>
+</body>
+</html>
