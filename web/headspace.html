@@ -31,7 +31,9 @@
   .gel:active { transform: translateY(1px) scale(.97); box-shadow: inset 0 2px 6px rgba(0,0,0,.4); }
 
   /* ---- Pantalla ---- */
-  #pantalla { border-radius: 9% / 13%; overflow: hidden; container-type: size; }
+  /* Fondo propio: el filtro de color tiñe el cuerpo, pero la pantalla debe seguir negra-azul */
+  #pantalla { border-radius: 8%; overflow: hidden; container-type: size;
+    background: radial-gradient(ellipse at 50% 40%, #0a0f2a, #03050f); box-shadow: inset 0 0 2cqh rgba(0,0,0,.8); }
   #pantalla::after { content: ""; position: absolute; inset: 0; pointer-events: none;
     background: linear-gradient(165deg, rgba(255,255,255,.14) 0 22%, transparent 22%),
                 repeating-linear-gradient(0deg, rgba(0,0,0,.18) 0 1px, transparent 1px 3px); }
@@ -154,6 +156,11 @@ const raiz = document.documentElement.style;
 const guardar = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
 const leer = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
 
+// Zonas de las imágenes de video maker (las dos tienen la misma composición; pantalla medida en píxeles).
+const ZONAS_IMAGEN = {
+  pantalla: [23.4, 23.4, 53.4, 38.6], botones: [33, 9.8, 34, 6.6], barra: [33, 64.6, 34, 4.2],
+  ojos: [[24.5, 70.8, 15, 7.4], [61, 70.8, 15, 7.4]], boca: [43, 80.3, 14, 5],
+  parlantes: [[5.3, 29.8, 11.4, 32.4], [83.3, 29.8, 11.4, 32.4]] };
 // Cada cuerpo dice dónde van las piezas, en % de la caja [x, y, ancho, alto].
 // Las imágenes se ofrecen solo si existen y tienen sus zonas medidas.
 const CUERPOS = {
@@ -161,8 +168,8 @@ const CUERPOS = {
     pantalla: [28.3, 19.7, 43.4, 23.7], botones: [29.7, 12.1, 40.7, 7.6], barra: [28.7, 43.4, 42.7, 6.6],
     ojos: [[25, 56.6, 20.3, 7.4], [54.7, 56.6, 20.3, 7.4]], boca: [37, 78.3, 26, 4.5],
     parlantes: [[6.2, 29.2, 13.3, 10.5], [6.2, 41.8, 13.3, 10.5], [80.5, 29.2, 13.3, 10.5], [80.5, 41.8, 13.3, 10.5]] } },
-  "Realista": { imagen: "img/headspace/realista.png", zonas: null },
-  "Y2K": { imagen: "img/headspace/y2k.png", zonas: null },
+  "Y2K": { imagen: "img/headspace/y2k.webp", zonas: ZONAS_IMAGEN },
+  "Gel": { imagen: "img/headspace/gel.webp", zonas: ZONAS_IMAGEN },
 };
 const COLORES = {
   "Lima":      { filtro: "", led: "#8dff4a", gel: "#9be22a", fondo: "#123a00" },
@@ -221,9 +228,10 @@ $("caratula").onload = () => { $("caratula").style.visibility = "visible"; };
 
 usarColor(COLORES[leer("color-headspace")] ? leer("color-headspace") : "Lima");
 const elegido = leer("cuerpo-headspace");
-usarCuerpo(CUERPOS[elegido] && CUERPOS[elegido].zonas ? elegido : "Dibujo");
-if (elegido && CUERPOS[elegido] && CUERPOS[elegido].imagen) {   // si la imagen ya no está, volver al dibujo
-  const prueba = new Image(); prueba.onerror = () => usarCuerpo("Dibujo"); prueba.src = CUERPOS[elegido].imagen;
+const inicial = CUERPOS[elegido] && CUERPOS[elegido].zonas ? elegido : "Y2K";
+usarCuerpo(inicial);
+if (CUERPOS[inicial].imagen) {   // si la imagen ya no está, volver al dibujo
+  const prueba = new Image(); prueba.onerror = () => usarCuerpo("Dibujo"); prueba.src = CUERPOS[inicial].imagen;
 }
 
 // ---- Fondo: burbujas que suben con el bajo y destellos con los agudos ----

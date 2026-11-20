@@ -2,3 +2,4 @@ __pycache__/
 *.pyc
 # Lista de prueba con enlaces de streaming que vencen
 prototipo/pistas.js
+arte/**/*.png
