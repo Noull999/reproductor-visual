@@ -3,178 +3,305 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Headspace — prototipo</title>
+<title>Headspace</title>
+<link rel="preload" href="fonts/Fredoka-latin-9591efe1.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="fonts/headspace.css">
 <script src="hls.min.js"></script>
 <style>
-  :root { --lima: #9be22a; --pantalla: #060a3a; --led: #7dff3a; }
-  html, body { margin: 0; height: 100%; background: #000; overflow: hidden;
-    font-family: "Trebuchet MS", Tahoma, sans-serif; color: #eaffd0; }
+  /* Colores del tono elegido (abajo); estos son los de "Lima". */
+  :root { --led: #8dff4a; --gel: #9be22a; --fondo: #123a00; --p: 0%; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; font-family: "Fredoka", "Trebuchet MS", sans-serif; color: #fff; }
   #fondo { position: fixed; inset: 0; width: 100%; height: 100%; }
-  #cabeza { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
-    height: min(88vh, 112vw); aspect-ratio: 600 / 760; }
-  #cabeza svg { position: absolute; inset: 0; width: 100%; height: 100%;
-    filter: drop-shadow(0 18px 30px rgba(0,0,0,.6)); }
-  /* Todo lo de encima se ubica en % del dibujo (viewBox 600x760). */
-  .en { position: absolute; }
-  #pantalla { left: 28.3%; top: 19.7%; width: 43.4%; height: 23.7%; border-radius: 9% / 13%; }
-  #caratula { left: 30.2%; top: 21.2%; width: 9%; aspect-ratio: 1; border-radius: 6px;
-    object-fit: cover; opacity: .9; box-shadow: 0 0 10px rgba(125,255,58,.4); }
-  #textos { left: 40.5%; top: 21.6%; width: 29%; font-size: min(1.55vh, 1.9vw); line-height: 1.25;
-    color: var(--led); text-shadow: 0 0 6px rgba(125,255,58,.7); white-space: nowrap; overflow: hidden; }
-  #titulo { font-weight: bold; }
-  #artista { opacity: .75; }
-  #botones { left: 31%; top: 13.2%; width: 38%; height: 5.6%; display: flex; justify-content: space-between; }
-  .boton { width: 22%; height: 100%; border-radius: 50% / 70%; border: 2px solid #2d5200; cursor: pointer;
-    background: radial-gradient(circle at 50% 25%, #fff 0%, #e4f6c4 18%, #9cc95e 55%, #4f7c12 100%);
-    color: #183400; font-size: min(1.8vh, 2.2vw); font-weight: bold;
-    box-shadow: inset 0 -3px 5px rgba(0,0,0,.35), 0 2px 4px rgba(0,0,0,.4); }
-  .boton:active { transform: translateY(1px); box-shadow: inset 0 2px 5px rgba(0,0,0,.5); }
-  #barra { left: 30%; top: 44.3%; width: 40%; }
-  #tiempo { left: 30%; top: 47.2%; width: 40%; text-align: center; font-size: min(1.5vh, 1.8vw);
-    color: #1f3d00; font-weight: bold; }
-  #volumen { left: 38%; top: 82.6%; width: 24%; }
-  input[type=range] { -webkit-appearance: none; appearance: none; height: 8px; border-radius: 4px;
-    background: linear-gradient(#20400a, #4c7d14); border: 1px solid #1a3300; }
-  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%;
-    background: radial-gradient(circle at 40% 30%, #fff, #b9e06d 45%, #4a7a10); border: 1px solid #1a3300; cursor: pointer; }
-  #aviso { position: fixed; bottom: 12px; left: 0; right: 0; text-align: center; font-size: 13px;
-    color: #fff; text-shadow: 0 1px 3px #000; }
+
+  /* El cuerpo (dibujo o imagen) y todo lo de encima se ubica en % de esta caja */
+  #cabeza { position: absolute; left: 50%; top: calc(50% - 34px); transform: translate(-50%, -50%);
+    height: min(calc(100vh - 110px), 100vw * 760 / 600 * .9); aspect-ratio: 600 / 760; container-type: size; }
+  #cuerpo, #cuerpo > * { position: absolute; inset: 0; width: 100%; height: 100%; }
+  #cuerpo img { object-fit: contain; }
+  .zona { position: absolute; }
+
+  /* ---- Gel: los botones brillantes de la época ---- */
+  .gel { border: 1px solid color-mix(in srgb, var(--gel) 45%, black); border-radius: 999px; cursor: pointer; font: inherit; font-weight: 600;
+    color: color-mix(in srgb, var(--gel) 22%, black);
+    background: linear-gradient(180deg, rgba(255,255,255,.9) 0%, rgba(255,255,255,.3) 46%, transparent 52%),
+      radial-gradient(ellipse at 50% 125%, color-mix(in srgb, var(--gel) 55%, white), var(--gel) 55%, color-mix(in srgb, var(--gel) 60%, black));
+    box-shadow: inset 0 -3px 6px rgba(0,0,0,.25), 0 2px 5px rgba(0,0,0,.45); transition: transform .1s, filter .15s; }
+  .gel:hover { filter: brightness(1.12); }
+  .gel:active { transform: translateY(1px) scale(.97); box-shadow: inset 0 2px 6px rgba(0,0,0,.4); }
+
+  /* ---- Pantalla ---- */
+  #pantalla { border-radius: 9% / 13%; overflow: hidden; container-type: size; }
+  #pantalla::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(165deg, rgba(255,255,255,.14) 0 22%, transparent 22%),
+                repeating-linear-gradient(0deg, rgba(0,0,0,.18) 0 1px, transparent 1px 3px); }
+  #visor { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .cab { position: absolute; left: 6%; right: 6%; top: 8%; display: flex; gap: 4cqw; align-items: center; }
+  #caratula { width: 26cqh; height: 26cqh; object-fit: cover; border-radius: 3cqh; flex: none;
+    box-shadow: 0 0 0 .6cqh var(--led), 0 0 3cqh color-mix(in srgb, var(--led) 60%, transparent); }
+  .txt { min-width: 0; color: var(--led); text-shadow: 0 0 2cqh color-mix(in srgb, var(--led) 70%, transparent); }
+  #titulo { font-size: 11cqh; font-weight: 600; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #artista { font-size: 8.5cqh; opacity: .75; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #tiempo { position: absolute; right: 6%; top: 40%; font-size: 7.5cqh; color: var(--led); opacity: .8; }
+
+  #botones { display: flex; justify-content: space-between; align-items: center; padding: 0 3%; }
+  #botones button { width: 22%; height: 78%; font-size: 2.6cqh; font-family: "Segoe UI Symbol", "Fredoka", sans-serif; }
+  #zonaBarra { display: flex; align-items: center; justify-content: center; }
+  #barra { width: 88%; }
+  input[type=range] { -webkit-appearance: none; appearance: none; height: 1.3cqh; margin: 0; border-radius: 999px; cursor: pointer;
+    background: linear-gradient(90deg, var(--led) var(--p), rgba(0,0,0,.6) var(--p));
+    box-shadow: inset 0 1px 3px rgba(0,0,0,.7), 0 1px 0 rgba(255,255,255,.35); }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 2.6cqh; height: 2.6cqh; border-radius: 50%;
+    border: 1px solid color-mix(in srgb, var(--gel) 45%, black);
+    background: linear-gradient(180deg, rgba(255,255,255,.95), rgba(255,255,255,.3) 48%, transparent 52%), var(--gel);
+    box-shadow: 0 1px 3px rgba(0,0,0,.5); }
+
+  .ojo { border-radius: 50%; mix-blend-mode: screen; opacity: .2;
+    background: radial-gradient(ellipse, #fff 0%, var(--led) 30%, transparent 70%); }
+  #boca { display: flex; gap: 4%; align-items: center; padding: 0 6%; }
+  #boca i { flex: 1; height: 55%; border-radius: 3px; background: var(--led); opacity: .12; box-shadow: 0 0 1cqh var(--led); }
+  #boca i.on { opacity: 1; }
+  #boca i.alto.on { background: #fff; }
+  .anillo { border-radius: 50%; opacity: 0; pointer-events: none;
+    box-shadow: inset 0 0 0 .5cqh var(--led), 0 0 3cqh var(--led), inset 0 0 3cqh var(--led); }
+
+  /* ---- Barra de abajo: cuerpo, color y volumen ---- */
+  #pie { position: fixed; left: 50%; bottom: 14px; transform: translateX(-50%); display: flex; align-items: center; gap: 18px;
+    padding: 8px 18px; border-radius: 999px; font-size: 13px; white-space: nowrap;
+    background: linear-gradient(180deg, rgba(255,255,255,.32), rgba(255,255,255,.08) 50%, rgba(0,0,0,.25));
+    border: 1px solid rgba(255,255,255,.35); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+    box-shadow: 0 10px 30px rgba(0,0,0,.5); }
+  #pie .grupo { display: flex; align-items: center; gap: 6px; }
+  #pie .nombre { opacity: .7; margin-right: 2px; }
+  #cuerpos button { padding: 4px 12px; font-size: 12px; }
+  #cuerpos button.elegido { box-shadow: 0 0 0 2px #fff, 0 0 12px var(--led); }
+  #colores button { width: 22px; height: 22px; padding: 0; }
+  #colores button.elegido { box-shadow: 0 0 0 2px #fff, 0 0 12px var(--led); }
+  #volumen { width: 110px; height: 8px; }
+  #volumen::-webkit-slider-thumb { width: 16px; height: 16px; }
 </style>
 </head>
 <body>
 <canvas id="fondo"></canvas>
-
 <div id="cabeza">
-  <svg viewBox="0 0 600 760" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <radialGradient id="piel" cx="50%" cy="28%" r="70%">
-        <stop offset="0" stop-color="#e6ff7a"/><stop offset=".45" stop-color="#8fd61c"/>
-        <stop offset=".85" stop-color="#3f8a06"/><stop offset="1" stop-color="#245200"/>
-      </radialGradient>
-      <linearGradient id="cromo" x1="0" y1="0" x2="1" y2="0">
-        <stop offset="0" stop-color="#5e6a6e"/><stop offset=".35" stop-color="#f2f6f7"/>
-        <stop offset=".6" stop-color="#9aa6aa"/><stop offset="1" stop-color="#3c4649"/>
-      </linearGradient>
-      <radialGradient id="cono" cx="50%" cy="45%" r="55%">
-        <stop offset="0" stop-color="#d9e0e2"/><stop offset=".25" stop-color="#5b6467"/>
-        <stop offset=".6" stop-color="#2b3133"/><stop offset=".85" stop-color="#9aa5a8"/><stop offset="1" stop-color="#3a4245"/>
-      </radialGradient>
-      <radialGradient id="ojo" cx="50%" cy="40%" r="60%">
-        <stop offset="0" stop-color="#f6ffd8"/><stop offset=".4" stop-color="#b6ff3c"/><stop offset="1" stop-color="#1d4a00"/>
-      </radialGradient>
-      <linearGradient id="vidrio" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/>
-      </linearGradient>
-    </defs>
-
-    <!-- Cápsulas de parlantes a los lados (detrás de la cabeza) -->
-    <g id="oidoIzq">
-      <rect x="18" y="205" width="118" height="210" rx="56" fill="url(#cromo)" stroke="#1d2629" stroke-width="4"/>
-      <g class="parlante" transform="translate(77 262)"><circle r="40" fill="url(#cono)"/><circle r="13" fill="#1a1f21"/></g>
-      <g class="parlante" transform="translate(77 358)"><circle r="40" fill="url(#cono)"/><circle r="13" fill="#1a1f21"/></g>
-    </g>
-    <use href="#oidoIzq" transform="translate(600 0) scale(-1 1)"/>
-
-    <!-- Cabeza -->
-    <path d="M300 34 C440 34 528 120 532 252 C536 356 498 426 470 498 C436 590 386 704 300 726
-             C214 704 164 590 130 498 C102 426 64 356 68 252 C72 120 160 34 300 34 Z"
-          fill="url(#piel)" stroke="#1f4500" stroke-width="5"/>
-    <!-- Brillo del plástico -->
-    <ellipse cx="300" cy="62" rx="105" ry="20" fill="url(#vidrio)" opacity=".7"/>
-
-    <!-- Bandeja de botones y marco de la pantalla -->
-    <rect x="178" y="92" width="244" height="58" rx="29" fill="#3d7a06" stroke="#1f4500" stroke-width="4"/>
-    <rect x="160" y="140" width="280" height="205" rx="30" fill="#2a5c02" stroke="#173a00" stroke-width="5"/>
-    <rect x="170" y="150" width="260" height="180" rx="24" fill="var(--pantalla)"/>
-
-    <!-- Placa de la barra de progreso -->
-    <rect x="172" y="330" width="256" height="50" rx="20" fill="#b5ea55" stroke="#1f4500" stroke-width="3"/>
-
-    <!-- Ojos tipo visor: brillan con la música -->
-    <g id="ojos">
+  <div id="cuerpo">
+    <svg id="dibujo" viewBox="0 0 600 760" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="piel" cx="50%" cy="28%" r="70%">
+          <stop offset="0" stop-color="#e6ff7a"/><stop offset=".45" stop-color="#8fd61c"/>
+          <stop offset=".85" stop-color="#3f8a06"/><stop offset="1" stop-color="#245200"/>
+        </radialGradient>
+        <linearGradient id="cromo" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#5e6a6e"/><stop offset=".35" stop-color="#f2f6f7"/>
+          <stop offset=".6" stop-color="#9aa6aa"/><stop offset="1" stop-color="#3c4649"/>
+        </linearGradient>
+        <radialGradient id="cono" cx="50%" cy="45%" r="55%">
+          <stop offset="0" stop-color="#d9e0e2"/><stop offset=".25" stop-color="#5b6467"/>
+          <stop offset=".6" stop-color="#2b3133"/><stop offset=".85" stop-color="#9aa5a8"/><stop offset="1" stop-color="#3a4245"/>
+        </radialGradient>
+        <radialGradient id="ojo" cx="50%" cy="40%" r="60%">
+          <stop offset="0" stop-color="#3a5a10"/><stop offset="1" stop-color="#0d2200"/>
+        </radialGradient>
+        <linearGradient id="vidrio" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <g id="oidoIzq">
+        <rect x="18" y="205" width="118" height="210" rx="56" fill="url(#cromo)" stroke="#1d2629" stroke-width="4"/>
+        <g class="cono" transform="translate(77 262)"><circle r="40" fill="url(#cono)"/><circle r="13" fill="#1a1f21"/></g>
+        <g class="cono" transform="translate(77 358)"><circle r="40" fill="url(#cono)"/><circle r="13" fill="#1a1f21"/></g>
+      </g>
+      <use href="#oidoIzq" transform="translate(600 0) scale(-1 1)"/>
+      <path d="M300 34 C440 34 528 120 532 252 C536 356 498 426 470 498 C436 590 386 704 300 726
+               C214 704 164 590 130 498 C102 426 64 356 68 252 C72 120 160 34 300 34 Z"
+            fill="url(#piel)" stroke="#1f4500" stroke-width="5"/>
+      <ellipse cx="300" cy="62" rx="105" ry="20" fill="url(#vidrio)" opacity=".7"/>
+      <rect x="178" y="92" width="244" height="58" rx="29" fill="#3d7a06" stroke="#1f4500" stroke-width="4"/>
+      <rect x="160" y="140" width="280" height="205" rx="30" fill="#2a5c02" stroke="#173a00" stroke-width="5"/>
+      <rect x="170" y="150" width="260" height="180" rx="24" fill="#05081f"/>
+      <rect x="172" y="330" width="256" height="50" rx="20" fill="#b5ea55" stroke="#1f4500" stroke-width="3"/>
       <path d="M150 455 C195 420 250 430 272 462 C232 486 182 484 150 455 Z" fill="url(#ojo)" stroke="#173a00" stroke-width="4"/>
       <path d="M450 455 C405 420 350 430 328 462 C368 486 418 484 450 455 Z" fill="url(#ojo)" stroke="#173a00" stroke-width="4"/>
-    </g>
-    <!-- Nariz -->
-    <path d="M300 478 C292 520 286 548 300 560 C314 548 308 520 300 478 Z" fill="#4e9a0a" opacity=".7"/>
-    <!-- Boca: medidor de nivel -->
-    <rect x="222" y="595" width="156" height="34" rx="17" fill="#173a00"/>
-    <g id="boca"></g>
-  </svg>
-
-  <canvas id="pantalla" class="en"></canvas>
-  <img id="caratula" class="en" alt="">
-  <div id="textos" class="en"><div id="titulo">—</div><div id="artista">Pulsa ▶ para empezar</div></div>
-  <div id="botones" class="en">
-    <button class="boton" id="bAnt" title="Anterior">⏮</button>
-    <button class="boton" id="bPlay" title="Play / pausa">▶</button>
-    <button class="boton" id="bSig" title="Siguiente">⏭</button>
-    <button class="boton" id="bStop" title="Detener">■</button>
+      <path d="M300 478 C292 520 286 548 300 560 C314 548 308 520 300 478 Z" fill="#4e9a0a" opacity=".7"/>
+      <rect x="222" y="595" width="156" height="34" rx="17" fill="#173a00"/>
+    </svg>
   </div>
-  <input id="barra" class="en" type="range" min="0" max="1000" value="0">
-  <div id="tiempo" class="en">0:00 / 0:00</div>
-  <input id="volumen" class="en" type="range" min="0" max="100" value="80" title="Volumen">
+  <div id="pantalla" class="zona">
+    <canvas id="visor"></canvas>
+    <div class="cab"><img id="caratula" alt=""><div class="txt"><div id="titulo">—</div><div id="artista"></div></div></div>
+    <div id="tiempo">0:00 / 0:00</div>
+  </div>
+  <div id="botones" class="zona">
+    <button id="bAnt" class="gel" title="Anterior">&#x23EE;&#xFE0E;</button>
+    <button id="bPlay" class="gel" title="Play / pausa">▶</button>
+    <button id="bSig" class="gel" title="Siguiente">&#x23ED;&#xFE0E;</button>
+    <button id="bStop" class="gel" title="Detener">■</button>
+  </div>
+  <div id="zonaBarra" class="zona"><input id="barra" type="range" min="0" max="1000" value="0" title="Avance"></div>
+  <div id="boca" class="zona"></div>
 </div>
-<div id="aviso"></div>
+<div id="pie">
+  <div class="grupo" id="cuerpos"><span class="nombre">Cuerpo</span></div>
+  <div class="grupo" id="colores"><span class="nombre">Color</span></div>
+  <div class="grupo"><span class="nombre">Vol</span><input id="volumen" type="range" min="0" max="100" value="80" title="Volumen"></div>
+</div>
 
 <script src="nucleo.js"></script>
-<script src="tunel.js"></script>
 <script>
 "use strict";
 const $ = (id) => document.getElementById(id);
-let t = 0;
+const raiz = document.documentElement.style;
+const guardar = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
+const leer = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
 
-const fondo = $("fondo");
+// Cada cuerpo dice dónde van las piezas, en % de la caja [x, y, ancho, alto].
+// Las imágenes se ofrecen solo si existen y tienen sus zonas medidas.
+const CUERPOS = {
+  "Dibujo": { zonas: {
+    pantalla: [28.3, 19.7, 43.4, 23.7], botones: [29.7, 12.1, 40.7, 7.6], barra: [28.7, 43.4, 42.7, 6.6],
+    ojos: [[25, 56.6, 20.3, 7.4], [54.7, 56.6, 20.3, 7.4]], boca: [37, 78.3, 26, 4.5],
+    parlantes: [[6.2, 29.2, 13.3, 10.5], [6.2, 41.8, 13.3, 10.5], [80.5, 29.2, 13.3, 10.5], [80.5, 41.8, 13.3, 10.5]] } },
+  "Realista": { imagen: "img/headspace/realista.png", zonas: null },
+  "Y2K": { imagen: "img/headspace/y2k.png", zonas: null },
+};
+const COLORES = {
+  "Lima":      { filtro: "", led: "#8dff4a", gel: "#9be22a", fondo: "#123a00" },
+  "Chicle":    { filtro: "hue-rotate(235deg) saturate(1.1)", led: "#ff6ad5", gel: "#ff7ad9", fondo: "#3a0230" },
+  "Cielo":     { filtro: "hue-rotate(115deg)", led: "#5ad1ff", gel: "#6cc8ff", fondo: "#002a44" },
+  "Mandarina": { filtro: "hue-rotate(-50deg) saturate(1.15)", led: "#ffb03a", gel: "#ff9a2a", fondo: "#3a1600" },
+  "Cromo":     { filtro: "saturate(0) brightness(1.1) contrast(1.05)", led: "#e8f0ff", gel: "#c9d3dc", fondo: "#1a1e24" },
+};
+let color = COLORES.Lima, ojos = [], anillos = [];
+
+function ubicar(el, [x, y, w, h]) { Object.assign(el.style, { left: x + "%", top: y + "%", width: w + "%", height: h + "%" }); }
+function usarCuerpo(nombre) {
+  const c = CUERPOS[nombre];
+  if (!c || !c.zonas) return;
+  const cuerpo = $("cuerpo");
+  $("dibujo").style.display = c.imagen ? "none" : "";
+  cuerpo.querySelectorAll("img").forEach(i => i.remove());
+  if (c.imagen) { const img = new Image(); img.src = c.imagen; img.alt = ""; cuerpo.appendChild(img); }
+  const z = c.zonas;
+  ubicar($("pantalla"), z.pantalla); ubicar($("botones"), z.botones); ubicar($("zonaBarra"), z.barra); ubicar($("boca"), z.boca);
+  [...ojos, ...anillos].forEach(e => e.remove());
+  ojos = z.ojos.map(r => { const e = document.createElement("div"); e.className = "zona ojo"; ubicar(e, r); $("cabeza").appendChild(e); return e; });
+  anillos = z.parlantes.map(r => { const e = document.createElement("div"); e.className = "zona anillo"; ubicar(e, r); $("cabeza").appendChild(e); return e; });
+  document.querySelectorAll("#cuerpos button").forEach(b => b.classList.toggle("elegido", b.dataset.c === nombre));
+  guardar("cuerpo-headspace", nombre);
+  aplicarFiltro();
+}
+function aplicarFiltro() { $("cuerpo").style.filter = `${color.filtro} drop-shadow(0 18px 30px rgba(0,0,0,.6))`; }
+function usarColor(nombre) {
+  color = COLORES[nombre] || COLORES.Lima;
+  for (const k of ["led", "gel", "fondo"]) raiz.setProperty("--" + k, color[k]);
+  aplicarFiltro();
+  document.querySelectorAll("#colores button").forEach(b => b.classList.toggle("elegido", b.dataset.c === nombre));
+  guardar("color-headspace", nombre);
+}
+
+for (const [nombre, c] of Object.entries(COLORES)) {
+  const b = document.createElement("button");
+  b.className = "gel"; b.dataset.c = nombre; b.title = nombre; b.style.setProperty("--gel", c.gel);
+  b.onclick = () => usarColor(nombre);
+  $("colores").appendChild(b);
+}
+for (const [nombre, c] of Object.entries(CUERPOS)) {
+  if (!c.zonas) continue;
+  const b = document.createElement("button");
+  b.className = "gel"; b.dataset.c = nombre; b.textContent = nombre; b.onclick = () => usarCuerpo(nombre);
+  if (c.imagen) {   // la imagen se ofrece solo si de verdad está en la carpeta
+    b.hidden = true;
+    const prueba = new Image(); prueba.onload = () => { b.hidden = false; }; prueba.src = c.imagen;
+  }
+  $("cuerpos").appendChild(b);
+}
+for (let i = 0; i < 12; i++) { const s = document.createElement("i"); if (i > 8) s.className = "alto"; $("boca").appendChild(s); }
+$("caratula").onerror = () => { $("caratula").style.visibility = "hidden"; };
+$("caratula").onload = () => { $("caratula").style.visibility = "visible"; };
+
+usarColor(COLORES[leer("color-headspace")] ? leer("color-headspace") : "Lima");
+const elegido = leer("cuerpo-headspace");
+usarCuerpo(CUERPOS[elegido] && CUERPOS[elegido].zonas ? elegido : "Dibujo");
+if (elegido && CUERPOS[elegido] && CUERPOS[elegido].imagen) {   // si la imagen ya no está, volver al dibujo
+  const prueba = new Image(); prueba.onerror = () => usarCuerpo("Dibujo"); prueba.src = CUERPOS[elegido].imagen;
+}
+
+// ---- Fondo: burbujas que suben con el bajo y destellos con los agudos ----
+const fondo = $("fondo"), fg = fondo.getContext("2d");
+const burbujas = Array.from({ length: 34 }, () => ({ x: Math.random(), y: Math.random(), r: 8 + Math.random() * 46, v: 0.0004 + Math.random() * 0.0012 }));
+const destellos = Array.from({ length: 26 }, () => ({ x: Math.random(), y: Math.random(), f: Math.random() * 6, s: 6 + Math.random() * 14 }));
+function estrella(x, y, s) {
+  fg.beginPath(); fg.moveTo(x, y - s);
+  fg.quadraticCurveTo(x, y, x + s, y); fg.quadraticCurveTo(x, y, x, y + s);
+  fg.quadraticCurveTo(x, y, x - s, y); fg.quadraticCurveTo(x, y, x, y - s); fg.fill();
+}
+function dibujarFondo(bajo, agudo, t) {
+  if (fondo.width !== innerWidth || fondo.height !== innerHeight) { fondo.width = innerWidth; fondo.height = innerHeight; }
+  const w = fondo.width, h = fondo.height;
+  if (!w || !h) return;
+  const g = fg.createRadialGradient(w / 2, h * 0.45, 0, w / 2, h * 0.45, Math.max(w, h) * 0.7);
+  g.addColorStop(0, color.fondo); g.addColorStop(1, "#000");
+  fg.fillStyle = g; fg.fillRect(0, 0, w, h);
+  const halo = fg.createRadialGradient(w / 2, h * 0.45, 0, w / 2, h * 0.45, h * (0.35 + bajo * 0.25));
+  halo.addColorStop(0, color.led + "55"); halo.addColorStop(1, color.led + "00");
+  fg.globalAlpha = 0.25 + bajo * 0.75; fg.fillStyle = halo; fg.fillRect(0, 0, w, h); fg.globalAlpha = 1;
+  for (const b of burbujas) {
+    b.y -= b.v * (1 + bajo * 5);
+    if (b.y < -0.1) { b.y = 1.1; b.x = Math.random(); }
+    const x = b.x * w + Math.sin(t * 0.6 + b.r) * 12, y = b.y * h, r = b.r * (1 + bajo * 0.25);
+    fg.fillStyle = color.led + "14"; fg.strokeStyle = "rgba(255,255,255,.22)"; fg.lineWidth = 1.2;
+    fg.beginPath(); fg.arc(x, y, r, 0, 7); fg.fill(); fg.stroke();
+    fg.fillStyle = "rgba(255,255,255,.35)";
+    fg.beginPath(); fg.ellipse(x - r * 0.35, y - r * 0.4, r * 0.28, r * 0.14, -0.6, 0, 7); fg.fill();
+  }
+  fg.fillStyle = "#fff";
+  for (const d of destellos) {
+    const a = Math.max(0, Math.sin(t * 2.2 + d.f)) * (0.15 + agudo * 2.2);
+    if (a < 0.03) continue;
+    fg.globalAlpha = Math.min(1, a); estrella(d.x * w, d.y * h, d.s * (0.6 + a * 0.6));
+  }
+  fg.globalAlpha = 1;
+}
 
 // ---- Pantalla: barras LED con picos ----
-const pan = $("pantalla"), pg = pan.getContext("2d");
-const picos = new Array(28).fill(0);
+const visor = $("visor"), vg = visor.getContext("2d"), picos = new Array(30).fill(0);
 function dibujarPantalla(d) {
-  const r = pan.getBoundingClientRect();
-  if (pan.width !== Math.round(r.width)) { pan.width = Math.round(r.width); pan.height = Math.round(r.height); }
-  if (!pan.width || !pan.height) return;
-  const w = pan.width, h = pan.height, n = picos.length, base = h * 0.95, alto = h * 0.52, ancho = w * 0.86 / n;
-  pg.clearRect(0, 0, w, h);
+  const r = visor.getBoundingClientRect();
+  if (visor.width !== Math.round(r.width) || visor.height !== Math.round(r.height)) { visor.width = Math.round(r.width); visor.height = Math.round(r.height); }
+  const w = visor.width, h = visor.height;
+  if (!w || !h) return;
+  vg.clearRect(0, 0, w, h);
+  const n = picos.length, base = h * 0.93, alto = h * 0.42, ancho = w * 0.88 / n, SEG = 12;
+  vg.shadowColor = color.led; vg.shadowBlur = 6;
   for (let i = 0; i < n; i++) {
-    const idx = Math.floor(Math.pow(i / n, 1.7) * 220) + 1;
-    const v = d[idx] / 255;
-    picos[i] = Math.max(picos[i] - 0.012, v);
-    const x = w * 0.07 + i * ancho, segs = Math.round(v * 14);
+    const i0 = Math.floor(2 * Math.pow(120, i / n)), i1 = Math.max(i0 + 1, Math.floor(2 * Math.pow(120, (i + 1) / n)));
+    const v = Math.pow(R.energia(d, i0, i1), 1.6);
+    picos[i] = Math.max(picos[i] - 0.01, v);
+    const x = w * 0.06 + i * ancho, segs = Math.round(v * SEG);
     for (let s = 0; s < segs; s++) {
-      pg.fillStyle = s > 11 ? "#ff5a3a" : s > 8 ? "#ffe03a" : "#7dff3a";
-      pg.fillRect(x, base - (s + 1) * alto / 14, ancho * 0.72, alto / 14 - 2);
+      vg.fillStyle = s >= SEG - 2 ? "#ffffff" : color.led;
+      vg.fillRect(x, base - (s + 1) * alto / SEG, ancho * 0.7, alto / SEG - 2);
     }
-    pg.fillStyle = "#e9ffd2";
-    pg.fillRect(x, base - picos[i] * alto - 3, ancho * 0.72, 2);
+    vg.fillStyle = "#fff";
+    vg.fillRect(x, base - picos[i] * alto - 3, ancho * 0.7, 2);
   }
+  vg.shadowBlur = 0;
 }
 
-// ---- Cabeza: parlantes que laten, ojos que brillan, boca con nivel ----
-const parlantes = document.querySelectorAll(".parlante"), ojos = $("ojos"), boca = $("boca");
-for (let i = 0; i < 12; i++) {
-  const seg = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-  seg.setAttribute("x", 232 + i * 12); seg.setAttribute("y", 603); seg.setAttribute("width", 9);
-  seg.setAttribute("height", 18); seg.setAttribute("rx", 2); boca.appendChild(seg);
-}
-function animarCabeza(bajo, medio) {
-  const esc = 1 + bajo * 0.16;
-  parlantes.forEach(p => {
-    const base = p.getAttribute("transform").split(" scale")[0];
-    p.setAttribute("transform", `${base} scale(${esc.toFixed(3)})`);
-  });
-  ojos.style.opacity = (0.55 + medio * 0.9).toFixed(2);
-  const encendidos = Math.round(medio * 18);
-  boca.querySelectorAll("rect").forEach((s, i) =>
-    s.setAttribute("fill", i < encendidos ? (i > 9 ? "#ff5a3a" : "#7dff3a") : "#2d5a0c"));
-}
-
-R.cadaCuadro((tiempo) => {
-  t = tiempo;
+// ---- Cada cuadro ----
+const conos = document.querySelectorAll("#dibujo .cono"), segBoca = $("boca").children;
+R.cadaCuadro((t) => {
   const d = R.espectro();
   const bajo = R.energia(d, 1, 8), medio = R.energia(d, 8, 60), agudo = R.energia(d, 60, 200);
-  dibujarTunel(fondo, d, bajo, agudo, t, PALETAS.fuego);
+  dibujarFondo(bajo, agudo, t);
   dibujarPantalla(d);
-  animarCabeza(bajo, medio);
+  raiz.setProperty("--p", (R.progreso() * 100).toFixed(2) + "%");
+  ojos.forEach(o => { o.style.opacity = (0.12 + medio * 1.3).toFixed(2); });
+  anillos.forEach(a => { a.style.opacity = Math.min(1, bajo * 1.3).toFixed(2); a.style.transform = `scale(${(0.85 + bajo * 0.3).toFixed(3)})`; });
+  const esc = (1 + bajo * 0.16).toFixed(3);
+  conos.forEach(c => c.setAttribute("transform", c.getAttribute("transform").split(" scale")[0] + ` scale(${esc})`));
+  const encendidos = Math.round(medio * 18);
+  for (let i = 0; i < segBoca.length; i++) segBoca[i].classList.toggle("on", i < encendidos);
 });
 </script>
 </body>

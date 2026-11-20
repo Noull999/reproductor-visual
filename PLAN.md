@@ -35,7 +35,10 @@ Este plan se ajusta según prioridades: lo de arriba se hace primero.
 ## Fase 2 — Imágenes propias en las plantillas
 
 - [ ] Cada plantilla declara **ranuras** de imagen (fondo, cabeza, botones…) con su
-      tamaño recomendado.
+      tamaño recomendado. *(Headspace ya funciona así: el cuerpo es el dibujo o una imagen,
+      y la pantalla, botones, ojos, boca y parlantes se ubican por zonas en %.)*
+- [ ] Headspace: imágenes "Realista" e "Y2K" pedidas a video maker; después evaluar un cuerpo
+      distinto por color.
 - [ ] Subir una imagen a una ranura desde la app (sin tocar carpetas ni código).
       Si la ranura está vacía, se usa el dibujo original.
 - [ ] Pensado para imágenes de Higgsfield u otros generadores.
