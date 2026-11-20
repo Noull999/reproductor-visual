@@ -3,104 +3,291 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>2000s — prototipo</title>
+<title>2000s</title>
+<link rel="preload" href="fonts/VT323-latin-9cb03ff1.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/Michroma-latin-bdb83203.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="fonts/dosmil.css">
 <script src="hls.min.js"></script>
 <style>
-  html, body { margin: 0; height: 100%; background: #000; color: #dfe9ff; overflow: hidden;
-    font-family: Tahoma, "Segoe UI", sans-serif; }
-  body { display: grid; grid-template-rows: 1fr 86px; }
-  #tunel { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; }
-  #visual { position: relative; z-index: 1; width: 100%; height: 100%; display: block; }
-  #ahora { z-index: 2; }
-  footer { z-index: 2; }
-  #ahora { position: fixed; top: 16px; left: 20px; font-size: 13px; text-shadow: 0 1px 2px #000; }
-  #ahora b { display: block; font-size: 18px; color: #fff; }
-  /* Barra al estilo WMP 10: negro con brillo, cromo y un play redondo grande */
-  footer { position: relative; display: grid; grid-template-columns: 70px 1fr auto 1fr; align-items: center; gap: 16px;
-    padding: 0 22px; background: linear-gradient(180deg, #4a4f5c 0%, #1b1d24 48%, #050608 52%, #14161c 100%);
-    border-top: 1px solid #8a93a6; box-shadow: inset 0 1px 0 rgba(255,255,255,.35); }
-  #barra { position: absolute; left: 0; right: 0; top: -7px; width: 100%; margin: 0; height: 6px; accent-color: #3fa9ff; }
-  #caratula { width: 58px; height: 58px; object-fit: cover; border: 1px solid #8a93a6; border-radius: 3px; }
-  .info { min-width: 0; font-size: 12px; }
-  #titulo { color: #fff; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  #artista, #tiempo { color: #9fb3d6; }
-  .botones { display: flex; align-items: center; gap: 10px; }
-  .botones button { width: 34px; height: 34px; border-radius: 50%; cursor: pointer; color: #dfe9ff; font-size: 12px;
-    border: 1px solid #0b0c10; background: radial-gradient(circle at 50% 28%, #9aa3b6, #3b404c 55%, #15171d);
-    box-shadow: inset 0 1px 0 rgba(255,255,255,.4), 0 1px 3px #000; }
-  #bPlay { width: 58px; height: 58px; font-size: 20px; color: #fff;
-    background: radial-gradient(circle at 50% 25%, #c9ecff 0%, #3fa9ff 35%, #0b4f9a 75%, #062a55 100%);
-    box-shadow: 0 0 18px rgba(63,169,255,.7), inset 0 2px 0 rgba(255,255,255,.6); }
-  .derecha { display: flex; justify-content: flex-end; align-items: center; gap: 10px; }
-  #volumen { width: 120px; accent-color: #3fa9ff; }
+  /* Los colores salen del skin elegido; estos son los de "Plata". */
+  :root { --metal: #c3c9d3; --grabado: #3b4250; --lcd: #06131f; --tinta: #7fdcff; --acento: #3fa9ff;
+    --brilloLcd: 0 0 6px var(--tinta); --p: 0%; --giro: 81deg; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #000; font-family: "Michroma", Tahoma, sans-serif; }
+  #tunel { position: fixed; inset: 0; width: 100%; height: 100%; }
+  #titulo { display: none; }   /* el título se muestra en la marquesina */
+
+  /* ---- Metal cepillado con relieve, compartido por el equipo, la playlist y los botones ---- */
+  .chasis { background:
+      repeating-linear-gradient(90deg, rgba(255,255,255,.05) 0 1px, transparent 1px 3px),
+      linear-gradient(180deg, color-mix(in srgb, var(--metal) 55%, white), var(--metal) 40%, color-mix(in srgb, var(--metal) 70%, black));
+    box-shadow: inset 0 2px 0 rgba(255,255,255,.55), inset 0 -3px 0 rgba(0,0,0,.35), 0 0 0 1px rgba(0,0,0,.6),
+      0 20px 50px rgba(0,0,0,.6), 0 0 50px color-mix(in srgb, var(--acento) 22%, transparent); }
+  .metal { color: var(--grabado); border: 1px solid rgba(0,0,0,.55); cursor: pointer; font: inherit;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--metal) 40%, white), var(--metal) 55%, color-mix(in srgb, var(--metal) 75%, black));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.7), 0 2px 3px rgba(0,0,0,.4); text-shadow: 0 1px 0 rgba(255,255,255,.35); }
+  .metal:active { background: linear-gradient(0deg, color-mix(in srgb, var(--metal) 40%, white), var(--metal) 55%, color-mix(in srgb, var(--metal) 75%, black));
+    box-shadow: inset 0 2px 4px rgba(0,0,0,.45); }
+  .grabado { color: var(--grabado); font-size: 9px; letter-spacing: .18em; text-shadow: 0 1px 0 rgba(255,255,255,.3); }
+
+  /* ---- Pantalla LCD ---- */
+  .lcd { background: var(--lcd); color: var(--tinta); font-family: "VT323", monospace; text-shadow: var(--brilloLcd);
+    border-radius: 8px; position: relative; box-shadow: inset 0 3px 10px rgba(0,0,0,.6), 0 1px 0 rgba(255,255,255,.45); }
+  .lcd::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+    background: linear-gradient(160deg, rgba(255,255,255,.09) 0 28%, transparent 28%),
+                repeating-linear-gradient(0deg, rgba(0,0,0,.16) 0 1px, transparent 1px 3px); }
+
+  #equipo { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); width: min(1060px, calc(100% - 40px));
+    border-radius: 26px 26px 18px 18px; padding: 10px 20px 16px; }
+  .tope { display: flex; align-items: center; gap: 10px; margin-bottom: 9px; }
+  .tope .marca { font-size: 11px; letter-spacing: .3em; margin-right: auto; }
+  #skins { display: flex; gap: 6px; align-items: center; }
+  #skins button, #bLista { font-size: 8px; letter-spacing: .12em; padding: 4px 9px 4px 7px; border-radius: 9px; display: flex; align-items: center; gap: 5px; }
+  #skins button::before, #bLista::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: rgba(0,0,0,.45); }
+  #skins button.elegida::before, body.conLista #bLista::before { background: var(--acento); box-shadow: 0 0 6px var(--acento); }
+
+  .cuerpo { display: grid; grid-template-columns: 1fr auto; gap: 22px; align-items: center; }
+  #lcd { display: grid; grid-template-columns: 128px 1fr 200px; gap: 16px; padding: 12px 14px; min-width: 0; }
+  #caratula { width: 128px; height: 128px; display: block; }
+  .info { min-width: 0; display: flex; flex-direction: column; justify-content: space-between; }
+  #marquesina { font-size: 30px; line-height: 1; white-space: pre; overflow: hidden; }
+  .fila-tiempo { display: flex; align-items: center; gap: 16px; }
+  #reloj { position: relative; font-size: 66px; line-height: .85; }
+  #reloj .fantasma { position: absolute; left: 0; top: 0; opacity: .1; text-shadow: none; }
+  .indicadores { display: flex; flex-direction: column; font-size: 16px; line-height: 1.05; }
+  .indicadores span { opacity: .14; text-shadow: none; }
+  .indicadores span.on { opacity: 1; text-shadow: var(--brilloLcd); }
+  #artista { font-size: 21px; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #espectro { width: 200px; height: 128px; display: block; }
+
+  .controles { display: flex; align-items: center; gap: 22px; }
+  .transporte { display: flex; align-items: center; gap: 4px; }
+  .transporte button { width: 50px; height: 36px; font-size: 14px; font-family: "Segoe UI Symbol", system-ui, sans-serif; }
+  .transporte button:first-child { border-radius: 18px 6px 6px 18px; }
+  .transporte button:last-child { border-radius: 6px 18px 18px 6px; }
+  .transporte button:not(:first-child):not(:last-child) { border-radius: 6px; }
+  #bPlay { width: 66px; height: 66px; border-radius: 50% !important; font-size: 22px; margin: 0 6px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.7), 0 0 0 4px rgba(0,0,0,.3), 0 0 0 6px color-mix(in srgb, var(--acento) 35%, transparent); }
+  body.sonando #bPlay { box-shadow: inset 0 1px 0 rgba(255,255,255,.7), 0 0 0 4px rgba(0,0,0,.3), 0 0 0 6px var(--acento), 0 0 22px var(--acento); }
+  .vol { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  #perilla { width: 58px; height: 58px; border-radius: 50%; position: relative; cursor: ns-resize; touch-action: none;
+    background: radial-gradient(circle at 35% 30%, rgba(255,255,255,.65), transparent 45%),
+      conic-gradient(color-mix(in srgb, var(--metal) 50%, white), color-mix(in srgb, var(--metal) 65%, black),
+        color-mix(in srgb, var(--metal) 50%, white), color-mix(in srgb, var(--metal) 65%, black), color-mix(in srgb, var(--metal) 50%, white));
+    box-shadow: 0 0 0 3px rgba(0,0,0,.35), 0 4px 8px rgba(0,0,0,.5), inset 0 -2px 3px rgba(0,0,0,.4); }
+  #perilla::after { content: ""; position: absolute; left: 50%; top: 6px; width: 3px; height: 14px; margin-left: -1.5px; border-radius: 2px;
+    background: var(--acento); box-shadow: 0 0 6px var(--acento); transform-origin: 50% 23px; transform: rotate(var(--giro)); }
+  #perilla:focus-visible { outline: 2px solid var(--acento); outline-offset: 4px; }
+  #perilla.apagada { opacity: .45; cursor: default; }
+
+  .riel { margin-top: 14px; }
+  #barra { -webkit-appearance: none; appearance: none; width: 100%; height: 8px; margin: 0; border-radius: 4px; cursor: pointer;
+    background: linear-gradient(90deg, var(--acento) var(--p), rgba(0,0,0,.55) var(--p));
+    box-shadow: inset 0 1px 2px rgba(0,0,0,.6), 0 1px 0 rgba(255,255,255,.45); }
+  #barra::-webkit-slider-thumb { -webkit-appearance: none; width: 32px; height: 16px; border-radius: 8px; border: 1px solid rgba(0,0,0,.55);
+    background: repeating-linear-gradient(90deg, rgba(0,0,0,.28) 0 1px, transparent 1px 4px) center / 12px 8px no-repeat,
+      linear-gradient(180deg, color-mix(in srgb, var(--metal) 35%, white), color-mix(in srgb, var(--metal) 75%, black));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.7), 0 1px 3px rgba(0,0,0,.5); }
+  #volumen { display: none; }
+
+  /* ---- Ventana de playlist ---- */
+  #ventanaLista { position: fixed; right: 20px; top: 52px; bottom: 270px; width: 340px; border-radius: 16px; padding: 10px 12px 12px;
+    display: none; flex-direction: column; }
+  body.conLista #ventanaLista { display: flex; }
+  #lista { flex: 1; overflow-y: auto; padding: 6px 0; font-size: 20px; scrollbar-width: thin; scrollbar-color: var(--tinta) transparent; }
+  .fila { display: grid; grid-template-columns: 30px 1fr 48px; gap: 8px; padding: 1px 12px; cursor: pointer; line-height: 1.15; }
+  .fila img { display: none; }
+  .fila:hover { background: color-mix(in srgb, var(--tinta) 14%, transparent); }
+  .fila.sonando { background: var(--tinta); color: var(--lcd); text-shadow: none; }
+  .fila .nombre { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .fila .dur { text-align: right; }
 </style>
 </head>
-<body>
+<body class="conLista">
 <canvas id="tunel"></canvas>
-<canvas id="visual"></canvas>
-<div id="ahora">Ahora suena<b id="tituloArriba">—</b></div>
-<footer>
-  <input id="barra" type="range" min="0" max="1000" value="0">
-  <img id="caratula" alt="">
-  <div class="info"><div id="titulo">—</div><div id="artista"></div><div id="tiempo">0:00 / 0:00</div></div>
-  <div class="botones">
-    <button id="bStop" title="Detener">■</button>
-    <button id="bAnt" title="Anterior">⏮</button>
-    <button id="bPlay" title="Play / pausa">▶</button>
-    <button id="bSig" title="Siguiente">⏭</button>
+
+<aside id="ventanaLista" class="chasis">
+  <div class="tope grabado"><span class="marca">PLAYLIST</span><span id="cuenta"></span></div>
+  <div id="lista" class="lcd"></div>
+</aside>
+
+<div id="equipo" class="chasis">
+  <div class="tope grabado">
+    <span class="marca">SONIDO · 2K</span>
+    <div id="skins">SKIN</div>
+    <button id="bLista" class="metal" title="Mostrar u ocultar la playlist">PL</button>
   </div>
-  <div class="derecha">🔊 <input id="volumen" type="range" min="0" max="100" value="80" title="Volumen"></div>
-</footer>
+  <div class="cuerpo">
+    <div id="lcd" class="lcd">
+      <canvas id="caratula" width="128" height="128"></canvas>
+      <div class="info">
+        <div id="marquesina"></div>
+        <div class="fila-tiempo">
+          <div id="reloj"><span class="fantasma">88:88</span><span id="tiempoGrande">00:00</span></div>
+          <div class="indicadores"><span id="iPlay">PLAY</span><span id="iPausa">PAUSA</span><span id="iFuente"></span></div>
+        </div>
+        <div id="artista"></div>
+        <div id="titulo"></div>
+      </div>
+      <canvas id="espectro" width="200" height="128"></canvas>
+    </div>
+    <div class="controles">
+      <div class="transporte">
+        <button id="bStop" class="metal" title="Detener">■</button>
+        <button id="bAnt" class="metal" title="Anterior">&#x23EE;&#xFE0E;</button>
+        <button id="bPlay" class="metal" title="Play / pausa">▶</button>
+        <button id="bSig" class="metal" title="Siguiente">&#x23ED;&#xFE0E;</button>
+      </div>
+      <div class="vol">
+        <div id="perilla" role="slider" tabindex="0" aria-label="Volumen" aria-valuemin="0" aria-valuemax="100" aria-valuenow="80"></div>
+        <span class="grabado">VOLUMEN</span>
+      </div>
+    </div>
+  </div>
+  <div class="riel"><input id="barra" type="range" min="0" max="1000" value="0" title="Avance"></div>
+  <input id="volumen" type="range" min="0" max="100" value="80">
+</div>
 
 <script src="nucleo.js"></script>
 <script src="tunel.js"></script>
 <script>
 "use strict";
 const $ = (id) => document.getElementById(id);
-R.alCambiar((p) => { $("tituloArriba").textContent = p.titulo; });
+const raiz = document.documentElement.style;
+const SKINS = {
+  "Plata":     { metal: "#c3c9d3", grabado: "#3b4250", lcd: "#06131f", tinta: "#7fdcff", acento: "#3fa9ff", tunel: PALETAS.oceano },
+  "Grafito":   { metal: "#3b3e46", grabado: "#aeb2bb", lcd: "#140a00", tinta: "#ffb000", acento: "#ff6a00", tunel: PALETAS.fuego },
+  "LCD verde": { metal: "#b4bba6", grabado: "#3d4535", lcd: "#a3b585", tinta: "#16220e", acento: "#5bd13a",
+                 tunel: (i, t) => 75 + 35 * (0.5 + 0.5 * Math.sin(t * 0.3 + i * 0.25)) },
+  "Azul":      { metal: "#2b4fae", grabado: "#d2deff", lcd: "#000a18", tinta: "#e6f3ff", acento: "#00e5ff", tunel: PALETAS.arcoiris },
+};
+const rgb = (h) => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+const luz = ([r, g, b]) => (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+let skin = SKINS.Plata;
 
-// "Barras y ondas": barras arriba (con picos) y la onda del sonido abajo, con estela.
-const c = $("visual"), g = c.getContext("2d");
-const N = 64, picos = new Array(N).fill(0);
+function usarSkin(nombre) {
+  skin = SKINS[nombre] || SKINS.Plata;
+  for (const k of ["metal", "grabado", "lcd", "tinta", "acento"]) raiz.setProperty("--" + k, skin[k]);
+  // LCD de fondo oscuro: la tinta brilla. LCD claro (verde): tinta opaca, sin brillo.
+  raiz.setProperty("--brilloLcd", luz(rgb(skin.tinta)) > luz(rgb(skin.lcd)) ? "0 0 6px var(--tinta)" : "none");
+  document.querySelectorAll("#skins button").forEach(b => b.classList.toggle("elegida", b.dataset.s === nombre));
+  try { localStorage.setItem("skin-2000s", nombre); } catch (e) {}
+  pintarCaratula();
+}
+for (const nombre of Object.keys(SKINS)) {
+  const b = document.createElement("button");
+  b.className = "metal"; b.dataset.s = nombre; b.textContent = nombre.toUpperCase();
+  b.onclick = () => usarSkin(nombre);
+  $("skins").appendChild(b);
+}
+$("bLista").onclick = () => {
+  document.body.classList.toggle("conLista");
+  try { localStorage.setItem("lista-2000s", document.body.classList.contains("conLista") ? "1" : "0"); } catch (e) {}
+};
+try { if (localStorage.getItem("lista-2000s") === "0") document.body.classList.remove("conLista"); } catch (e) {}
+$("iFuente").textContent = { soundcloud: "SC", musica: "MP3", pc: "PC" }[R.fuente];
+
+// ---- Carátula en trama de puntos, con los colores del LCD ----
+let imagen = null;
+const chico = document.createElement("canvas"); chico.width = chico.height = 32;
+function pintarCaratula() {
+  const c = $("caratula"), g = c.getContext("2d"), S = c.width, N = 32, celda = S / N;
+  g.fillStyle = skin.lcd; g.fillRect(0, 0, S, S);
+  if (!imagen) return;
+  const cg = chico.getContext("2d");
+  cg.drawImage(imagen, 0, 0, N, N);
+  g.fillStyle = skin.tinta;
+  try {
+    const px = cg.getImageData(0, 0, N, N).data, tintaClara = luz(rgb(skin.tinta)) > luz(rgb(skin.lcd));
+    let min = 1, max = 0;   // estirar el contraste: las carátulas oscuras también se ven
+    for (let i = 0; i < px.length; i += 4) { const l = luz([px[i], px[i + 1], px[i + 2]]); min = Math.min(min, l); max = Math.max(max, l); }
+    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+      const i = (y * N + x) * 4;
+      let l = (luz([px[i], px[i + 1], px[i + 2]]) - min) / Math.max(0.05, max - min);
+      if (!tintaClara) l = 1 - l;   // en LCD claro, las zonas oscuras llevan los puntos grandes
+      const r = celda * 0.64 * Math.sqrt(l);
+      if (r > 0.35) { g.beginPath(); g.arc(x * celda + celda / 2, y * celda + celda / 2, r, 0, 7); g.fill(); }
+    }
+  } catch (e) {   // la imagen no deja leer sus colores: se tiñe entera con la tinta
+    g.globalAlpha = 0.9; g.drawImage(imagen, 0, 0, S, S); g.globalAlpha = 1;
+    g.globalCompositeOperation = "color"; g.fillRect(0, 0, S, S); g.globalCompositeOperation = "source-over";
+  }
+}
+function cargarImagen(src, conCors = true) {
+  if (!src) { imagen = null; pintarCaratula(); return; }
+  const img = new Image();
+  if (conCors) img.crossOrigin = "anonymous";
+  img.onload = () => { imagen = img; pintarCaratula(); };
+  img.onerror = () => { if (conCors) cargarImagen(src, false); else { imagen = null; pintarCaratula(); } };
+  img.src = src;
+}
+R.alCambiar((p) => { cargarImagen(p.caratula); $("cuenta").textContent = R.pistas.length + " TEMAS"; });
+
+let guardado = "Plata";
+try { guardado = localStorage.getItem("skin-2000s") || guardado; } catch (e) {}
+usarSkin(SKINS[guardado] ? guardado : "Plata");
+
+// ---- Marquesina: el título avanza letra por letra ----
+const ANCHO = 30;
+let textoMarq = "", paso = 0;
+setInterval(() => {
+  const t = $("titulo").textContent.trim() || "SONIDO 2K";
+  if (t !== textoMarq) { textoMarq = t; paso = 0; }
+  if (t.length <= ANCHO) { $("marquesina").textContent = t; return; }
+  const s = t + "   ***   ";
+  $("marquesina").textContent = (s + s).substr(paso++ % s.length, ANCHO);
+}, 230);
+
+// ---- Perilla de volumen: arrastrar hacia arriba/abajo, rueda o flechas ----
+const vol = $("volumen"), perilla = $("perilla");
+function ponerVol(v) {
+  if (vol.disabled) return;
+  v = Math.max(0, Math.min(100, Math.round(v)));
+  vol.value = v; vol.dispatchEvent(new Event("input"));
+  raiz.setProperty("--giro", (-135 + v * 2.7) + "deg");
+  perilla.setAttribute("aria-valuenow", v);
+}
+perilla.addEventListener("pointerdown", (e) => {
+  const y0 = e.clientY, v0 = +vol.value;
+  perilla.setPointerCapture(e.pointerId);
+  perilla.onpointermove = (ev) => ponerVol(v0 + (y0 - ev.clientY) * 0.6);
+});
+perilla.addEventListener("pointerup", () => { perilla.onpointermove = null; });
+perilla.addEventListener("wheel", (e) => { e.preventDefault(); ponerVol(+vol.value - Math.sign(e.deltaY) * 5); }, { passive: false });
+perilla.addEventListener("keydown", (e) => {
+  const d = { ArrowUp: 5, ArrowRight: 5, ArrowDown: -5, ArrowLeft: -5 }[e.key];
+  if (d) { e.preventDefault(); ponerVol(+vol.value + d); }
+});
+
+// ---- Cada cuadro: túnel de fondo, espectro del LCD, reloj y estado ----
+const esp = $("espectro"), eg = esp.getContext("2d"), BARRAS = 20, SEG = 21, picos = new Array(BARRAS).fill(0);
+const dosCifras = (s) => { s = isFinite(s) && s > 0 ? s : 0; return `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(Math.floor(s % 60)).padStart(2, "0")}`; };
 R.cadaCuadro((t) => {
-  const r = c.getBoundingClientRect();
-  if (c.width !== Math.round(r.width) || c.height !== Math.round(r.height)) { c.width = Math.round(r.width); c.height = Math.round(r.height); }
-  const w = c.width, h = c.height;
-  if (!w || !h) return;
   const d = R.espectro();
-  // Detrás: túnel psicodélico; la paleta cambia sola cada 20 s, como los preajustes de WMP.
-  const paletas = [PALETAS.arcoiris, PALETAS.oceano, PALETAS.fuego];
-  dibujarTunel($("tunel"), d, R.energia(d, 1, 8), R.energia(d, 60, 200), t, paletas[Math.floor(t / 20) % 3]);
-  g.clearRect(0, 0, w, h);
+  dibujarTunel($("tunel"), d, R.energia(d, 1, 8), R.energia(d, 60, 200), t, skin.tunel);
 
-  const medio = h * 0.58, ancho = w / N;
-  const grad = g.createLinearGradient(0, medio - h * 0.5, 0, medio);
-  grad.addColorStop(0, "#ffffff"); grad.addColorStop(0.3, "#7fd4ff"); grad.addColorStop(1, "#0a3cff");
-  for (let i = 0; i < N; i++) {
-    const v = d[Math.floor(Math.pow(i / N, 1.6) * 260) + 1] / 255;
-    picos[i] = Math.max(picos[i] - 0.008, v);
-    const alto = v * h * 0.42;
-    g.globalAlpha = 0.78;
-    g.fillStyle = grad;
-    g.fillRect(i * ancho + 2, medio - alto, ancho - 4, alto);
-    g.globalAlpha = 1;
-    g.fillStyle = "rgba(127, 212, 255, 0.25)";               // reflejo
-    g.fillRect(i * ancho + 2, medio + 2, ancho - 4, alto * 0.35);
-    g.fillStyle = "#ffffff";
-    g.fillRect(i * ancho + 2, medio - picos[i] * h * 0.42 - 4, ancho - 4, 3);
-  }
+  const sonando = $("bPlay").textContent === "❚❚";
+  document.body.classList.toggle("sonando", sonando);
+  $("iPlay").classList.toggle("on", sonando);
+  $("iPausa").classList.toggle("on", !sonando);
+  $("tiempoGrande").textContent = dosCifras(R.tiempoActual());
+  raiz.setProperty("--p", (R.progreso() * 100).toFixed(2) + "%");
+  perilla.classList.toggle("apagada", vol.disabled);
 
-  const o = R.ondaAudio(), base = h * 0.82;
-  g.lineWidth = 2;
-  g.strokeStyle = `hsl(${(190 + Math.sin(t * 0.5) * 30).toFixed(0)}, 100%, 65%)`;
-  g.shadowColor = g.strokeStyle; g.shadowBlur = 12;
-  g.beginPath();
-  for (let i = 0; i < o.length; i += 2) {
-    const x = i / o.length * w, y = base + (o[i] - 128) / 128 * h * 0.12;
-    i ? g.lineTo(x, y) : g.moveTo(x, y);
+  // Espectro en segmentos, con los segmentos apagados visibles (como un LCD real)
+  const w = esp.width, h = esp.height, ancho = w / BARRAS, alto = h / SEG;
+  eg.clearRect(0, 0, w, h);
+  for (let b = 0; b < BARRAS; b++) {
+    const i0 = Math.floor(2 * Math.pow(140, b / BARRAS)), i1 = Math.max(i0 + 1, Math.floor(2 * Math.pow(140, (b + 1) / BARRAS)));
+    const n = Math.round(Math.pow(R.energia(d, i0, i1), 1.8) * SEG);
+    picos[b] = Math.max(n, picos[b] - 0.15);
+    for (let s = 0; s < SEG; s++) {
+      eg.globalAlpha = s < n ? 1 : (s === Math.ceil(picos[b]) ? 0.9 : 0.1);
+      eg.fillStyle = skin.tinta;
+      eg.fillRect(b * ancho + 1, h - (s + 1) * alto + 1, ancho - 2, alto - 2);
+    }
   }
-  g.stroke();
-  g.shadowBlur = 0;
+  eg.globalAlpha = 1;
 });
 </script>
 </body>

@@ -29,7 +29,7 @@ Este plan se ajusta según prioridades: lo de arriba se hace primero.
       con música sonando; ¿audífonos?).
 - [x] Galería para elegir plantilla (6 plantillas).
 - [x] **Pixel**: 8 bits con 7 paletas a elegir (la carátula se redibuja con los colores de la paleta).
-- [x] **2000s** con capa psicodélica (no solo barras y líneas).
+- [x] **2000s** rehecha: equipo de metal con LCD (marquesina, reloj, espectro en segmentos, carátula en trama), perilla de volumen, playlist y 4 skins.
 - [x] Tipografías incluidas en `web/fonts/` (Geist, Geist Mono, Pixelify Sans, Silkscreen; licencia OFL).
 
 ## Fase 2 — Imágenes propias en las plantillas
