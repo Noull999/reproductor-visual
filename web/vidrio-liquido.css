@@ -1,6 +1,6 @@
 /* Estilo "vidrio líquido" (basado en el portfolio de José): compartido por el
    inicio, la galería y la plantilla Líquido. */
-@import url("https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Geist+Mono:wght@400;500&display=swap");
+@import url("fonts/geist.css");
 
 :root {
   --fondo: #070405; --texto: #fff3f2; --suave: rgba(255, 232, 230, .62);

@@ -29,6 +29,9 @@ def prueba():
     js("R.cargar(3)")
     for s_ in (3, 6, 12):
         print(f"líquido a los {s_}s:", js("JSON.stringify({t: R.audio.currentTime.toFixed(1), pausado: R.audio.paused, artista: document.getElementById('artista').textContent})", espera=3 if s_==3 else s_-{6:3,12:6}[s_]))
+    ir("/pixel.html?fuente=soundcloud")
+    js("document.querySelector('[data-p=\"Game Boy\"]').click()")
+    print("pixel:", js("JSON.stringify({pistas: R.pistas.length, paleta: localStorage.getItem('paleta-pixel'), fondo: getComputedStyle(document.documentElement).getPropertyValue('--fondo'), fuente: document.fonts.check('16px \"Pixelify Sans\"')})", espera=2))
     ventana.destroy()
 
 threading.Thread(target=prueba, daemon=True).start()

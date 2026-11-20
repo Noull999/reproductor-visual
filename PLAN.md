@@ -27,9 +27,10 @@ Este plan se ajusta según prioridades: lo de arriba se hace primero.
       navegador (probado con Spotify y SoundCloud del navegador).
 - [ ] Captura del audio del PC: hecha, pero salió en silencio en la primera prueba (revisar
       con música sonando; ¿audífonos?).
-- [x] Galería para elegir plantilla (5 plantillas).
+- [x] Galería para elegir plantilla (6 plantillas).
+- [x] **Pixel**: 8 bits con 7 paletas a elegir (la carátula se redibuja con los colores de la paleta).
 - [x] **2000s** con capa psicodélica (no solo barras y líneas).
-- [ ] Tipografías incluidas (hoy Líquido/inicio las piden a internet y tardan en abrir).
+- [x] Tipografías incluidas en `web/fonts/` (Geist, Geist Mono, Pixelify Sans, Silkscreen; licencia OFL).
 
 ## Fase 2 — Imágenes propias en las plantillas
 

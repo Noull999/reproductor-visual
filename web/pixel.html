@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pixel</title>
+<link rel="preload" href="fonts/PixelifySans-400_700-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/Silkscreen-400-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="fonts/pixel.css">
+<script src="hls.min.js"></script>
+<style>
+  /* Los colores salen de la paleta elegida (arriba); estos son los de "Sangre". */
+  :root { --fondo: #060507; --panel: #1e1b24; --tenue: #8d8580; --texto: #cfc6bd; --acento: #a51218; --brillo: #e8452c; --p: 0%; --v: 80%; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: var(--fondo); color: var(--texto);
+    font-family: "Pixelify Sans", "Courier New", monospace; }
+  .lbl { font-family: "Silkscreen", "Courier New", monospace; text-transform: uppercase; letter-spacing: .08em; }
+  /* Esquinas escalonadas de 8-bit, igual que en Music Downloader */
+  .px { clip-path: polygon(0 8px, 4px 8px, 4px 4px, 8px 4px, 8px 0, calc(100% - 8px) 0, calc(100% - 8px) 4px,
+    calc(100% - 4px) 4px, calc(100% - 4px) 8px, 100% 8px, 100% calc(100% - 8px), calc(100% - 4px) calc(100% - 8px),
+    calc(100% - 4px) calc(100% - 4px), calc(100% - 8px) calc(100% - 4px), calc(100% - 8px) 100%, 8px 100%,
+    8px calc(100% - 4px), 4px calc(100% - 4px), 4px calc(100% - 8px), 0 calc(100% - 8px)); }
+  canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
+  #escena { position: fixed; left: 0; top: 0; width: 100%; height: calc(100% - 100px); }
+  #app { position: relative; height: 100%; display: grid; grid-template-rows: 44px 1fr 100px; }
+
+  header { display: flex; align-items: center; gap: 8px; padding: 10px 16px 0; flex-wrap: wrap; font-size: 10px; color: var(--tenue); }
+  header button { display: flex; align-items: center; gap: 6px; padding: 5px 9px 5px 6px; cursor: pointer; font: inherit;
+    color: var(--tenue); background: color-mix(in srgb, var(--panel) 90%, transparent); border: none; }
+  header button.elegida { color: var(--fondo); background: var(--brillo); }
+  header button i { display: flex; }
+  header button i b { width: 6px; height: 10px; }
+
+  main { display: grid; grid-template-columns: 300px 1fr 380px; gap: 20px; padding: 14px 20px 18px; min-height: 0; }
+  .panel { background: color-mix(in srgb, var(--panel) 88%, transparent); box-shadow: inset 0 0 0 3px var(--acento); }
+  #tarjeta { align-self: start; padding: 22px; display: flex; flex-direction: column; gap: 14px; }
+  #portada { width: 256px; height: 256px; background: var(--fondo); }
+  #tarjeta .lbl { font-size: 10px; color: var(--tenue); }
+  #lista { grid-column: 3; overflow-y: auto; padding: 12px 6px; scrollbar-width: thin; scrollbar-color: var(--acento) transparent; }
+  .fila { display: grid; grid-template-columns: 34px 26px 1fr 44px; align-items: center; gap: 10px; padding: 5px 12px;
+    font-size: 14px; cursor: pointer; color: var(--tenue); }
+  .fila:hover { color: var(--texto); background: color-mix(in srgb, var(--acento) 25%, transparent); }
+  .fila.sonando { color: var(--fondo); background: var(--brillo); }
+  .fila img { width: 34px; height: 34px; object-fit: cover; image-rendering: pixelated; }
+  .fila .nombre { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .fila .n, .fila .dur { font-family: "Silkscreen", monospace; font-size: 10px; }
+
+  footer { display: grid; grid-template-columns: 340px 1fr 240px; align-items: center; gap: 24px; padding: 0 20px;
+    background: var(--panel); box-shadow: inset 0 3px 0 var(--acento); }
+  .tema { display: flex; gap: 14px; align-items: center; min-width: 0; }
+  #mini { width: 64px; height: 64px; flex: none; box-shadow: 0 0 0 3px var(--acento); }
+  #titulo { font-size: 18px; font-weight: 700; color: var(--texto); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #artista { font-size: 13px; color: var(--tenue); margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tema > div { min-width: 0; }
+  .centro { display: flex; flex-direction: column; gap: 10px; align-items: center; }
+  .botones { display: flex; gap: 10px; }
+  .botones button { font-family: "Silkscreen", monospace; font-size: 14px; width: 54px; height: 38px; cursor: pointer;
+    color: var(--texto); background: var(--fondo); border: 3px solid var(--acento); transition: box-shadow .15s, transform .1s; }
+  .botones button:hover { color: var(--fondo); background: var(--brillo); border-color: var(--brillo); }
+  .botones button:active { transform: scale(.94); }
+  #bPlay { width: 70px; }
+  /* Barras segmentadas: el relleno avanza con --p / --v */
+  input[type=range] { -webkit-appearance: none; appearance: none; height: 14px; margin: 0; cursor: pointer; width: 100%;
+    background: repeating-linear-gradient(90deg, transparent 0 8px, var(--panel) 8px 10px),
+                linear-gradient(90deg, var(--brillo) var(--p), var(--fondo) var(--p)); box-shadow: 0 0 0 3px var(--acento); }
+  #volumen { --p: var(--v); }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 10px; height: 20px; background: var(--texto); }
+  input[type=range]:disabled { opacity: .35; cursor: default; }
+  #barra { max-width: 700px; }
+  .derecha { display: flex; flex-direction: column; gap: 12px; }
+  #tiempo { font-family: "Silkscreen", monospace; font-size: 11px; color: var(--tenue); text-align: right; }
+</style>
+</head>
+<body>
+<canvas id="escena"></canvas>
+<div id="app">
+  <header class="lbl" id="paletas">Paleta:</header>
+  <main>
+    <div id="tarjeta" class="panel px">
+      <canvas id="portada" width="64" height="64"></canvas>
+      <div class="lbl" id="leyenda">Sonando ahora</div>
+    </div>
+    <div id="lista" class="panel px"></div>
+  </main>
+  <footer>
+    <div class="tema"><canvas id="mini" width="32" height="32"></canvas>
+      <div><div id="titulo">—</div><div id="artista"></div></div></div>
+    <div class="centro">
+      <div class="botones">
+        <button id="bAnt" class="px" title="Anterior">&lt;&lt;</button>
+        <button id="bPlay" class="px" title="Play / pausa">▶</button>
+        <button id="bSig" class="px" title="Siguiente">&gt;&gt;</button>
+      </div>
+      <input id="barra" type="range" min="0" max="1000" value="0" title="Avance">
+    </div>
+    <div class="derecha"><input id="volumen" type="range" min="0" max="100" value="80" title="Volumen">
+      <div id="tiempo">0:00 / 0:00</div></div>
+  </footer>
+</div>
+
+<script src="nucleo.js"></script>
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+// Cada paleta: fondo, panel, tenue, texto, acento, brillo.
+const PALETAS = {
+  "Sangre":    ["#060507", "#1e1b24", "#8d8580", "#cfc6bd", "#a51218", "#e8452c"],
+  "Game Boy":  ["#0f380f", "#306230", "#8bac0f", "#9bbc0f", "#8bac0f", "#9bbc0f"],
+  "NES":       ["#000000", "#24188c", "#a4a4a4", "#fcfcfc", "#e40058", "#f8b800"],
+  "Vaporwave": ["#12062b", "#2d1b4e", "#b39ddb", "#fbeaff", "#ff71ce", "#01cdfe"],
+  "Matrix":    ["#000000", "#062b0e", "#1f7a33", "#c8ffd0", "#00b32c", "#39ff6a"],
+  "Hielo":     ["#050b14", "#10223a", "#6f8fae", "#e6f6ff", "#3a8dde", "#8fe3ff"],
+  "Ámbar":     ["#0b0600", "#2a1700", "#8a5a00", "#ffd27a", "#d98a00", "#ffb000"],
+};
+const CLAVES = ["fondo", "panel", "tenue", "texto", "acento", "brillo"];
+const rgb = (h) => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+const luz = ([r, g, b]) => 0.299 * r + 0.587 * g + 0.114 * b;
+let pal = {}, rampa = [];
+
+function usarPaleta(nombre) {
+  const c = PALETAS[nombre] || PALETAS.Sangre;
+  CLAVES.forEach((k, i) => { pal[k] = rgb(c[i]); document.documentElement.style.setProperty("--" + k, c[i]); });
+  // Escalera de oscuro a claro para pintar la carátula solo con colores de la paleta
+  rampa = [...new Set(c)].map(rgb).sort((a, b) => luz(a) - luz(b));
+  document.querySelectorAll("#paletas button").forEach(b => b.classList.toggle("elegida", b.dataset.p === nombre));
+  try { localStorage.setItem("paleta-pixel", nombre); } catch (e) {}
+  pintarPortada();
+}
+for (const [nombre, c] of Object.entries(PALETAS)) {
+  const b = document.createElement("button");
+  b.className = "px"; b.dataset.p = nombre; b.title = "Paleta " + nombre;
+  b.innerHTML = "<i>" + c.slice(1).map(x => `<b style="background:${x}"></b>`).join("") + "</i>";
+  b.append(nombre);
+  b.onclick = () => usarPaleta(nombre);
+  $("paletas").appendChild(b);
+}
+
+// ---- Carátula pixelada con tramado (como los juegos de 8 bits) ----
+const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
+let imagen = null;
+function pintarPortada() {
+  const lienzo = $("portada"), g = lienzo.getContext("2d"), N = lienzo.width;
+  g.fillStyle = `rgb(${pal.panel})`; g.fillRect(0, 0, N, N);
+  if (imagen) {
+    g.drawImage(imagen, 0, 0, N, N);
+    try {
+      const d = g.getImageData(0, 0, N, N), px = d.data;
+      let min = 255, max = 0;
+      for (let i = 0; i < px.length; i += 4) { const l = luz([px[i], px[i + 1], px[i + 2]]); if (l < min) min = l; if (l > max) max = l; }
+      const k = rampa.length - 1, rango = Math.max(1, max - min);
+      for (let i = 0, p = 0; i < px.length; i += 4, p++) {
+        const x = p % N, y = (p / N) | 0;
+        const l = (luz([px[i], px[i + 1], px[i + 2]]) - min) / rango + (BAYER[(y % 4) * 4 + x % 4] / 16 - 0.5) / k;
+        const c = rampa[Math.max(0, Math.min(k, Math.round(l * k)))];
+        px[i] = c[0]; px[i + 1] = c[1]; px[i + 2] = c[2];
+      }
+      g.putImageData(d, 0, 0);
+    } catch (e) { /* la imagen no deja leer sus colores: queda pixelada con su color real */ }
+  }
+  const m = $("mini").getContext("2d");
+  m.imageSmoothingEnabled = false;
+  m.drawImage(lienzo, 0, 0, 32, 32);
+}
+function cargarImagen(src, conCors = true) {
+  if (!src) { imagen = null; pintarPortada(); return; }
+  const img = new Image();
+  if (conCors) img.crossOrigin = "anonymous";
+  img.onload = () => { imagen = img; pintarPortada(); };
+  img.onerror = () => { if (conCors) cargarImagen(src, false); else { imagen = null; pintarPortada(); } };
+  img.src = src;
+}
+R.alCambiar((p) => cargarImagen(p.caratula));
+
+let guardada = "Sangre";
+try { guardada = localStorage.getItem("paleta-pixel") || guardada; } catch (e) {}
+usarPaleta(PALETAS[guardada] ? guardada : "Sangre");
+
+// ---- Escena: espectro en bloques con topes que caen y estrellas ----
+const escena = $("escena"), g = escena.getContext("2d"), ESCALA = 5;
+let W = 0, H = 0, topes = [], estrellas = [];
+function medir() {
+  W = Math.ceil(escena.clientWidth / ESCALA); H = Math.ceil(escena.clientHeight / ESCALA);
+  if (!W || !H) return;
+  escena.width = W; escena.height = H;
+  estrellas = Array.from({ length: Math.round(W * H / 90) }, () => [Math.random() * W, Math.random() * H * 0.7, Math.random()]);
+}
+addEventListener("resize", medir); medir();
+const mezcla = (a, b, t) => a.map((v, i) => Math.round(v + (b[i] - v) * t));
+
+R.cadaCuadro((t) => {
+  document.documentElement.style.setProperty("--p", (R.progreso() * 100).toFixed(2) + "%");
+  if (!W || !H) return medir();
+  const d = R.espectro(), bajo = R.energia(d, 1, 8);
+  g.fillStyle = `rgb(${pal.fondo})`; g.fillRect(0, 0, W, H);
+  // Estrellas: corren más rápido con el bajo
+  g.fillStyle = `rgb(${pal.tenue})`;
+  for (const s of estrellas) {
+    s[0] -= (0.05 + s[2] * 0.25) * (1 + bajo * 6);
+    if (s[0] < 0) s[0] += W;
+    if ((t * 3 + s[2] * 10) % 4 > 0.6) g.fillRect(s[0] | 0, s[1] | 0, 1, 1);
+  }
+  // Barras: columnas de 4 px y bloques de 3 px, de frecuencias bajas a altas (escala logarítmica)
+  const cols = Math.floor(W / 5), alto = H * 0.7, filas = Math.floor(alto / 4);
+  if (topes.length !== cols) topes = new Array(cols).fill(0);
+  for (let c = 0; c < cols; c++) {
+    const i0 = Math.floor(2 * Math.pow(160, c / cols)), i1 = Math.max(i0 + 1, Math.floor(2 * Math.pow(160, (c + 1) / cols)));
+    const v = R.energia(d, i0, i1);
+    const n = Math.round(Math.pow(v, 2.4) * filas);   // curva fuerte: con temas muy fuertes no se llena todo
+    topes[c] = Math.max(n, topes[c] - 0.25);
+    const x = c * 5 + ((W - cols * 5) >> 1);
+    for (let f = 0; f < n; f++) {
+      g.fillStyle = `rgb(${mezcla(pal.acento, pal.brillo, f / filas)})`;
+      g.fillRect(x, H - 4 - f * 4, 4, 3);
+    }
+    g.fillStyle = `rgb(${pal.texto})`;
+    g.fillRect(x, H - 4 - Math.ceil(topes[c]) * 4, 4, 1);
+  }
+});
+$("volumen").addEventListener("input", (e) => document.documentElement.style.setProperty("--v", e.target.value + "%"));
+</script>
+</body>
+</html>
