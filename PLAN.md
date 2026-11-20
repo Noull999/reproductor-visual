@@ -29,7 +29,9 @@ Este plan se ajusta según prioridades: lo de arriba se hace primero.
       con música sonando; ¿audífonos?).
 - [x] Galería para elegir plantilla (5 plantillas: Líquido, Headspace, 2000s, Ambiente, Pixel).
 - [x] **Ambiente** (reemplaza Vidrio y Oscuro): colores sacados de la carátula, carátula en duotono, onda real de SoundCloud.
-- [x] **Líquido** pulido: la carátula flota detrás del vidrio, barras de vidrio, mini carátula que gira como vinilo.
+- [x] **Líquido** pulido: la carátula flota detrás del vidrio, barras de vidrio, mini carátula que gira como vinilo,
+      haz que se mece y reacciona a bajos, medios y agudos (anillo en cada golpe), 5 temas de color.
+- [x] **Ambiente**: temas "Carátula" (automático) + Noche, Atardecer, Bosque y Mono.
 - [x] **Pixel**: 8 bits con 7 paletas a elegir (la carátula se redibuja con los colores de la paleta).
 - [x] **2000s** rehecha: equipo de metal con LCD (marquesina, reloj, espectro en segmentos, carátula en trama), perilla de volumen, playlist y 4 skins.
 - [x] Tipografías incluidas en `web/fonts/` (Geist, Geist Mono, Pixelify Sans, Silkscreen; licencia OFL).

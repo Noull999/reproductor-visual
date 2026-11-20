@@ -15,7 +15,7 @@
   .izq { position: relative; min-height: 0; }
   #grande { position: absolute; left: 50%; top: 0; width: min(96%, 66vh); aspect-ratio: 1; object-fit: cover; border-radius: 18px;
     transform: translateX(-50%) rotate(var(--giro, -3deg)) scale(var(--latido, 1));
-    box-shadow: 0 30px 80px rgba(0,0,0,.55), 0 0 90px rgba(255,45,61,.25); }
+    box-shadow: 0 30px 80px rgba(0,0,0,.55), 0 0 90px color-mix(in srgb, var(--rojo) 25%, transparent); }
   .ahora { position: absolute; left: 0; right: 0; bottom: 0; padding: 22px 24px; display: flex; flex-direction: column; gap: 10px; }
   #titulo { font-size: 28px; font-weight: 600; letter-spacing: -.03em; line-height: 1.1;
     display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
@@ -26,7 +26,7 @@
   .fila { display: grid; grid-template-columns: 40px 26px 1fr 48px; align-items: center; gap: 12px;
     padding: 7px 22px; font-size: 14px; cursor: pointer; color: var(--suave); }
   .fila:hover { background: rgba(255,255,255,.05); color: var(--texto); }
-  .fila.sonando { color: var(--texto); background: rgba(255,45,61,.12); }
+  .fila.sonando { color: var(--texto); background: color-mix(in srgb, var(--rojo) 14%, transparent); }
   .fila img { width: 40px; height: 40px; object-fit: cover; border-radius: 6px; }
   .fila .n, .fila .dur { font: 12px "Geist Mono", monospace; }
   .fila .nombre { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -44,12 +44,23 @@
   #bPlay { width: 50px; height: 50px; font-size: 17px; }
   /* Barras de vidrio con relleno rojo encendido */
   input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 8px; margin: 0; border-radius: 999px; cursor: pointer;
-    background: linear-gradient(90deg, var(--rojo), #ff8a94 calc(var(--p) - 1%), rgba(255,255,255,.1) var(--p));
-    box-shadow: inset 0 1px 2px rgba(0,0,0,.5), inset 0 0 0 .8px rgba(255,255,255,.12), 0 0 18px rgba(255,45,61,calc(var(--brillo, 0) * .6)); }
+    background: linear-gradient(90deg, var(--rojo), color-mix(in srgb, var(--rojo) 55%, white) calc(var(--p) - 1%), rgba(255,255,255,.1) var(--p));
+    box-shadow: inset 0 1px 2px rgba(0,0,0,.5), inset 0 0 0 .8px rgba(255,255,255,.12), 0 0 18px color-mix(in srgb, var(--rojo) calc(var(--brillo, 0) * 60%), transparent); }
   #volumen { --p: var(--v, 80%); }
   input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%;
-    background: radial-gradient(circle at 35% 30%, #fff, #ffd6d8 60%, #ffb3b8); box-shadow: 0 0 0 1px rgba(255,255,255,.5), 0 0 14px rgba(255,45,61,.8); }
+    background: radial-gradient(circle at 35% 30%, #fff, color-mix(in srgb, var(--rojo) 20%, white) 60%, color-mix(in srgb, var(--rojo) 35%, white));
+    box-shadow: 0 0 0 1px rgba(255,255,255,.5), 0 0 14px var(--rojo); }
   input[type=range]:disabled { opacity: .35; }
+  /* El botón principal y el punto siguen el color del tema */
+  .btn-principal { color: color-mix(in srgb, var(--rojo) 30%, black); background: linear-gradient(#fff, color-mix(in srgb, var(--rojo) 22%, white));
+    box-shadow: 0 0 0 1px rgba(255,255,255,.4), 0 10px 40px color-mix(in srgb, var(--rojo) 45%, transparent); }
+  .btn-principal:hover { box-shadow: 0 0 0 1px rgba(255,255,255,.5), 0 12px 48px color-mix(in srgb, var(--rojo) 65%, transparent); }
+  .punto { background: var(--rojo); box-shadow: 0 0 10px var(--rojo); }
+  #temas { display: flex; gap: 7px; align-items: center; }
+  #temas button { width: 14px; height: 14px; padding: 0; border-radius: 50%; cursor: pointer; border: none; background: var(--c);
+    box-shadow: 0 0 8px var(--c); opacity: .55; transition: opacity .15s, transform .15s; }
+  #temas button:hover { opacity: 1; }
+  #temas button.elegido { opacity: 1; transform: scale(1.25); box-shadow: 0 0 0 2px rgba(255,255,255,.8), 0 0 12px var(--c); }
 </style>
 </head>
 <body>
@@ -70,7 +81,7 @@
       </div>
     </section>
     <section class="lista-caja vidrio tarjeta">
-      <div class="mono"><span>Tus likes</span><span id="cuenta"></span></div>
+      <div class="mono"><span>Tus likes</span><span id="temas" title="Color"></span><span id="cuenta"></span></div>
       <div id="lista"></div>
     </section>
   </main>
@@ -100,12 +111,31 @@ $("volumen").addEventListener("input", (e) => document.documentElement.style.set
 $("grande").onerror = () => { $("grande").style.visibility = "hidden"; };
 $("grande").onload = () => { $("grande").style.visibility = "visible"; };
 // El haz late con el bajo; sin música, pulso suave (lo resuelve R.espectro).
+// Temas de color: tiñen el haz, los botones, las barras y los brillos
+const TEMAS = { "Rojo": "#ff2d3d", "Hielo": "#3db8ff", "Violeta": "#a855ff", "Ácido": "#b6ff2d", "Oro": "#ffb02d" };
+let colorHaz = [255, 45, 61];
+function usarTema(nombre) {
+  const hex = TEMAS[nombre] || TEMAS.Rojo;
+  document.documentElement.style.setProperty("--rojo", hex);
+  colorHaz = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16));
+  document.querySelectorAll("#temas button").forEach(b => b.classList.toggle("elegido", b.dataset.t === nombre));
+  try { localStorage.setItem("tema-liquido", nombre); } catch (e) {}
+}
+for (const [nombre, hex] of Object.entries(TEMAS)) {
+  const b = document.createElement("button");
+  b.dataset.t = nombre; b.title = nombre; b.style.setProperty("--c", hex); b.onclick = () => usarTema(nombre);
+  $("temas").appendChild(b);
+}
+let temaGuardado = null;
+try { temaGuardado = localStorage.getItem("tema-liquido"); } catch (e) {}
+usarTema(TEMAS[temaGuardado] ? temaGuardado : "Rojo");
+
 let suave = 0;
 iniciarHaz($("haz"), () => {
-  const e = R.energia(R.espectro(), 1, 10);
-  suave += (e - suave) * 0.3;
-  return Math.min(1, suave * 1.3);
-});
+  const d = R.espectro(), bajo = R.energia(d, 1, 10);
+  suave += (bajo - suave) * 0.3;
+  return { bajo: Math.min(1, bajo * 1.2), medio: R.energia(d, 10, 60), agudo: R.energia(d, 60, 200) };
+}, () => colorHaz);
 const raiz = document.documentElement.style;
 R.cadaCuadro((t) => {
   raiz.setProperty("--p", (R.progreso() * 100).toFixed(2) + "%");

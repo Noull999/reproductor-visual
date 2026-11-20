@@ -69,6 +69,12 @@
     box-shadow: 0 0 10px var(--c1); }
   input[type=range]:disabled { opacity: .35; }
   #bDuo.activo { color: var(--c1); }
+  .fila-enc { display: flex; justify-content: space-between; align-items: center; }
+  #temas { display: flex; gap: 8px; }
+  #temas button { width: 18px; height: 18px; border-radius: 50%; padding: 0; cursor: pointer; border: 1px solid rgba(255,255,255,.25);
+    background: transparent; color: #f4f1ee; font-size: 11px; line-height: 1; opacity: .6; transition: opacity .15s, transform .15s; }
+  #temas button:hover { opacity: 1; }
+  #temas button.elegido { opacity: 1; transform: scale(1.2); box-shadow: 0 0 0 2px rgba(255,255,255,.75), 0 0 12px var(--c1); }
 </style>
 </head>
 <body>
@@ -83,7 +89,7 @@
     </div>
     <div class="der">
       <div class="encabezado">
-        <div class="mono"><span>●</span> Ahora suena · <b id="nombreFuente"></b></div>
+        <div class="fila-enc"><div class="mono"><span>●</span> Ahora suena · <b id="nombreFuente"></b></div><div id="temas" title="Colores"></div></div>
         <h1 id="grandeTitulo">—</h1>
         <div id="grandeArtista"></div>
       </div>
@@ -140,10 +146,31 @@ function leerColores(img) {
     lista.push({ c, s: (mx - mn) * (mx > 40 ? 1 : 0.1) });
   }
   lista.sort((a, b) => b.s - a.s);
-  colores = [lista[0].c, lista[Math.floor(lista.length * .08)].c, lista[Math.floor(lista.length * .25)].c];
-  raiz.setProperty("--c1", acento(colores[0], .62));
-  raiz.setProperty("--c2", acento(colores[1], .5));
-  raiz.setProperty("--c3", acento(colores[2], .35));
+  deCaratula = [lista[0].c, lista[Math.floor(lista.length * .08)].c, lista[Math.floor(lista.length * .25)].c];
+  if (tema === "Carátula") aplicarColores(deCaratula);
+}
+function aplicarColores(c) {
+  colores = c;
+  raiz.setProperty("--c1", acento(c[0], .62));
+  raiz.setProperty("--c2", acento(c[1], .5));
+  raiz.setProperty("--c3", acento(c[2], .35));
+}
+
+// Tema: "Carátula" saca los colores de cada tema; los demás son fijos.
+const TEMAS = {
+  "Carátula": null,
+  "Noche":     [[120, 150, 255], [70, 90, 200], [25, 30, 70]],
+  "Atardecer": [[255, 140, 90], [220, 70, 120], [70, 25, 60]],
+  "Bosque":    [[140, 230, 150], [50, 150, 110], [15, 50, 40]],
+  "Mono":      [[235, 235, 235], [150, 150, 150], [45, 45, 45]],
+};
+let tema = "Carátula", deCaratula = null;
+function usarTema(nombre) {
+  tema = nombre in TEMAS ? nombre : "Carátula";
+  aplicarColores(TEMAS[tema] || deCaratula || colores);
+  document.querySelectorAll("#temas button").forEach(b => b.classList.toggle("elegido", b.dataset.t === tema));
+  try { localStorage.setItem("tema-ambiente", tema); } catch (e) {}
+  pintarPortada();
 }
 
 // ---- Carátula grande: duotono con los colores del tema (o la original) ----
@@ -171,6 +198,14 @@ function cargarImagen(src, conCors = true) {
   img.onerror = () => { if (conCors) cargarImagen(src, false); };
   img.src = src;
 }
+for (const [nombre, c] of Object.entries(TEMAS)) {
+  const b = document.createElement("button");
+  b.dataset.t = nombre; b.title = nombre;
+  if (c) b.style.background = `linear-gradient(135deg, rgb(${c[0]}), rgb(${c[2]}))`; else b.textContent = "◎";
+  b.onclick = () => usarTema(nombre);
+  $("temas").appendChild(b);
+}
+try { usarTema(localStorage.getItem("tema-ambiente") || "Carátula"); } catch (e) { usarTema("Carátula"); }
 $("bDuo").onclick = () => {
   duotono = !duotono; $("bDuo").classList.toggle("activo", duotono);
   try { localStorage.setItem("duotono-ambiente", duotono ? "1" : "0"); } catch (e) {}
