@@ -95,7 +95,8 @@
     <span class="tabs"><a href="inicio.html">Inicio</a><span class="actual">Biblioteca</span><span class="pronto" title="Próximamente">Editor</span><span class="pronto" title="Próximamente">Comunidad</span></span>
     <a class="btn vidrio pastilla" href="ajustes.html" style="padding:8px 16px">Ajustes</a>
   </nav>
-  <div class="barra-fuente mono"><span>Fuente: <b id="nombreFuente"></b></span><div id="carpetas"></div></div>
+  <div class="barra-fuente mono"><span>Fuente: <b id="nombreFuente"></b></span><div id="carpetas"></div>
+    <span style="margin-left:auto;display:flex;gap:12px;align-items:center"><span id="avisoGeneral"></span><button class="btn vidrio pastilla" id="importar" style="padding:7px 16px;font-size:13px">Importar plantilla…</button></span></div>
   <main id="principal">
     <div class="izq" id="grilla"></div>
     <section class="der vidrio tarjeta">
@@ -109,7 +110,7 @@
         <a class="enlace" href="guia.html">Guía de imágenes: medidas y qué pedirle al generador →</a>
         <div id="msgProps"></div>
       </div>
-      <div class="acciones"><button class="btn btn-principal" id="usar">Usar esta</button><button class="suave" id="editar" hidden>Editar</button><button class="suave" id="restablecer">Restablecer</button></div>
+      <div class="acciones"><button class="btn btn-principal" id="usar">Usar esta</button><button class="suave" id="editar" hidden>Editar</button><button class="suave" id="exportar" hidden>Exportar</button><button class="suave" id="restablecer">Restablecer</button></div>
     </section>
   </main>
 </div>
@@ -195,7 +196,7 @@ function pintar() {
   nueva.onclick = () => { location.href = "editor.html?base=central"; };
   g.appendChild(nueva);
   const sel = elegida[actual.id];
-  $("editar").hidden = !actual.propio; $("restablecer").hidden = !!actual.propio;
+  $("editar").hidden = !actual.propio; $("exportar").hidden = !actual.propio; $("restablecer").hidden = !!actual.propio;
   $("nombre").textContent = actual.nombre;
   $("descripcion").textContent = actual.desc;
   const caja = $("gruposColor"); caja.innerHTML = "";
@@ -322,6 +323,20 @@ $("zCancelar").onclick = () => $("zonasFondo").classList.remove("abierto");
 $("zRestaurar").onclick = () => { plano = aPlano(Props.ZONAS_HEADSPACE); Object.keys(plano).forEach(pintarRect); };
 
 // "Usar esta": deja la variante elegida guardada (la plantilla la lee al abrir) y entra
+function avisoGeneral(t) { $("avisoGeneral").textContent = t; setTimeout(() => { if ($("avisoGeneral").textContent === t) $("avisoGeneral").textContent = ""; }, 6000); }
+$("exportar").onclick = async () => {
+  const r = await window.pywebview.api.plantilla_exportar(JSON.stringify(actual.spec));
+  if (!r.ok) return mensaje(r.error);
+  if (!r.cancelado) mensaje("Archivo guardado: se puede compartir tal cual.");
+};
+$("importar").onclick = async () => {
+  const r = await window.pywebview.api.plantilla_importar();
+  if (!r.ok) return avisoGeneral(r.error);
+  if (r.cancelado) return;
+  Propias.guardar(r.spec);
+  try { localStorage.setItem("biblioteca-plantilla", "libre-" + r.spec.id); } catch (e) {}
+  location.reload();
+};
 $("editar").onclick = () => { location.href = `editor.html?id=${actual.idPropia}`; };
 $("usar").onclick = () => {
   const x = elegida[actual.id];

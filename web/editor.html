@@ -57,6 +57,7 @@
     <a class="atras" href="index.html">← Biblioteca</a>
     <input id="nombre" type="text" maxlength="40" spellcheck="false" aria-label="Nombre de la plantilla">
     <span class="grande"><span id="estado"></span>
+      <button class="btn vidrio pastilla chico" id="exportar">Exportar</button>
       <button class="btn vidrio pastilla chico" id="duplicar">Duplicar</button>
       <button class="btn vidrio pastilla chico" id="eliminar">Eliminar</button>
       <button class="btn btn-principal chico" id="usar">Usar esta</button></span>
@@ -186,6 +187,10 @@ async function quitar(i) {
 $("nombre").value = spec.nombre;
 $("nombre").oninput = (e) => { spec.nombre = e.target.value || "Mi plantilla"; guardar(false); };
 $("usar").onclick = () => { location.href = `libre.html?plantilla=${spec.id}&fuente=${sessionStorage.getItem("fuente") || "soundcloud"}`; };
+$("exportar").onclick = async () => {
+  const r = await api().plantilla_exportar(JSON.stringify(spec));
+  estado(!r.ok ? r.error : r.cancelado ? "" : "Archivo guardado");
+};
 $("duplicar").onclick = () => { const c = Propias.duplicar(spec.id); if (c) location.href = `editor.html?id=${c.id}`; };
 let seguroBorrar = false;
 $("eliminar").onclick = async () => {

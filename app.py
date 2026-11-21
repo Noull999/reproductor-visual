@@ -4,14 +4,20 @@ Reproductor visual (nombre pendiente). Ejecutar:  python app.py
 Una ventana con las páginas de web/; Python entrega la música (SoundCloud, tus
 carpetas o lo que suena en el PC) por medio de la clase Api.
 """
+import json
 import logging
+import re
+import secrets
 import sys
 import threading
 import time
 
+from pathlib import Path
+
 import webview
 
 import config
+import plantillas
 import servidor
 from fuentes import musica, pc, soundcloud_acceso, vista_previa
 from fuentes.soundcloud import SoundCloud
@@ -258,6 +264,46 @@ class Api:
         if plantilla.isalnum() and ranura.isalnum():
             (servidor.CARPETA_IMAGENES / f"{plantilla}-{ranura}.webp").unlink(missing_ok=True)
         return {"ok": True}
+
+    # ---- Compartir plantillas propias: un solo archivo .plantilla (configuración + imágenes, sin código) ----
+    def plantilla_exportar(self, spec_json: str) -> dict:
+        ventana = webview.windows[0] if webview.windows else None
+        if ventana is None:
+            return {"ok": False, "error": "No hay ventana abierta."}
+        try:
+            datos = plantillas.empaquetar(spec_json, servidor.CARPETA_IMAGENES)
+            nombre = re.sub(r"[^\w\- ]", "", plantillas.validar(json.loads(spec_json), "exportar")["nombre"]).strip() or "plantilla"
+            destino = ventana.create_file_dialog(webview.SAVE_DIALOG, save_filename=f"{nombre}.plantilla", file_types=("Plantilla (*.plantilla)",))
+            if not destino:
+                return {"ok": True, "cancelado": True}
+            ruta = Path(destino[0] if isinstance(destino, (list, tuple)) else destino)
+            if ruta.suffix.lower() != ".plantilla":
+                ruta = ruta.with_name(ruta.name + ".plantilla")
+            ruta.write_bytes(datos)
+            return {"ok": True, "ruta": str(ruta)}
+        except plantillas.PlantillaInvalida as e:
+            return {"ok": False, "error": str(e)}
+        except OSError as e:
+            return {"ok": False, "error": f"No se pudo guardar el archivo: {e.strerror or e}"}
+
+    def plantilla_importar(self) -> dict:
+        """Elige un .plantilla, lo valida entero y devuelve la plantilla nueva (con id propio) para guardarla."""
+        ventana = webview.windows[0] if webview.windows else None
+        if ventana is None:
+            return {"ok": False, "error": "No hay ventana abierta."}
+        elegido = ventana.create_file_dialog(webview.OPEN_DIALOG, file_types=("Plantilla (*.plantilla)",))
+        if not elegido:
+            return {"ok": True, "cancelado": True}
+        try:
+            ruta = Path(elegido[0])
+            if ruta.stat().st_size > plantillas.MAX_ZIP:
+                raise plantillas.PlantillaInvalida("El archivo es demasiado grande.")
+            nuevo_id = "p" + format(int(time.time() * 1000), "x") + secrets.token_hex(2)
+            return {"ok": True, "spec": plantillas.desempaquetar(ruta.read_bytes(), nuevo_id, servidor.CARPETA_IMAGENES)}
+        except plantillas.PlantillaInvalida as e:
+            return {"ok": False, "error": str(e)}
+        except OSError as e:
+            return {"ok": False, "error": f"No se pudo leer el archivo: {e.strerror or e}"}
 
     # ---- Mi música ----
     def musica_listas(self) -> list:

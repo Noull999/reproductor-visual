@@ -149,13 +149,17 @@ Una plantilla propia es un objeto JSON (`plantillas-propias.js`): fondo, estilo 
 - [ ] *(Más adelante, si hace falta)* modo avanzado con visuales programables en un
       entorno aislado.
 
-## Fase 4 — Compartir creaciones
+## Fase 4 — Compartir creaciones  ← HECHA (primera versión)
 
-- [ ] Exportar una plantilla como **un archivo** (configuración + imágenes) para
-      pasarla por WhatsApp, Discord, etc.
-- [ ] Importar plantillas de otros.
-- [ ] *(Más adelante, solo si hay usuarios)* galería online. Implica servidor,
-      moderación y revisar derechos de las imágenes que suba la gente.
+- [x] **Exportar** una plantilla propia como **un archivo `.plantilla`** (zip: `manifest.json` + `imagenes/*.webp`). Botón en la
+      Biblioteca y en el Editor.
+- [x] **Importar** con el botón "Importar plantilla…" de la Biblioteca. El archivo se trata como contenido no confiable
+      (`plantillas.py`): lista permitida de valores, colores y números acotados, solo `manifest.json` e `imagenes/<nombre>.webp`
+      dentro del zip, límites de tamaño, imágenes re-codificadas con Pillow, el id lo pone la app. 33 pruebas, con archivos maliciosos.
+- [ ] Exportar también las plantillas incluidas con tus ajustes (variante, colores, cuerpo propio de Headspace).
+- [ ] *(Más adelante)* catálogo de comunidad: un repositorio público con la lista de plantillas (sin servidor); moderación manual
+      y revisión de derechos de las imágenes.
+- [ ] *(Más adelante, solo si hay usuarios)* galería online con servidor.
 
 ## Después / ideas sueltas
 

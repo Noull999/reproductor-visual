@@ -1,0 +1,14 @@
+# Reproductor visual: dependencias (Windows 10/11, Python 3.12)
+pywebview>=6.2
+requests>=2.32
+yt-dlp>=2026.1.1          # saca el audio de SoundCloud
+mutagen>=1.47             # etiquetas y carátulas de tu música local
+pillow>=11                # imágenes propias y vistas previas
+numpy>=2                  # análisis del sonido del PC
+PyAudioWPatch>=0.2.12     # captura del sonido que sale por los parlantes (WASAPI loopback)
+winrt-runtime>=3.2        # lo que suena en el PC (controles multimedia de Windows)
+winrt-Windows.Foundation>=3.2
+winrt-Windows.Foundation.Collections>=3.2
+winrt-Windows.Media.Control>=3.2
+winrt-Windows.Storage>=3.2
+winrt-Windows.Storage.Streams>=3.2
