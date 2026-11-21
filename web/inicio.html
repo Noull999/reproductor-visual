@@ -23,8 +23,8 @@
   .fuente b { font-size: 18px; font-weight: 600; }
   .fuente p { margin: 0; color: var(--suave); font-size: 14px; line-height: 1.45; }
   .fuente .estado { margin-top: auto; color: var(--suave); }
-  .fuente.pronto { opacity: .55; cursor: default; }
-  .fuente.pronto:hover { transform: none; }
+  .otra { margin: 22px 0 0; } .otra a { color: var(--suave); text-decoration: none; } .otra a:hover { color: var(--texto); }
+  .fuente.ocupada { opacity: .6; pointer-events: none; }
 </style>
 </head>
 <body>
@@ -41,24 +41,50 @@
   <main>
     <div class="etiqueta vidrio pastilla mono"><span class="punto" style="background:#3ddc84;box-shadow:0 0 10px #3ddc84"></span>Elige de dónde suena</div>
     <h1>Tu música,<br><span>a tu manera.</span></h1>
-    <p class="sub">Escucha tus likes, tus carpetas o lo que ya suena en el PC, con la pantalla que tú elijas.</p>
+    <p class="sub">Escucha tus likes de Spotify o SoundCloud, tus carpetas o lo que ya suena en el PC, con la pantalla que tú elijas.</p>
     <div class="fuentes">
+      <a class="fuente vidrio tarjeta" id="fuenteSpotify" href="index.html?fuente=spotify">
+        <span class="icono">🟢</span><b>Spotify</b>
+        <p>Tus me gusta y tus playlists. Suena en tu Spotify de escritorio y la app lo controla (Premium).</p>
+        <span class="estado mono" id="estadoSpotify">Elegir →</span></a>
       <a class="fuente vidrio tarjeta" href="index.html?fuente=soundcloud">
         <span class="icono">☁️</span><b>SoundCloud</b>
         <p>Tus likes, completos, dentro de la app. Eliges, saltas y la pantalla sigue el ritmo exacto.</p>
-        <span class="estado mono">Disponible →</span></a>
+        <span class="estado mono">Elegir →</span></a>
       <a class="fuente vidrio tarjeta" href="index.html?fuente=musica">
         <span class="icono">💽</span><b>Mi música</b>
         <p>Tus carpetas del PC. Cada carpeta es una lista.</p>
-        <span class="estado mono">Elegir carpeta →</span></a>
-      <a class="fuente vidrio tarjeta" href="index.html?fuente=pc">
-        <span class="icono">🎧</span><b>Lo que suena en el PC</b>
-        <p>Spotify o el navegador: ves qué suena, controlas el tema y la pantalla reacciona al audio.</p>
-        <span class="estado mono">Disponible →</span></a>
+        <span class="estado mono">Elegir →</span></a>
     </div>
+    <p class="otra mono"><a href="index.html?fuente=pc">¿Suena en otra app? Mostrar lo que suena en el PC →</a></p>
   </main>
 </div>
 <script src="haz.js"></script>
-<script>iniciarHaz(document.getElementById("haz"));</script>
+<script>
+"use strict";
+iniciarHaz(document.getElementById("haz"));
+// Cada fuente empieza sin lista elegida (la lista de una fuente no vale para otra)
+document.querySelectorAll("a.fuente").forEach(a => a.addEventListener("click", () => sessionStorage.removeItem("carpeta")));
+// Spotify: la primera vez hay que aceptar el acceso en el navegador; después entra directo
+const sp = document.getElementById("fuenteSpotify"), estadoSp = document.getElementById("estadoSpotify");
+let spConectado = false;
+async function revisarSpotify() {
+  const c = await window.pywebview.api.spotify_cuenta();
+  spConectado = c.conectado;
+  if (!c.configurado) estadoSp.textContent = "Falta configurar →";
+  else if (!c.conectado) estadoSp.textContent = "Conectar →";
+}
+sp.addEventListener("click", async (e) => {
+  if (spConectado) return;
+  e.preventDefault();
+  sp.classList.add("ocupada"); estadoSp.textContent = "Acepta el acceso en el navegador…";
+  const r = await window.pywebview.api.spotify_conectar();
+  sp.classList.remove("ocupada");
+  if (r.ok) { spConectado = true; sessionStorage.removeItem("carpeta"); location.href = "index.html?fuente=spotify"; }
+  else estadoSp.textContent = (r.error || "No se pudo conectar") + " · Reintentar →";
+});
+if (window.pywebview && window.pywebview.api) revisarSpotify();
+else window.addEventListener("pywebviewready", revisarSpotify);
+</script>
 </body>
 </html>

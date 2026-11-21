@@ -14,7 +14,9 @@
     --brilloLcd: 0 0 6px var(--tinta); --p: 0%; --giro: 81deg; }
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; overflow: hidden; background: #000; font-family: "Michroma", Tahoma, sans-serif; }
-  #tunel { position: fixed; inset: 0; width: 100%; height: 100%; }
+  /* El centro del túnel deslumbraba: se baja ~20 % el brillo y se oscurece el núcleo */
+  #tunel { position: fixed; inset: 0; width: 100%; height: 100%; filter: brightness(.8); }
+  #nucleoOscuro { position: fixed; inset: 0; pointer-events: none; background: radial-gradient(circle at 50% 42%, rgba(0,0,0,.32), transparent 55%); }
   #titulo { display: none; }   /* el título se muestra en la marquesina */
 
   /* ---- Metal cepillado con relieve, compartido por el equipo, la playlist y los botones ---- */
@@ -28,6 +30,9 @@
     box-shadow: inset 0 1px 0 rgba(255,255,255,.7), 0 2px 3px rgba(0,0,0,.4); text-shadow: 0 1px 0 rgba(255,255,255,.35); }
   .metal:active { background: linear-gradient(0deg, color-mix(in srgb, var(--metal) 40%, white), var(--metal) 55%, color-mix(in srgb, var(--metal) 75%, black));
     box-shadow: inset 0 2px 4px rgba(0,0,0,.45); }
+  a.volver { background: linear-gradient(180deg, color-mix(in srgb, var(--metal) 40%, white), var(--metal) 55%, color-mix(in srgb, var(--metal) 75%, black));
+    color: var(--grabado); border: 1px solid rgba(0,0,0,.55); font: 9px Michroma, sans-serif; letter-spacing: .14em; text-transform: uppercase; opacity: .95;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.7), 0 2px 3px rgba(0,0,0,.4); text-shadow: 0 1px 0 rgba(255,255,255,.35); border-radius: 9px; }
   .grabado { color: var(--grabado); font-size: 9px; letter-spacing: .18em; text-shadow: 0 1px 0 rgba(255,255,255,.3); }
 
   /* ---- Pantalla LCD ---- */
@@ -41,7 +46,9 @@
     border-radius: 26px 26px 18px 18px; padding: 10px 20px 16px; }
   .tope { display: flex; align-items: center; gap: 10px; margin-bottom: 9px; }
   .tope .marca { font-size: 11px; letter-spacing: .3em; margin-right: auto; }
-  #skins { display: flex; gap: 6px; align-items: center; }
+  /* SKIN: grupo hundido y aparte; PL va separado a la derecha con una divisoria */
+  #skins { display: flex; gap: 6px; align-items: center; padding: 3px 8px; border-radius: 12px; background: rgba(0,0,0,.16); box-shadow: inset 0 1px 3px rgba(0,0,0,.35), 0 1px 0 rgba(255,255,255,.3); }
+  #bLista { margin-left: 10px; box-shadow: -10px 0 0 -9px rgba(0,0,0,.35); }
   #skins button, #bLista { font-size: 8px; letter-spacing: .12em; padding: 4px 9px 4px 7px; border-radius: 9px; display: flex; align-items: center; gap: 5px; }
   #skins button::before, #bLista::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: rgba(0,0,0,.45); }
   #skins button.elegida::before, body.conLista #bLista::before { background: var(--acento); box-shadow: 0 0 6px var(--acento); }
@@ -55,7 +62,7 @@
   #reloj { position: relative; font-size: 66px; line-height: .85; }
   #reloj .fantasma { position: absolute; left: 0; top: 0; opacity: .1; text-shadow: none; }
   .indicadores { display: flex; flex-direction: column; font-size: 16px; line-height: 1.05; }
-  .indicadores span { opacity: .14; text-shadow: none; }
+  .indicadores span { opacity: .34; text-shadow: none; }
   .indicadores span.on { opacity: 1; text-shadow: var(--brilloLcd); }
   #artista { font-size: 21px; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   #espectro { width: 200px; height: 128px; display: block; }
@@ -105,6 +112,7 @@
 </head>
 <body class="conLista">
 <canvas id="tunel"></canvas>
+<div id="nucleoOscuro"></div>
 
 <aside id="ventanaLista" class="chasis">
   <div class="tope grabado"><span class="marca">PLAYLIST</span><span id="cuenta"></span></div>
@@ -140,7 +148,7 @@
       </div>
       <div class="vol">
         <div id="perilla" role="slider" tabindex="0" aria-label="Volumen" aria-valuemin="0" aria-valuemax="100" aria-valuenow="80"></div>
-        <span class="grabado">VOLUMEN</span>
+        <span class="grabado" id="iconoVol" title="Silenciar" style="cursor:pointer">VOLUMEN</span>
       </div>
     </div>
   </div>
@@ -240,6 +248,7 @@ setInterval(() => {
 
 // ---- Perilla de volumen: arrastrar hacia arriba/abajo, rueda o flechas ----
 const vol = $("volumen"), perilla = $("perilla");
+vol.addEventListener("input", () => raiz.setProperty("--giro", (-135 + vol.value * 2.7) + "deg"));   // también al silenciar con el rótulo
 function ponerVol(v) {
   if (vol.disabled) return;
   v = Math.max(0, Math.min(100, Math.round(v)));

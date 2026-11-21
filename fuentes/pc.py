@@ -103,27 +103,52 @@ class Captura:
             self._hilo = threading.Thread(target=self._bucle, daemon=True)
             self._hilo.start()
 
-    def _bucle(self):
-        import numpy as np
+    def _abrir(self):
+        """(Re)detecta la salida por defecto de Windows y abre su loopback. Un PyAudio nuevo
+        cada vez: el anterior no se entera si cambias de parlantes a audífonos."""
         import pyaudiowpatch as pyaudio
         pa = pyaudio.PyAudio()
-        try:
-            disp = pa.get_device_info_by_index(pa.get_default_wasapi_loopback()["index"])
-        except Exception as e:
-            self.error = f"No hay salida de audio para escuchar: {e}"
-            return
-        self.dispositivo = disp["name"]
+        disp = pa.get_device_info_by_index(pa.get_default_wasapi_loopback()["index"])
         canales, tasa = int(disp["maxInputChannels"]), int(disp["defaultSampleRate"])
         flujo = pa.open(format=pyaudio.paFloat32, channels=canales, rate=tasa, input=True,
                         input_device_index=disp["index"], frames_per_buffer=1024)
+        return pa, flujo, canales, disp["name"]
+
+    def _cerrar(self, pa, flujo):
+        for cerrar in (flujo.stop_stream, flujo.close, pa.terminate):
+            try:
+                cerrar()
+            except Exception:
+                pass
+
+    def _bucle(self):
+        import numpy as np
+        try:
+            pa, flujo, canales, self.dispositivo = self._abrir()
+        except Exception as e:
+            self.error = f"No hay salida de audio para escuchar: {e}"
+            return
         ventana, previo, techo = np.hanning(BINS * 2), np.zeros(BINS), PISO_DB
         memoria = np.zeros(BINS * 2, dtype=np.float32)
+        sin_senal = time.time()
         while True:
             try:
                 datos = np.frombuffer(flujo.read(1024, exception_on_overflow=False), dtype=np.float32)
             except Exception as e:
                 self.error = str(e)
                 time.sleep(0.5)
+                continue
+            if datos.size and np.abs(datos).max() > 1e-5:
+                sin_senal = time.time()
+            elif time.time() - sin_senal > 4:   # silencio sostenido: quizá cambió la salida de audio
+                sin_senal = time.time()
+                try:
+                    nuevos = self._abrir()
+                    self._cerrar(pa, flujo)
+                    pa, flujo, canales, self.dispositivo = nuevos
+                    self.error = ""
+                except Exception as e:
+                    self.error = f"No hay salida de audio para escuchar: {e}"
                 continue
             mono = datos.reshape(-1, canales).mean(axis=1)
             memoria = np.concatenate([memoria, mono])[-BINS * 2:]

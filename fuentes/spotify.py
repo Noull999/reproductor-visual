@@ -13,6 +13,7 @@ import secrets
 import threading
 import time
 import webbrowser
+from concurrent.futures import ThreadPoolExecutor
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import parse_qs, urlencode, urlparse
 
@@ -27,6 +28,17 @@ SCOPES = ("user-read-playback-state user-modify-playback-state user-read-current
 TOKENS = config.CARPETA / "spotify.json"
 API = "https://api.spotify.com/v1"
 CUENTA = "https://accounts.spotify.com"
+
+
+def _portada(t: dict) -> str:
+    imgs = (t.get("album") or {}).get("images") or []
+    # la de ~640 px (la primera) alcanza; si no hay, vacío
+    return imgs[0]["url"] if imgs else ""
+
+
+def _pista(t: dict) -> dict:
+    return {"uri": t.get("uri"), "titulo": t.get("name") or "", "artista": ", ".join(a["name"] for a in t.get("artists", [])),
+            "caratula": _portada(t), "duracion": (t.get("duration_ms") or 0) / 1000}
 
 
 class Spotify:
@@ -118,29 +130,94 @@ class Spotify:
             return None
         r.raise_for_status()
         j = r.json(); t = j.get("item") or {}
-        return {"titulo": t.get("name"), "artista": ", ".join(a["name"] for a in t.get("artists", [])),
-                "caratula": ((t.get("album") or {}).get("images") or [{}])[0].get("url"),
-                "sonando": j.get("is_playing"), "posicion": (j.get("progress_ms") or 0) / 1000,
-                "duracion": (t.get("duration_ms") or 0) / 1000, "dispositivo": (j.get("device") or {}).get("name")}
+        return {"hay": True, "uri": t.get("uri"), "titulo": t.get("name"), "artista": ", ".join(a["name"] for a in t.get("artists", [])),
+                "caratula": _portada(t), "sonando": j.get("is_playing"), "posicion": (j.get("progress_ms") or 0) / 1000,
+                "duracion": (t.get("duration_ms") or 0) / 1000, "dispositivo": (j.get("device") or {}).get("name"),
+                "volumen": (j.get("device") or {}).get("volume_percent")}
+
+    def _paginas(self, ruta: str, tam: int, maximo: int) -> list[dict]:
+        """Todas las páginas de una lista: pide la primera para saber el total y el resto en paralelo."""
+        r = self._pedir("GET", ruta, params={"limit": tam, "offset": 0}); r.raise_for_status(); j = r.json()
+        items = list(j.get("items", []))
+        total = min(j.get("total", len(items)), maximo)
+
+        def pagina(offset):
+            rr = self._pedir("GET", ruta, params={"limit": tam, "offset": offset}); rr.raise_for_status()
+            return rr.json().get("items", [])
+        with ThreadPoolExecutor(max_workers=5) as pool:
+            for resto in pool.map(pagina, range(tam, total, tam)):
+                items += resto
+        return items[:maximo]
 
     def likes(self, maximo: int = 2000) -> list[dict]:
-        salida, ruta, params = [], "/me/tracks", {"limit": 50}
-        while ruta and len(salida) < maximo:
+        return [_pista(it["track"]) for it in self._paginas("/me/tracks", 50, maximo) if (it.get("track") or {}).get("uri")]
+
+    def listas(self) -> list[dict]:
+        """Tus me gusta y tus playlists. En modo desarrollo Spotify solo deja leer las canciones
+        de playlists tuyas o colaborativas (las de otros dan 403), así que solo esas se ofrecen."""
+        r = self._pedir("GET", "/me/tracks", params={"limit": 1}); r.raise_for_status()
+        salida = [{"id": "me-gusta", "nombre": "Tus me gusta", "canciones": r.json().get("total", 0)}]
+        yo = self._pedir("GET", "/me").json().get("id")
+        ruta, params = "/me/playlists", {"limit": 50}
+        while ruta:
             r = self._pedir("GET", ruta, params=params); r.raise_for_status(); j = r.json()
-            for it in j.get("items", []):
-                t = it.get("track") or {}
-                salida.append({"uri": t.get("uri"), "titulo": t.get("name"), "artista": ", ".join(a["name"] for a in t.get("artists", [])),
-                               "caratula": ((t.get("album") or {}).get("images") or [{}])[0].get("url"), "duracion": (t.get("duration_ms") or 0) / 1000})
+            for p in j.get("items", []):
+                n = (p.get("items") or p.get("tracks") or {}).get("total", 0)
+                if n and (p["owner"]["id"] == yo or p.get("collaborative")):
+                    salida.append({"id": p["id"], "nombre": p["name"], "canciones": n})
             ruta, params = j.get("next"), None
-        return salida[:maximo]
+        return salida
+
+    def canciones(self, lista: str, maximo: int = 2000) -> list[dict]:
+        if lista == "me-gusta":
+            return self.likes(maximo)
+        salida = []
+        for it in self._paginas(f"/playlists/{lista}/items", 100, maximo):
+            t = it.get("item") or it.get("track") or {}
+            if t.get("type") == "track" and t.get("uri") and not it.get("is_local"):
+                salida.append(_pista(t))
+        return salida
 
     # ---- control (Premium) ----
-    def tocar(self, uri: str | None = None, dispositivo: str | None = None) -> None:
-        r = self._pedir("PUT", "/me/player/play", params={"device_id": dispositivo} if dispositivo else None,
-                        json={"uris": [uri]} if uri else {})
+    def _dispositivo(self) -> str | None:
+        """El dispositivo activo o, si no hay, el Spotify de este PC."""
+        ds = self.dispositivos()
+        elegido = next((d for d in ds if d["activo"]), None) or next((d for d in ds if d["tipo"] == "Computer"), None) or (ds[0] if ds else None)
+        return elegido["id"] if elegido else None
+
+    def _ok(self, r: requests.Response) -> None:
+        if r.status_code in (200, 202, 204):
+            return
+        if r.status_code == 404:
+            raise RuntimeError("Abre Spotify en tu PC y vuelve a intentarlo.")
+        if r.status_code == 403:
+            raise RuntimeError("Spotify rechazó la orden (hace falta Premium).")
         r.raise_for_status()
 
+    def tocar_lista(self, lista: str, pistas: list[dict], indice: int) -> None:
+        """Pone a sonar pistas[indice] y deja el resto de la lista detrás para que ⏭ siga el orden."""
+        dispositivo = self._dispositivo()
+        if not dispositivo:
+            raise RuntimeError("Abre Spotify en tu PC y vuelve a intentarlo.")
+        if lista == "me-gusta":   # sin contexto propio: se manda una tanda de hasta 100 temas
+            cuerpo = {"uris": [p["uri"] for p in pistas[indice:indice + 100]]}
+        else:
+            cuerpo = {"context_uri": f"spotify:playlist:{lista}", "offset": {"uri": pistas[indice]["uri"]}}
+        self._ok(self._pedir("PUT", "/me/player/play", params={"device_id": dispositivo}, json=cuerpo))
+
+    def seek(self, segundos: float) -> None:
+        self._ok(self._pedir("PUT", "/me/player/seek", params={"position_ms": int(max(0, segundos) * 1000)}))
+
+    def volumen(self, porcentaje: int) -> None:
+        self._ok(self._pedir("PUT", "/me/player/volume", params={"volume_percent": max(0, min(100, int(porcentaje)))}))
+
+    def tocar(self, uri: str | None = None, dispositivo: str | None = None) -> None:
+        self._ok(self._pedir("PUT", "/me/player/play", params={"device_id": dispositivo} if dispositivo else None,
+                             json={"uris": [uri]} if uri else {}))
+
     def control(self, accion: str) -> None:
+        if accion == "reanudar":
+            return self.tocar()
         metodo, ruta = {"pausa": ("PUT", "/me/player/pause"), "siguiente": ("POST", "/me/player/next"),
                         "anterior": ("POST", "/me/player/previous")}[accion]
-        self._pedir(metodo, ruta).raise_for_status()
+        self._ok(self._pedir(metodo, ruta))

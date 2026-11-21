@@ -22,6 +22,7 @@
   #carpetas button { padding: 8px 16px; color: var(--texto); cursor: pointer; font: 13px Geist, system-ui; }
   #carpetas button.elegida { box-shadow: 0 0 0 1px var(--rojo), 0 0 22px rgba(255,45,61,.35); }
   .bloqueada { opacity: .35; pointer-events: none; }
+  #nota { color: var(--suave); }
 </style>
 </head>
 <body>
@@ -51,7 +52,7 @@ const q = new URLSearchParams(location.search);
 const fuente = q.get("fuente") || sessionStorage.getItem("fuente") || "soundcloud";
 sessionStorage.setItem("fuente", fuente);
 document.getElementById("nombreFuente").textContent =
-  { soundcloud: "SoundCloud", musica: "Mi música", pc: "Lo que suena en el PC" }[fuente];
+  { spotify: "Spotify", soundcloud: "SoundCloud", musica: "Mi música", pc: "Lo que suena en el PC" }[fuente];
 
 // Mi música: primero se elige la carpeta (cada carpeta es una lista).
 async function elegirCarpeta() {
@@ -73,6 +74,28 @@ async function elegirCarpeta() {
     caja.appendChild(b);
   });
   if (previa && listas.some(l => l.ruta === previa)) grilla.classList.remove("bloqueada");
+}
+// Spotify: "Tus me gusta" ya viene elegida (como SoundCloud); las playlists tuyas son opcionales.
+async function listasSpotify() {
+  const caja = document.getElementById("carpetas");
+  const r = await window.pywebview.api.spotify_listas();
+  if (!r.ok) { caja.style.display = "flex"; caja.innerHTML = `<span id="nota">${r.error} <a href="inicio.html" style="color:inherit">Volver al inicio</a></span>`; return; }
+  const previa = sessionStorage.getItem("carpeta") || "me-gusta";
+  caja.style.display = "flex";
+  r.listas.forEach(l => {
+    const b = document.createElement("button");
+    b.className = "vidrio pastilla" + (l.id === previa ? " elegida" : "");
+    b.textContent = `${l.nombre} · ${l.canciones}`;
+    b.onclick = () => {
+      sessionStorage.setItem("carpeta", l.id);
+      caja.querySelectorAll("button").forEach(x => x.classList.toggle("elegida", x === b));
+    };
+    caja.appendChild(b);
+  });
+}
+if (fuente === "spotify") {
+  if (window.pywebview && window.pywebview.api) listasSpotify();
+  else window.addEventListener("pywebviewready", listasSpotify);
 }
 if (fuente === "musica") {
   if (window.pywebview && window.pywebview.api) elegirCarpeta();

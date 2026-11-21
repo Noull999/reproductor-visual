@@ -41,7 +41,14 @@
     font-size: 14px; cursor: pointer; color: var(--tenue); }
   .fila:hover { color: var(--texto); background: color-mix(in srgb, var(--acento) 25%, transparent); }
   .fila.sonando { color: var(--fondo); background: var(--brillo); }
-  .fila img { width: 34px; height: 34px; object-fit: cover; image-rendering: pixelated; }
+  .fila img { width: 34px; height: 34px; object-fit: cover; image-rendering: pixelated; box-shadow: 0 0 0 2px var(--acento); }
+  a.volver { font: 10px "Silkscreen", monospace; letter-spacing: .08em; text-transform: uppercase; border: none; border-radius: 0; padding: 8px 12px; opacity: .95;
+    color: var(--texto); background: color-mix(in srgb, var(--panel) 92%, transparent);
+    clip-path: polygon(0 6px, 3px 6px, 3px 3px, 6px 3px, 6px 0, calc(100% - 6px) 0, calc(100% - 6px) 3px, calc(100% - 3px) 3px, calc(100% - 3px) 6px, 100% 6px, 100% calc(100% - 6px), calc(100% - 3px) calc(100% - 6px), calc(100% - 3px) calc(100% - 3px), calc(100% - 6px) calc(100% - 3px), calc(100% - 6px) 100%, 6px 100%, 6px calc(100% - 3px), 3px calc(100% - 3px), 3px calc(100% - 6px), 0 calc(100% - 6px)); }
+  a.volver:hover { color: var(--fondo); background: var(--brillo); }
+  .vol { display: flex; align-items: center; gap: 8px; }
+  #iconoVol { background: none; border: none; color: var(--tenue); font: 10px "Silkscreen", monospace; cursor: pointer; padding: 0; text-transform: uppercase; }
+  #iconoVol:hover { color: var(--texto); }
   .fila .nombre { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .fila .n, .fila .dur { font-family: "Silkscreen", monospace; font-size: 10px; }
 
@@ -93,7 +100,7 @@
       </div>
       <input id="barra" type="range" min="0" max="1000" value="0" title="Avance">
     </div>
-    <div class="derecha"><input id="volumen" type="range" min="0" max="100" value="80" title="Volumen">
+    <div class="derecha"><div class="vol"><button id="iconoVol" title="Silenciar">Vol</button><input id="volumen" type="range" min="0" max="100" value="80" title="Volumen"></div>
       <div id="tiempo">0:00 / 0:00</div></div>
   </footer>
 </div>
@@ -105,7 +112,7 @@ const $ = (id) => document.getElementById(id);
 // Cada paleta: fondo, panel, tenue, texto, acento, brillo.
 const PALETAS = {
   "Sangre":    ["#060507", "#1e1b24", "#8d8580", "#cfc6bd", "#a51218", "#e8452c"],
-  "Game Boy":  ["#0f380f", "#306230", "#8bac0f", "#9bbc0f", "#8bac0f", "#9bbc0f"],
+  "Game Boy":  ["#0f380f", "#306230", "#a3c426", "#9bbc0f", "#8bac0f", "#9bbc0f"],   // texto inactivo (3.º) más claro que el acento
   "NES":       ["#000000", "#24188c", "#a4a4a4", "#fcfcfc", "#e40058", "#f8b800"],
   "Vaporwave": ["#12062b", "#2d1b4e", "#b39ddb", "#fbeaff", "#ff71ce", "#01cdfe"],
   "Matrix":    ["#000000", "#062b0e", "#1f7a33", "#c8ffd0", "#00b32c", "#39ff6a"],

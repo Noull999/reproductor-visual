@@ -68,7 +68,13 @@
   input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%; background: #fff;
     box-shadow: 0 0 10px var(--c1); }
   input[type=range]:disabled { opacity: .35; }
-  #bDuo.activo { color: var(--c1); }
+  #bDuo { font: 600 10px "Geist Mono", monospace !important; letter-spacing: .08em; border: 1px solid rgba(255,255,255,.25) !important; border-radius: 999px; padding: 4px 8px !important; }
+  #bDuo.activo { color: #0a0a0d; background: var(--c1) !important; border-color: var(--c1) !important; opacity: 1; }
+  .vol { display: flex; align-items: center; gap: 8px; }
+  #iconoVol { background: none; border: none; color: #f4f1ee; cursor: pointer; font-size: 15px; opacity: .75; padding: 0; }
+  #iconoVol:hover { opacity: 1; }
+  a.volver { background: transparent; border: 1px solid rgba(255,255,255,.35); color: #f4f1ee; border-radius: 4px; opacity: .85;
+    font: 11px "Geist Mono", monospace; letter-spacing: .12em; text-transform: uppercase; }
   .fila-enc { display: flex; justify-content: space-between; align-items: center; }
   #temas { display: flex; gap: 8px; }
   #temas button { width: 18px; height: 18px; border-radius: 50%; padding: 0; cursor: pointer; border: 1px solid rgba(255,255,255,.25);
@@ -105,8 +111,8 @@
       <button id="bSig" title="Siguiente">&#x23ED;&#xFE0E;</button>
     </div>
     <div class="linea"><input id="barra" type="range" min="0" max="1000" value="0" title="Avance"><span id="tiempo">0:00 / 0:00</span></div>
-    <input id="volumen" type="range" min="0" max="100" value="80" title="Volumen">
-    <button id="bDuo" title="Carátula en duotono u original">◐</button>
+    <div class="vol"><button id="iconoVol" title="Silenciar">🔊</button><input id="volumen" type="range" min="0" max="100" value="80" title="Volumen"></div>
+    <button id="bDuo" title="Carátula en duotono u original">DUO</button>
   </footer>
 </div>
 
@@ -118,7 +124,7 @@ const raiz = document.documentElement.style;
 $("nombreFuente").textContent = { soundcloud: "SoundCloud", musica: "Mi música", pc: "En el PC" }[R.fuente];
 let duotono = true;
 try { duotono = localStorage.getItem("duotono-ambiente") !== "0"; } catch (e) {}
-$("bDuo").classList.toggle("activo", duotono);
+$("bDuo").classList.toggle("activo", duotono); $("bDuo").textContent = duotono ? "DUO" : "ORIG";
 
 // ---- Colores de la carátula ----
 function hsl([r, g, b]) {
@@ -182,9 +188,9 @@ function pintarPortada() {
   if (!duotono) return;
   try {
     const d = g.getImageData(0, 0, S, S), px = d.data;
-    const oscuro = colores[2].map(v => v * .16), claro = colores[0].map(v => v + (255 - v) * .5);
+    const oscuro = colores[2].map(v => v * .08), claro = colores[0].map(v => v + (255 - v) * .38);
     for (let i = 0; i < px.length; i += 4) {
-      const l = (0.299 * px[i] + 0.587 * px[i + 1] + 0.114 * px[i + 2]) / 255, k = l * l * (3 - 2 * l);   // curva en S: más contraste
+      const l = (0.299 * px[i] + 0.587 * px[i + 1] + 0.114 * px[i + 2]) / 255, k = Math.pow(l * l * (3 - 2 * l), 1.15);   // curva en S: más contraste
       px[i] = oscuro[0] + (claro[0] - oscuro[0]) * k; px[i + 1] = oscuro[1] + (claro[1] - oscuro[1]) * k; px[i + 2] = oscuro[2] + (claro[2] - oscuro[2]) * k;
     }
     g.putImageData(d, 0, 0);
@@ -207,7 +213,7 @@ for (const [nombre, c] of Object.entries(TEMAS)) {
 }
 try { usarTema(localStorage.getItem("tema-ambiente") || "Carátula"); } catch (e) { usarTema("Carátula"); }
 $("bDuo").onclick = () => {
-  duotono = !duotono; $("bDuo").classList.toggle("activo", duotono);
+  duotono = !duotono; $("bDuo").classList.toggle("activo", duotono); $("bDuo").textContent = duotono ? "DUO" : "ORIG";
   try { localStorage.setItem("duotono-ambiente", duotono ? "1" : "0"); } catch (e) {}
   pintarPortada();
 };

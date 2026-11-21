@@ -47,31 +47,34 @@ Orden de trabajo (cada paso se prueba en la app antes del siguiente):
    escala fija del analizador. Ahora la captura usa ganancia automática (`escalar` en
    `fuentes/pc.py`): la música se ve igual a cualquier volumen y el silencio no se amplifica.
    Medido con Spotify sonando: máx 226/255, graves 156, medios 128, agudos 81.
-   Pendiente: comprobarlo dentro de una plantilla a la vez que suena Spotify.
+   La captura ahora también vuelve a detectar la salida de audio si hay silencio sostenido.
+   Pendiente: comprobarlo dentro de una plantilla con sonido real saliendo por los parlantes
+   (la última prueba midió silencio exacto aunque Spotify decía "reproduciendo").
 2. **Fuente Spotify**
    - [x] Conexión con PKCE (sin secreto), tokens en `~/.visualizador/spotify.json`.
          Probado: lee lo que suena, dispositivos y likes; pausa/reanuda (Premium confirmado).
-   - [ ] Botón "Conectar Spotify" en el inicio (primera vez abre el navegador).
-   - [ ] Elegir lista como en Mi música: **Tus me gusta** o cada playlist.
-   - [ ] En las plantillas: tocar un tema de la lista lo pone en tu Spotify; ⏮ ⏯ ⏭,
+   - [x] Botón "Conectar Spotify" en el inicio (primera vez abre el navegador; después entra directo).
+   - [x] Lista: **Tus me gusta** viene elegida (1379 temas cargan en ~4 s) y las playlists tuyas son opcionales.
+         Límite de Spotify: en modo desarrollo solo se pueden leer playlists propias o colaborativas (7 de 49).
+   - [x] En las plantillas (probado en la app contra tu Spotify): tocar un tema de la lista lo pone en tu Spotify; ⏮ ⏯ ⏭,
          barra (seek) y volumen por la API. Estado y posición desde Windows (sin gastar
          peticiones a la API); si no hay Spotify abierto, avisar.
-   - [ ] Inicio con 3 paneles (Spotify, SoundCloud, Mi música) + enlace "otra app".
-3. **Todas las plantillas con lista para elegir tema**: Headspace no tiene. Propuesta:
-   cajón de gel que se abre desde el lado con un botón "Lista" en la barra de abajo.
+   - [x] Inicio con 3 paneles (Spotify, SoundCloud, Mi música) + enlace "otra app".
+3. **Todas las plantillas con lista para elegir tema** — ✔ Headspace tiene un cajón de gel que
+   se abre desde el lado con el botón "Lista" (la cabeza se corre para no taparse).
 4. **Pulido de la revisión** (capturas del 20-11):
-   - [ ] Botón "← Plantillas": más contraste y con el estilo de cada plantilla (vidrio,
+   - [x] Botón "← Plantillas": más contraste y con el estilo de cada plantilla (vidrio,
          gel, metal, serif, pixel).
-   - [ ] Líquido: capa oscura detrás de la lista para que el haz no tape los títulos.
-   - [ ] 2000s: bajar ~20 % el brillo del centro del túnel (sobre todo Grafito y LCD
+   - [x] Líquido: capa oscura detrás de la lista para que el haz no tape los títulos.
+   - [x] 2000s: bajar ~20 % el brillo del centro del túnel (sobre todo Grafito y LCD
          verde); separar "PL" de los skins; un poco más de contraste en PLAY/PAUSA/SC.
-   - [ ] Headspace: el título en la pantalla avanza como marquesina solo si no cabe.
-   - [ ] Ambiente: que se note más el cambio duotono ↔ original; margen bajo la lista.
-   - [ ] Pixel: la lista termina con degradado (no corta una fila a la mitad);
+   - [x] Headspace: el título en la pantalla avanza como marquesina solo si no cabe.
+   - [x] Ambiente: que se note más el cambio duotono ↔ original; margen bajo la lista.
+   - [x] Pixel: la lista termina con degradado (no corta una fila a la mitad);
          Game Boy con texto inactivo más claro; miniaturas con borde de la paleta.
-   - [ ] Todas: margen inferior + desvanecido al final de cada lista con scroll.
-   - [ ] Volumen: clic en el ícono silencia y vuelve; mostrar el % al moverlo.
-   - [ ] Inicio: mismas etiquetas en los paneles ("Elegir →").
+   - [x] Todas: margen inferior + desvanecido al final de cada lista con scroll.
+   - [x] Volumen: clic en el ícono silencia y vuelve; mostrar el % al moverlo.
+   - [x] Inicio: mismas etiquetas en los paneles ("Elegir →").
    - [ ] *(Idea de Gemini)* modo "solo visual": los controles se ocultan tras 3 s sin
          mover el mouse.
 5. **Nombre de la app** (decisión de José) → reemplaza "sin nombre aún".

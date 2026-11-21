@@ -41,8 +41,11 @@
   .cab { position: absolute; left: 6%; right: 6%; top: 8%; display: flex; gap: 4cqw; align-items: center; }
   #caratula { width: 26cqh; height: 26cqh; object-fit: cover; border-radius: 3cqh; flex: none;
     box-shadow: 0 0 0 .6cqh var(--led), 0 0 3cqh color-mix(in srgb, var(--led) 60%, transparent); }
-  .txt { min-width: 0; color: var(--led); text-shadow: 0 0 2cqh color-mix(in srgb, var(--led) 70%, transparent); }
-  #titulo { font-size: 11cqh; font-weight: 600; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .txt { min-width: 0; overflow: hidden; color: var(--led); text-shadow: 0 0 2cqh color-mix(in srgb, var(--led) 70%, transparent); }
+  /* El título solo se desplaza si no cabe (--mov lo calcula el script) */
+  #titulo { font-size: 11cqh; font-weight: 600; line-height: 1.1; white-space: nowrap; display: inline-block; }
+  #titulo.largo { animation: pasar 9s ease-in-out 1.5s infinite alternate; }
+  @keyframes pasar { to { transform: translateX(var(--mov)); } }
   #artista { font-size: 8.5cqh; opacity: .75; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   #tiempo { position: absolute; right: 6%; top: 40%; font-size: 7.5cqh; color: var(--led); opacity: .8; }
 
@@ -80,6 +83,31 @@
   #colores button { width: 22px; height: 22px; padding: 0; }
   #colores button.elegido { box-shadow: 0 0 0 2px #fff, 0 0 12px var(--led); }
   #volumen { width: 110px; height: 8px; }
+  button#iconoVol { background: none; border: none; color: inherit; font: inherit; opacity: .7; cursor: pointer; padding: 0 2px; }
+  button#iconoVol:hover { opacity: 1; }
+  #pie button#bLista { padding: 4px 14px; font-size: 12px; }
+  #pie button#bLista.elegido { box-shadow: 0 0 0 2px #fff, 0 0 12px var(--led); }
+
+  /* ---- Cajón de la lista: gel que sale del costado ---- */
+  #cajon { position: fixed; right: 16px; top: 54px; bottom: 76px; width: min(400px, calc(100vw - 32px)); z-index: 5; display: flex; flex-direction: column;
+    border-radius: 28px; padding: 14px 8px 12px; transform: translateX(calc(100% + 40px)); transition: transform .35s cubic-bezier(.2,.8,.2,1);
+    background: linear-gradient(180deg, rgba(255,255,255,.28), rgba(255,255,255,.06) 40%, rgba(0,0,0,.35)), color-mix(in srgb, var(--fondo) 80%, black);
+    border: 1px solid color-mix(in srgb, var(--gel) 60%, white); box-shadow: inset 0 1px 0 rgba(255,255,255,.5), 0 20px 50px rgba(0,0,0,.55), 0 0 40px color-mix(in srgb, var(--led) 25%, transparent);
+    -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+  body.conLista #cajon { transform: none; }
+  #cajon .cab-lista { display: flex; justify-content: space-between; padding: 0 16px 8px; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--led); }
+  #cajon #lista { flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--gel) transparent; }
+  .fila { display: grid; grid-template-columns: 38px 26px 1fr 44px; align-items: center; gap: 10px; padding: 5px 14px; font-size: 14px; cursor: pointer; color: rgba(255,255,255,.78); }
+  .fila:hover { background: rgba(255,255,255,.1); color: #fff; }
+  .fila.sonando { color: #08200a; background: linear-gradient(180deg, rgba(255,255,255,.85), color-mix(in srgb, var(--gel) 85%, white)); font-weight: 600; }
+  .fila img { width: 38px; height: 38px; object-fit: cover; border-radius: 8px; box-shadow: 0 0 0 1px rgba(255,255,255,.35); }
+  .fila .nombre { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .fila .n, .fila .dur { font-size: 11px; opacity: .8; }
+  /* La cabeza se corre a un lado cuando el cajón está abierto, para no taparla */
+  #cabeza { transition: left .35s cubic-bezier(.2,.8,.2,1); }
+  @media (min-width: 1000px) { body.conLista #cabeza { left: calc(50% - 200px); } }
+  a.volver { background: linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,.12) 50%, rgba(0,0,0,.2)); color: #fff; border: 1px solid rgba(255,255,255,.6); opacity: .9;
+    font: 600 12px Fredoka, sans-serif; text-shadow: 0 1px 2px rgba(0,0,0,.5); box-shadow: inset 0 1px 0 rgba(255,255,255,.7), 0 4px 10px rgba(0,0,0,.4); }
   #volumen::-webkit-slider-thumb { width: 16px; height: 16px; }
 </style>
 </head>
@@ -102,10 +130,12 @@
   <div id="zonaBarra" class="zona"><input id="barra" type="range" min="0" max="1000" value="0" title="Avance"></div>
   <div id="boca" class="zona"></div>
 </div>
+<aside id="cajon"><div class="cab-lista"><span id="nombreFuente"></span><span id="cuenta"></span></div><div id="lista"></div></aside>
 <div id="pie">
+  <div class="grupo"><button id="bLista" class="gel" title="Mostrar la lista de temas">Lista</button></div>
   <div class="grupo" id="cuerpos"><span class="nombre">Cuerpo</span></div>
   <div class="grupo" id="colores"><span class="nombre">Color</span></div>
-  <div class="grupo"><span class="nombre">Vol</span><input id="volumen" type="range" min="0" max="100" value="80" title="Volumen"></div>
+  <div class="grupo"><button id="iconoVol" title="Silenciar">🔊</button><input id="volumen" type="range" min="0" max="100" value="80" title="Volumen"></div>
 </div>
 
 <script src="nucleo.js"></script>
@@ -174,6 +204,19 @@ for (let i = 0; i < 12; i++) { const s = document.createElement("i"); if (i > 8)
 $("caratula").onerror = () => { $("caratula").style.visibility = "hidden"; };
 $("caratula").onload = () => { $("caratula").style.visibility = "visible"; };
 
+// ---- Lista: cajón que se abre con el botón; abierto al entrar si la fuente tiene lista ----
+$("nombreFuente").textContent = { spotify: "Spotify", soundcloud: "Tus likes", musica: "Tu música", pc: "En el PC" }[R.fuente];
+if (R.fuente === "pc") { $("bLista").hidden = true; }
+function cajon(abierto) { document.body.classList.toggle("conLista", abierto); $("bLista").classList.toggle("elegido", abierto); guardar("lista-headspace", abierto ? "1" : "0"); }
+$("bLista").onclick = () => cajon(!document.body.classList.contains("conLista"));
+cajon(R.fuente !== "pc" && leer("lista-headspace") !== "0");
+// Título que no cabe en la pantalla: se desplaza; si cabe, queda quieto
+function ajustarTitulo() {
+  const t = $("titulo"), caja = t.parentElement, sobra = t.scrollWidth - caja.clientWidth;
+  t.classList.remove("largo"); t.style.setProperty("--mov", "0px");
+  if (sobra > 2) { t.style.setProperty("--mov", `-${sobra + 8}px`); void t.offsetWidth; t.classList.add("largo"); }
+}
+R.alCambiar((p) => { $("cuenta").textContent = R.fuente === "pc" ? "" : `${R.pistas.length} temas`; requestAnimationFrame(ajustarTitulo); });
 usarColor(COLORES[leer("color-headspace")] ? leer("color-headspace") : "Lima");
 const elegido = leer("cuerpo-headspace");
 usarCuerpo(CUERPOS[elegido] ? elegido : "Y2K");
