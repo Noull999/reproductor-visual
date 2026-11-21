@@ -20,13 +20,14 @@ MAX_IMAGEN = 8 * 1024 * 1024      # cada imagen
 MAX_ENTRADAS = 40
 MAX_PIEZAS = 30
 
-# Deben coincidir con web/plantillas-propias.js (hay un test que lo comprueba)
-FONDOS = {"haz", "tunel", "burbujas", "luces", "estrellas", "color", "imagen"}
-VISUALES = {"barras", "pixel", "lcd", "onda", "circulo"}
-PANELES = {"vidrio", "metal", "gel", "pixel", "liso"}
-FUENTES = {"Geist", "Fredoka", "Instrument Serif", "Silkscreen", "VT323", "Michroma"}
-TIPOS = {"visual", "caratula", "titulo", "artista", "botones", "barra", "tiempo", "volumen", "lista", "panel", "imagen"}
-REPETIBLES = {"panel", "imagen", "visual"}
+def _cargar_esquema() -> dict:
+    """web/esquema.js es la única fuente de verdad (la leen también el motor y el editor): JSON tras 'const ESQUEMA ='."""
+    texto = (Path(__file__).resolve().parent / "web" / "esquema.js").read_text(encoding="utf-8")
+    return json.loads(texto.rsplit("const ESQUEMA =", 1)[1].strip().rstrip(";"))
+
+
+ESQUEMA = _cargar_esquema()
+MAX_PIEZAS = ESQUEMA["maxPiezas"]
 
 _HEX = re.compile(r"^#[0-9a-fA-F]{6}$")
 _ALNUM = re.compile(r"^[A-Za-z0-9]{1,24}$")
@@ -47,28 +48,48 @@ def _texto(v, maximo, defecto=""):
 def _numero(v, minimo, maximo, nombre):
     if isinstance(v, bool) or not isinstance(v, (int, float)):
         raise PlantillaInvalida(f"{nombre} no es un número.")
-    return round(max(minimo, min(maximo, float(v))), 1)
+    n = round(max(minimo, min(maximo, float(v))), 1)
+    return int(n) if n == int(n) else n
 
 
-def _elegir(v, permitidos, nombre):
-    if v not in permitidos:
-        raise PlantillaInvalida(f"{nombre} no es válido.")
-    return v
+def _opcion(d, v, nombre):
+    """Valida un valor contra su definición del esquema; None si falta (se usa el predeterminado al dibujar)."""
+    if v is None:
+        return d["def"]
+    t = d["t"]
+    if t == "enum":
+        if not isinstance(v, str) or v not in d["v"]:
+            raise PlantillaInvalida(f"{nombre} no es válido.")
+        return v
+    if t == "num":
+        return _numero(v, d["min"], d["max"], nombre)
+    if t == "bool":
+        if not isinstance(v, bool):
+            raise PlantillaInvalida(f"{nombre} no es válido.")
+        return v
+    if t == "color":
+        if d.get("vacio") and v == "":
+            return ""
+        if not isinstance(v, str) or not _HEX.match(v):
+            raise PlantillaInvalida(f"{nombre} no es un color válido.")
+        return v.lower()
+    raise PlantillaInvalida(f"{nombre}: opción desconocida.")
 
 
-def _color(v, nombre, vacio_ok=False):
-    if vacio_ok and v == "":
-        return ""
-    if not isinstance(v, str) or not _HEX.match(v):
-        raise PlantillaInvalida(f"{nombre} no es un color válido.")
-    return v.lower()
+def _opciones(definiciones, origen, nombre, imagen):
+    """Solo se conservan las opciones del esquema; lo demás se descarta."""
+    salida = {}
+    for clave, d in definiciones.items():
+        v = origen.get(clave)
+        salida[clave] = imagen(v if v is not None else "", f"{nombre}") if d["t"] == "imagen" else _opcion(d, v, f"{nombre} · {d.get('n', clave)}")
+    return salida
 
 
 def validar(spec, modo):
     """
     Devuelve una copia limpia de la plantilla o lanza PlantillaInvalida.
     modo "exportar": las imágenes vienen como /imagen?n=…; modo "importar": vienen como img:<ranura>.
-    Solo se conserva lo conocido: cualquier otro campo se descarta.
+    Solo se conserva lo que el esquema conoce: cualquier otro campo se descarta.
     """
     if not isinstance(spec, dict):
         raise PlantillaInvalida("La plantilla no tiene el formato esperado.")
@@ -86,15 +107,16 @@ def validar(spec, modo):
         raise PlantillaInvalida("Faltan partes de la plantilla.")
     if not 0 < len(piezas) <= MAX_PIEZAS:
         raise PlantillaInvalida(f"Debe tener entre 1 y {MAX_PIEZAS} piezas.")
-    limpia = {
-        "nombre": _texto(spec.get("nombre"), 40, "Plantilla importada"),
-        "fondo": {"tipo": _elegir(fondo.get("tipo"), FONDOS, "El tipo de fondo"), "color": _color(fondo.get("color", "#08080a"), "El color del fondo"),
-                  "imagen": imagen(fondo.get("imagen", ""), "Fondo"), "brillo": int(_numero(fondo.get("brillo", 100), 20, 130, "El brillo"))},
-        "estilo": {"panel": _elegir(estilo.get("panel"), PANELES, "El estilo de paneles"), "acento": _color(estilo.get("acento"), "El color de acento"),
-                   "fuente": _elegir(estilo.get("fuente"), FUENTES, "La letra")},
-        "piezas": [],
-    }
-    vistos, tipos = set(), []
+    base = spec.get("base", "")
+    if base != "" and base not in ESQUEMA["bases"]:
+        raise PlantillaInvalida("La plantilla base no es válida.")
+    tipo_fondo = fondo.get("tipo")
+    if tipo_fondo not in ESQUEMA["fondos"]:
+        raise PlantillaInvalida("El tipo de fondo no es válido.")
+    limpia = {"nombre": _texto(spec.get("nombre"), 40, "Plantilla importada"), "base": base,
+              "fondo": {"tipo": tipo_fondo, **_opciones(ESQUEMA["fondo"], fondo, "Fondo", imagen)},
+              "estilo": _opciones(ESQUEMA["estilo"], estilo, "Estilo", imagen), "piezas": []}
+    vistos, tipos, ids = set(), [], set()
     for p in piezas:
         if not isinstance(p, dict):
             raise PlantillaInvalida("Una pieza no tiene el formato esperado.")
@@ -102,18 +124,21 @@ def validar(spec, modo):
         if not isinstance(n, str) or not _ALNUM.match(n) or n in vistos:
             raise PlantillaInvalida("Los nombres de las piezas no son válidos.")
         vistos.add(n)
-        tipo = _elegir(p.get("tipo"), TIPOS, "El tipo de pieza")
-        if tipo not in REPETIBLES and tipo in tipos:
-            raise PlantillaInvalida(f"La pieza «{tipo}» solo puede aparecer una vez.")
+        tipo = p.get("tipo")
+        definicion = ESQUEMA["tipos"].get(tipo) if isinstance(tipo, str) else None
+        if definicion is None:
+            raise PlantillaInvalida("El tipo de pieza no es válido.")
+        if not definicion.get("repetible") and tipo in tipos:
+            raise PlantillaInvalida(f"La pieza «{definicion['etiqueta']}» solo puede aparecer una vez.")
+        if ids & set(definicion["ids"]):
+            raise PlantillaInvalida(f"«{definicion['etiqueta']}» choca con otra pieza que ya cumple su función.")
+        ids |= set(definicion["ids"])
         tipos.append(tipo)
         x, y = _numero(p.get("x"), 0, 100, "x"), _numero(p.get("y"), 0, 100, "y")
         w, h = _numero(p.get("w"), 1, 100, "ancho"), _numero(p.get("h"), 1, 100, "alto")
         nueva = {"n": n, "tipo": tipo, "x": x, "y": y, "w": min(w, 100 - x), "h": min(h, 100 - y)}
-        if tipo == "visual":
-            nueva["visual"] = _elegir(p.get("visual", "barras"), VISUALES, "El tipo de visual")
-            nueva["color"] = _color(p.get("color", ""), "El color del visual", vacio_ok=True)
-        if tipo == "imagen":
-            nueva["imagen"] = imagen(p.get("imagen", ""), "Imagen")
+        nueva.update(_opciones(definicion["opciones"], p, definicion["etiqueta"], imagen))
+        nueva.update(_opciones(ESQUEMA["comunes"], p, definicion["etiqueta"], imagen))
         limpia["piezas"].append(nueva)
     return limpia
 
@@ -123,7 +148,7 @@ def _nombres_de_imagenes(spec):
     salida = []
     if spec["fondo"]["imagen"]:
         salida.append(("fondo", spec["fondo"]["imagen"]))
-    salida += [(p["n"], p["imagen"]) for p in spec["piezas"] if p["tipo"] == "imagen" and p["imagen"]]
+    salida += [(p["n"], p["imagen"]) for p in spec["piezas"] if p.get("imagen")]
     return salida
 
 

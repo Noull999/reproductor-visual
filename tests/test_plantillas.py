@@ -88,7 +88,7 @@ def test_descarta_campos_desconocidos_y_acota_numeros():
     spec = base(script="alert(1)", evil={"x": 1})
     spec["piezas"][1].update(x=95, w=500, onclick="x()")
     limpia = P.validar(spec, "exportar")
-    assert set(limpia) == {"nombre", "fondo", "estilo", "piezas"}
+    assert set(limpia) == {"nombre", "base", "fondo", "estilo", "piezas"}
     t = limpia["piezas"][1]
     assert "onclick" not in t and t["x"] + t["w"] <= 100
 
@@ -144,16 +144,51 @@ def test_el_id_siempre_lo_pone_la_app(tmp_path):
     assert P.desempaquetar(zip_con(m), "pseguro", tmp_path)["id"] == "pseguro"
 
 
-def test_listas_coinciden_con_el_editor():
-    js = (WEB / "plantillas-propias.js").read_text(encoding="utf-8")
+def test_el_esquema_es_la_fuente_de_verdad_del_editor():
+    js = (WEB / "esquema.js").read_text(encoding="utf-8")
+    assert js.count("const ESQUEMA =") >= 1 and P.ESQUEMA["tipos"]["cabeza"]["ids"]
+    # todos los tipos del esquema se pueden validar y todos sus enums tienen un predeterminado válido
+    for tipo, d in P.ESQUEMA["tipos"].items():
+        for clave, o in d["opciones"].items():
+            if o["t"] == "enum":
+                assert o["def"] in o["v"], (tipo, clave)
+        x, y, w, h = d["rect"]
+        P.validar(base(piezas=[{"n": "a", "tipo": tipo, "x": x, "y": y, "w": w, "h": h}]), "exportar")
 
-    def claves(nombre):
-        bloque = re.search(rf"const {nombre} = \{{(.*?)\}};", js, re.S).group(1)
-        return set(re.findall(r'"([^"]+)"\s*:|(\b[a-z0-9]+)\s*:', bloque) and {a or b for a, b in re.findall(r'"([^"]+)"\s*:|(\b[a-z0-9]+)\s*:', bloque)})
 
-    assert claves("FONDOS") == P.FONDOS
-    assert claves("VISUALES") == P.VISUALES
-    assert claves("PANELES") == P.PANELES
-    assert claves("FUENTES") == P.FUENTES
-    assert claves("ETIQUETAS") == P.TIPOS
-    assert set(re.search(r"REPETIBLES = \[(.*?)\]", js).group(1).replace('"', "").replace(" ", "").split(",")) == P.REPETIBLES
+def test_las_opciones_se_acotan_y_las_desconocidas_se_descartan():
+    spec = base()
+    spec["piezas"] = [{"n": "c", "tipo": "caratula", "x": 5, "y": 5, "w": 20, "h": 30, "inclinacion": 999, "forma": "circulo", "hack": "x", "efecto": "duotono"}]
+    c = P.validar(spec, "exportar")["piezas"][0]
+    assert c["inclinacion"] == 20 and c["forma"] == "circulo" and c["efecto"] == "duotono" and "hack" not in c and c["borde"] is False
+
+
+@pytest.mark.parametrize("opcion", [{"forma": "triangulo"}, {"inclinacion": "5"}, {"borde": "si"}])
+def test_opciones_invalidas_se_rechazan(opcion):
+    spec = base()
+    spec["piezas"] = [{"n": "c", "tipo": "caratula", "x": 5, "y": 5, "w": 20, "h": 30, **opcion}]
+    with pytest.raises(P.PlantillaInvalida):
+        P.validar(spec, "exportar")
+
+
+def test_piezas_que_cumplen_la_misma_funcion_no_pueden_convivir():
+    piezas = [{"n": "a", "tipo": "cabeza", "x": 0, "y": 0, "w": 40, "h": 90}, {"n": "b", "tipo": "titulo", "x": 50, "y": 0, "w": 40, "h": 10}]
+    with pytest.raises(P.PlantillaInvalida):
+        P.validar(base(piezas=piezas), "exportar")
+    # ...pero la cabeza sí convive con lo que ella no cumple
+    ok = [{"n": "a", "tipo": "cabeza", "x": 0, "y": 0, "w": 40, "h": 90}, {"n": "b", "tipo": "lista", "x": 50, "y": 0, "w": 40, "h": 50}, {"n": "c", "tipo": "volumen", "x": 50, "y": 60, "w": 20, "h": 5}]
+    assert len(P.validar(base(piezas=ok), "exportar")["piezas"]) == 3
+
+
+def test_base_debe_ser_una_incluida():
+    assert P.validar(base(base="headspace"), "exportar")["base"] == "headspace"
+    with pytest.raises(P.PlantillaInvalida):
+        P.validar(base(base="../../x"), "exportar")
+
+
+def test_el_degradado_y_el_acento_automatico_se_validan():
+    spec = base(fondo={"tipo": "degradado", "color": "#101010", "color2": "#ff00aa", "angulo": 999, "imagen": "", "brillo": 100})
+    assert P.validar(spec, "exportar")["fondo"]["angulo"] == 360
+    spec = base(estilo={"panel": "vidrio", "acento": "#ff2d3d", "acentoAuto": True, "fuente": "Geist", "deformacion": 70})
+    e = P.validar(spec, "exportar")["estilo"]
+    assert e["acentoAuto"] is True and e["deformacion"] == 70
