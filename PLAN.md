@@ -6,11 +6,13 @@ Este plan se ajusta según prioridades: lo de arriba se hace primero.
 ## Cómo se usa la app (flujo)
 
 1. **Inicio** — pantalla estilo vidrio (como el portfolio de José): un fondo animado
-   que el vidrio desenfoca y deforma. Desde aquí se elige **de dónde suena**:
+   que el vidrio desenfoca y deforma. Desde aquí se elige **de dónde suena** (3 paneles):
+   - **Spotify** — tus likes y playlists; suena en tu Spotify de escritorio y la app lo
+     controla por la API (Premium). Los visuales siguen el audio del PC.
    - **SoundCloud** — tus likes, suenan dentro de la app (control total).
    - **Mi música** — tus carpetas, suenan dentro de la app (control total).
-   - **Lo que suena en el PC** — Spotify o el navegador: la app muestra qué suena y
-     tiene ⏮ ⏯ ⏭; los visuales siguen el audio del PC.
+   - *(enlace chico)* **Otra app** — lo que suena en el PC (navegador, etc.): título,
+     carátula y ⏮ ⏯ ⏭ de Windows. Es también el plan B de quien no tenga Premium.
 2. **Elegir plantilla** — galería con vista previa de cada una.
 3. **Reproducción** — la plantilla a pantalla completa o en ventana.
 4. **Menú Plantillas** (desde el inicio o la reproducción) — modificar, crear y compartir.
@@ -35,6 +37,45 @@ Este plan se ajusta según prioridades: lo de arriba se hace primero.
 - [x] **Pixel**: 8 bits con 7 paletas a elegir (la carátula se redibuja con los colores de la paleta).
 - [x] **2000s** rehecha: equipo de metal con LCD (marquesina, reloj, espectro en segmentos, carátula en trama), perilla de volumen, playlist y 4 skins.
 - [x] Tipografías incluidas en `web/fonts/` (Geist, Geist Mono, Pixelify Sans, Silkscreen; licencia OFL).
+
+## Fase 1.5 — Spotify dentro de la app y pulido  ← AHORA
+
+Orden de trabajo (cada paso se prueba en la app antes del siguiente):
+
+1. **Captura del audio del PC** (bloquea los visuales con Spotify). Diagnosticar con
+   Spotify sonando: dispositivo de salida, loopback correcto, nivel. Sin esto, la fuente
+   Spotify funciona pero el espectro no reacciona.
+2. **Fuente Spotify**
+   - [x] Conexión con PKCE (sin secreto), tokens en `~/.visualizador/spotify.json`.
+         Probado: lee lo que suena, dispositivos y likes; pausa/reanuda (Premium confirmado).
+   - [ ] Botón "Conectar Spotify" en el inicio (primera vez abre el navegador).
+   - [ ] Elegir lista como en Mi música: **Tus me gusta** o cada playlist.
+   - [ ] En las plantillas: tocar un tema de la lista lo pone en tu Spotify; ⏮ ⏯ ⏭,
+         barra (seek) y volumen por la API. Estado y posición desde Windows (sin gastar
+         peticiones a la API); si no hay Spotify abierto, avisar.
+   - [ ] Inicio con 3 paneles (Spotify, SoundCloud, Mi música) + enlace "otra app".
+3. **Todas las plantillas con lista para elegir tema**: Headspace no tiene. Propuesta:
+   cajón de gel que se abre desde el lado con un botón "Lista" en la barra de abajo.
+4. **Pulido de la revisión** (capturas del 20-11):
+   - [ ] Botón "← Plantillas": más contraste y con el estilo de cada plantilla (vidrio,
+         gel, metal, serif, pixel).
+   - [ ] Líquido: capa oscura detrás de la lista para que el haz no tape los títulos.
+   - [ ] 2000s: bajar ~20 % el brillo del centro del túnel (sobre todo Grafito y LCD
+         verde); separar "PL" de los skins; un poco más de contraste en PLAY/PAUSA/SC.
+   - [ ] Headspace: el título en la pantalla avanza como marquesina solo si no cabe.
+   - [ ] Ambiente: que se note más el cambio duotono ↔ original; margen bajo la lista.
+   - [ ] Pixel: la lista termina con degradado (no corta una fila a la mitad);
+         Game Boy con texto inactivo más claro; miniaturas con borde de la paleta.
+   - [ ] Todas: margen inferior + desvanecido al final de cada lista con scroll.
+   - [ ] Volumen: clic en el ícono silencia y vuelve; mostrar el % al moverlo.
+   - [ ] Inicio: mismas etiquetas en los paneles ("Elegir →").
+   - [ ] *(Idea de Gemini)* modo "solo visual": los controles se ocultan tras 3 s sin
+         mover el mouse.
+5. **Nombre de la app** (decisión de José) → reemplaza "sin nombre aún".
+
+Límite a tener en cuenta: con la API en modo desarrollo, Spotify permite al dueño
+(Premium) y hasta 5 usuarios autorizados. Para "la gente" el panel Spotify necesitaría
+la cuota ampliada de Spotify (trámite aparte); mientras tanto usan "otra app".
 
 ## Fase 2 — Imágenes propias en las plantillas
 
@@ -79,7 +120,6 @@ Este plan se ajusta según prioridades: lo de arriba se hace primero.
 ## Decisiones pendientes
 
 - Nombre de la app.
-- Link del portfolio de José, para copiar el estilo vidrio.
 - Si la app es gratuita (como Music Downloader) o no.
 
 ## Aprendido en el prototipo
@@ -89,8 +129,11 @@ Este plan se ajusta según prioridades: lo de arriba se hace primero.
 - Los enlaces dicen durar ~2 horas, pero al pedir enlaces nuevos de un tema los
   anteriores dejan de servir (403). En la app: pedir el enlace al momento de tocar.
 - SoundCloud entrega la forma de onda real de cada tema (1.800 puntos).
-- Windows informa qué suena en SoundCloud del navegador (título, artista, carátula,
-  ⏮ ⏯ ⏭, barra). Falta probar Spotify y la captura del audio del PC.
+- Windows informa qué suena en SoundCloud del navegador y en Spotify (título, artista,
+  carátula, ⏮ ⏯ ⏭, barra).
+- Spotify (feb. 2026): las apps en modo desarrollo exigen dueño Premium, 5 usuarios y
+  ya no entregan el plan en /me; el control de reproducción sí funciona con Premium.
+  La API no entrega el audio ni su análisis: los visuales salen de la captura del PC.
 
 ## Cuidados
 

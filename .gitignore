@@ -3,3 +3,6 @@ __pycache__/
 # Lista de prueba con enlaces de streaming que vencen
 prototipo/pistas.js
 arte/**/*.png
+capturas/
+keyspoti*
+key*.txt
