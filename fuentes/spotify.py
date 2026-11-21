@@ -21,6 +21,10 @@ import requests
 
 import config
 
+# Client ID de la app en Spotify (público por diseño: el acceso usa PKCE y no lleva secreto).
+# Cada persona solo aprieta "Conectar". En modo desarrollo Spotify deja entrar a 5 cuentas
+# autorizadas por el dueño (panel de Spotify > User management); más gente exige cuota ampliada.
+CLIENT_ID_APP = "7250390111f845ecb2d429e87864c549"
 PUERTO = 8888
 REDIRECT = f"http://127.0.0.1:{PUERTO}/callback"
 SCOPES = ("user-read-playback-state user-modify-playback-state user-read-currently-playing "

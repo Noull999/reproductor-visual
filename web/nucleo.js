@@ -216,7 +216,11 @@ const R = (() => {
     estilo.textContent = `:where(a.volver){position:fixed;top:10px;right:12px;z-index:99;padding:7px 14px;border-radius:999px;
       font:12px system-ui;color:#fff;text-decoration:none;background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.3);
       opacity:.7;transition:opacity .2s;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
-      :where(a.volver):hover{opacity:1}`;
+      :where(a.volver):hover{opacity:1}
+      /* Modo "solo visual": sin mover el mouse, lo marcado como .ocultable se desvanece */
+      .ocultable{transition:opacity .6s}
+      body.inactivo{cursor:none}
+      body.inactivo .ocultable,body.inactivo a.volver{opacity:0 !important;pointer-events:none}`;
     document.head.appendChild(estilo);
     const volver = document.createElement("a");
     volver.className = "volver"; volver.href = "index.html"; volver.textContent = "← Plantillas"; volver.title = "Cambiar de plantilla o de fuente";
@@ -242,6 +246,21 @@ const R = (() => {
     let arrastrando = false;
     on("barra", "pointerdown", () => { arrastrando = true; });
     addEventListener("pointerup", () => { arrastrando = false; });
+    // Solo visual: 3 s sin mover el mouse mientras suena. La tecla H lo activa o desactiva.
+    let ultimoMovimiento = performance.now(), soloVisual = true;
+    try { soloVisual = localStorage.getItem("solo-visual") !== "0"; } catch (e) {}
+    const moverMouse = () => { ultimoMovimiento = performance.now(); document.body.classList.remove("inactivo"); };
+    ["mousemove", "pointerdown", "wheel", "keydown"].forEach(ev => addEventListener(ev, moverMouse, { passive: true }));
+    addEventListener("keydown", (e) => {
+      if ((e.key === "h" || e.key === "H") && !/INPUT|TEXTAREA/.test(document.activeElement.tagName)) {
+        soloVisual = !soloVisual;
+        try { localStorage.setItem("solo-visual", soloVisual ? "1" : "0"); } catch (err) {}
+      }
+    });
+    cadaCuadro(() => {
+      const sonando = remoto ? pcEstado.sonando : !audio.paused;
+      document.body.classList.toggle("inactivo", soloVisual && sonando && performance.now() - ultimoMovimiento > 3000);
+    });
     cadaCuadro(() => {
       const d = remoto ? pcEstado.duracion : audio.duration;
       if ($("barra") && !arrastrando) $("barra").value = Math.round(progreso() * 1000);

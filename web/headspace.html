@@ -90,7 +90,7 @@
 
   /* ---- Cajón de la lista: gel que sale del costado ---- */
   #cajon { position: fixed; right: 16px; top: 54px; bottom: 76px; width: min(400px, calc(100vw - 32px)); z-index: 5; display: flex; flex-direction: column;
-    border-radius: 28px; padding: 14px 8px 12px; transform: translateX(calc(100% + 40px)); transition: transform .35s cubic-bezier(.2,.8,.2,1);
+    border-radius: 28px; padding: 14px 8px 12px; transform: translateX(calc(100% + 40px)); transition: transform .35s cubic-bezier(.2,.8,.2,1), opacity .6s;
     background: linear-gradient(180deg, rgba(255,255,255,.28), rgba(255,255,255,.06) 40%, rgba(0,0,0,.35)), color-mix(in srgb, var(--fondo) 80%, black);
     border: 1px solid color-mix(in srgb, var(--gel) 60%, white); box-shadow: inset 0 1px 0 rgba(255,255,255,.5), 0 20px 50px rgba(0,0,0,.55), 0 0 40px color-mix(in srgb, var(--led) 25%, transparent);
     -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
@@ -130,8 +130,8 @@
   <div id="zonaBarra" class="zona"><input id="barra" type="range" min="0" max="1000" value="0" title="Avance"></div>
   <div id="boca" class="zona"></div>
 </div>
-<aside id="cajon"><div class="cab-lista"><span id="nombreFuente"></span><span id="cuenta"></span></div><div id="lista"></div></aside>
-<div id="pie">
+<aside id="cajon" class="ocultable"><div class="cab-lista"><span id="nombreFuente"></span><span id="cuenta"></span></div><div id="lista"></div></aside>
+<div id="pie" class="ocultable">
   <div class="grupo"><button id="bLista" class="gel" title="Mostrar la lista de temas">Lista</button></div>
   <div class="grupo" id="cuerpos"><span class="nombre">Cuerpo</span></div>
   <div class="grupo" id="colores"><span class="nombre">Color</span></div>

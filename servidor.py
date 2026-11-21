@@ -119,9 +119,14 @@ class Manejador(SimpleHTTPRequestHandler):
         self.wfile.write(datos)
 
 
+def actualizar(carpetas: list[str]) -> None:
+    """Cambia las carpetas permitidas sin reiniciar (al agregar o quitar una en Ajustes)."""
+    carpetas_permitidas[:] = [Path(c).resolve() for c in carpetas if c and os.path.isdir(c)]
+
+
 def iniciar(carpetas: list[str]) -> int:
     """Arranca en un puerto libre y devuelve el puerto."""
-    carpetas_permitidas[:] = [Path(c).resolve() for c in carpetas if c and os.path.isdir(c)]
+    actualizar(carpetas)
     srv = ThreadingHTTPServer(("127.0.0.1", 0), Manejador)
     threading.Thread(target=srv.serve_forever, daemon=True).start()
     return srv.server_address[1]

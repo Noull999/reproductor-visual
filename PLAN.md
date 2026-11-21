@@ -22,9 +22,11 @@ Este plan se ajusta según prioridades: lo de arriba se hace primero.
 - [x] Ventana propia (Windows primero), sin depender de Music Downloader (`python app.py`).
 - [x] Inicio en vidrio con fondo animado + selector de fuente.
 - [x] Fuente **SoundCloud**: lista de likes completa, enlace pedido al tocar (con reintento).
-- [ ] Conectar la cuenta desde la app (hoy se importa de Music Downloader).
+- [x] Conectar las cuentas desde la app (pantalla **Ajustes**): SoundCloud con su ventana de login (como Music Downloader:
+      lee la sesión y detecta el Client ID sola) y Spotify con un botón (el Client ID de la app va incorporado;
+      en modo desarrollo Spotify admite 5 cuentas autorizadas por el dueño).
 - [x] Fuente **Mi música**: cada subcarpeta es una lista; audio con avance y carátula del archivo.
-- [ ] Elegir las carpetas desde la app (hoy se importan de Music Downloader).
+- [x] Elegir las carpetas desde la app (Ajustes: agregar con el selector de Windows y quitar).
 - [x] Fuente **Lo que suena en el PC**: título/carátula/botones de Spotify o el
       navegador (probado con Spotify y SoundCloud del navegador).
 - [ ] Captura del audio del PC: hecha, pero salió en silencio en la primera prueba (revisar
@@ -75,8 +77,8 @@ Orden de trabajo (cada paso se prueba en la app antes del siguiente):
    - [x] Todas: margen inferior + desvanecido al final de cada lista con scroll.
    - [x] Volumen: clic en el ícono silencia y vuelve; mostrar el % al moverlo.
    - [x] Inicio: mismas etiquetas en los paneles ("Elegir →").
-   - [ ] *(Idea de Gemini)* modo "solo visual": los controles se ocultan tras 3 s sin
-         mover el mouse.
+   - [x] *(Idea de Gemini)* modo "solo visual": los controles se ocultan tras 3 s sin
+         mover el mouse (la tecla H lo activa o desactiva).
 5. **Nombre de la app** (decisión de José) → reemplaza "sin nombre aún".
 
 Límite a tener en cuenta: con la API en modo desarrollo, Spotify permite al dueño

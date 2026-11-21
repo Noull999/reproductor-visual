@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ajustes</title>
+<link rel="stylesheet" href="vidrio-liquido.css">
+<style>
+  [hidden] { display: none !important; }
+  body { overflow: auto; }
+  .capa { position: relative; z-index: 1; min-height: 100%; display: flex; flex-direction: column; align-items: center; padding: 28px 24px 40px; box-sizing: border-box; gap: 20px; }
+  .tope { width: min(860px, 100%); display: flex; justify-content: space-between; align-items: center; }
+  .tope a { color: var(--suave); text-decoration: none; } .tope a:hover { color: var(--texto); }
+  h1 { font-size: 34px; font-weight: 500; letter-spacing: -.03em; margin: 0; width: min(860px, 100%); }
+  .tarjeta { width: min(860px, 100%); padding: 24px 26px; box-sizing: border-box; display: flex; flex-direction: column; gap: 14px; }
+  .fila { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  h2 { font-size: 19px; font-weight: 600; margin: 0; display: flex; gap: 10px; align-items: center; }
+  .estado { display: inline-flex; align-items: center; gap: 7px; color: var(--suave); }
+  .estado i { width: 8px; height: 8px; border-radius: 50%; background: #666; display: inline-block; }
+  .estado.ok i { background: #3ddc84; box-shadow: 0 0 10px #3ddc84; } .estado.ok { color: var(--texto); }
+  p { margin: 0; color: var(--suave); font-size: 14px; line-height: 1.5; }
+  .btn { padding: 10px 20px; font-size: 14px; } .btn[disabled] { opacity: .5; pointer-events: none; }
+  input[type=text] { flex: 1; min-width: 240px; padding: 11px 16px; border-radius: 999px; border: .8px solid var(--borde); background: rgba(255,255,255,.06);
+    color: var(--texto); font: 14px "Geist Mono", monospace; outline: none; }
+  input[type=text]:focus { border-color: var(--rojo); }
+  ol { margin: 0; padding-left: 20px; color: var(--suave); font-size: 14px; line-height: 1.7; }
+  code { font: 13px "Geist Mono", monospace; color: var(--texto); background: rgba(255,255,255,.08); padding: 1px 7px; border-radius: 6px; user-select: all; }
+  .carpeta { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 16px; border-radius: 14px; background: rgba(255,255,255,.05); }
+  .carpeta span { font: 13px "Geist Mono", monospace; word-break: break-all; }
+  .carpeta button { background: none; border: none; color: var(--suave); cursor: pointer; font-size: 18px; } .carpeta button:hover { color: var(--rojo); }
+  #aviso { min-height: 1.4em; color: var(--suave); font-size: 14px; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute"><filter id="liquido" x="0%" y="0%" width="100%" height="100%" color-interpolation-filters="sRGB">
+  <feTurbulence type="fractalNoise" baseFrequency="0.006 0.009" numOctaves="2" seed="11" result="ruido"/>
+  <feGaussianBlur in="ruido" stdDeviation="2.5" result="suave"/>
+  <feDisplacementMap in="SourceGraphic" in2="suave" scale="70" xChannelSelector="R" yChannelSelector="G"/>
+</filter></svg>
+<canvas id="haz"></canvas>
+<div class="capa">
+  <div class="tope mono"><a href="inicio.html">← Inicio</a><span id="aviso"></span></div>
+  <h1>Ajustes</h1>
+
+  <section class="vidrio tarjeta" id="tSpotify">
+    <div class="fila"><h2>🟢 Spotify</h2><span class="estado" id="eSpotify"><i></i><b>…</b></span></div>
+    <p>Necesitas Spotify Premium. Se abre una pestaña del navegador para que aceptes el acceso; la app nunca ve tu contraseña.</p>
+    <div class="fila"><span id="msgSp"></span><span>
+      <button class="btn btn-principal" id="bConectarSp">Conectar cuenta</button>
+      <button class="btn vidrio pastilla" id="bDesconectarSp">Desconectar</button></span></div>
+    <details><summary class="mono" style="cursor:pointer;color:var(--suave)">Avanzado: usar mi propia app de Spotify</summary>
+      <p style="margin:12px 0">Si te sale "no autorizado": mientras la app esté en modo desarrollo, Spotify solo deja entrar a las cuentas que su dueño agregó. Puedes crear tu propia app gratis en <code>developer.spotify.com/dashboard</code> (marca <b>Web API</b> y pon <code>http://127.0.0.1:8888/callback</code> como Redirect URI) y pegar aquí su Client ID (es público):</p>
+      <div class="fila"><input type="text" id="cidSpotify" placeholder="Client ID de Spotify (32 caracteres)" spellcheck="false" autocomplete="off">
+        <button class="btn vidrio pastilla" id="bGuardarSp">Usar este</button></div></details>
+  </section>
+
+  <section class="vidrio tarjeta" id="tSoundCloud">
+    <div class="fila"><h2>☁️ SoundCloud</h2><span class="estado" id="eSoundCloud"><i></i><b>…</b></span></div>
+    <p>Se abre una ventana con el inicio de sesión de SoundCloud. La app nunca ve tu contraseña: solo lee que ya entraste.</p>
+    <div class="fila"><span id="msgSc"></span><span>
+      <button class="btn btn-principal" id="bConectarSc">Iniciar sesión</button>
+      <button class="btn vidrio pastilla" id="bDesconectarSc">Desconectar</button></span></div>
+  </section>
+
+  <section class="vidrio tarjeta" id="tCarpetas">
+    <div class="fila"><h2>💽 Mi música</h2><span class="estado ok" id="eCarpetas"><i></i><b></b></span></div>
+    <p>Las carpetas con tus canciones. Cada subcarpeta de primer nivel es una lista.</p>
+    <div id="carpetas" style="display:flex;flex-direction:column;gap:8px"></div>
+    <div class="fila"><span></span><button class="btn btn-principal" id="bAgregar">Agregar carpeta…</button></div>
+  </section>
+</div>
+<script src="haz.js"></script>
+<script>
+"use strict";
+iniciarHaz(document.getElementById("haz"));
+const $ = (id) => document.getElementById(id);
+const api = () => window.pywebview.api;
+const aviso = (t) => { $("aviso").textContent = t; if (t) setTimeout(() => { if ($("aviso").textContent === t) $("aviso").textContent = ""; }, 5000); };
+const estado = (id, ok, texto) => { const e = $(id); e.classList.toggle("ok", ok); e.querySelector("b").textContent = texto; };
+
+async function pintar() {
+  const a = await api().ajustes();
+  const sp = a.spotify;
+  estado("eSpotify", sp.conectado, sp.conectado ? "Conectado" : "Sin conectar");
+  $("bConectarSp").hidden = sp.conectado;
+  $("bDesconectarSp").hidden = !sp.conectado;
+  estado("eSoundCloud", a.soundcloud.conectado, a.soundcloud.conectado ? "Conectado" : "Sin conectar");
+  $("bConectarSc").textContent = a.soundcloud.conectado ? "Cambiar de cuenta" : "Iniciar sesión";
+  $("bDesconectarSc").hidden = !a.soundcloud.conectado;
+  estado("eCarpetas", a.carpetas.length > 0, a.carpetas.length ? `${a.carpetas.length} carpeta${a.carpetas.length > 1 ? "s" : ""}` : "Ninguna");
+  const caja = $("carpetas"); caja.innerHTML = "";
+  a.carpetas.forEach(ruta => {
+    const f = document.createElement("div"); f.className = "carpeta";
+    const s = document.createElement("span"); s.textContent = ruta;
+    const b = document.createElement("button"); b.textContent = "✕"; b.title = "Quitar (no borra nada)";
+    b.onclick = async () => { await api().ajustes_quitar_carpeta(ruta); pintar(); };
+    f.append(s, b); caja.appendChild(f);
+  });
+}
+
+$("bGuardarSp").onclick = async () => {
+  const r = await api().spotify_guardar_client_id($("cidSpotify").value);
+  if (!r.ok) return aviso(r.error);
+  $("cidSpotify").value = ""; aviso("Listo: se usará tu app de Spotify. Conecta tu cuenta."); pintar();
+};
+$("bConectarSp").onclick = async () => {
+  const b = $("bConectarSp"); b.disabled = true; aviso("Acepta el acceso en la pestaña del navegador…");
+  const r = await api().spotify_conectar();
+  b.disabled = false; aviso(r.ok ? "Spotify conectado." : r.error); pintar();
+};
+$("bDesconectarSp").onclick = async () => { await api().spotify_desconectar(); aviso("Spotify desconectado."); pintar(); };
+
+let sondeo = 0;
+$("bConectarSc").onclick = async () => {
+  const r = await api().soundcloud_login();
+  if (!r.ok) return aviso(r.error);
+  $("bConectarSc").disabled = true; $("msgSc").textContent = "Inicia sesión en la ventana que se abrió…";
+  clearInterval(sondeo);
+  sondeo = setInterval(async () => {
+    const e = await api().soundcloud_login_estado();
+    if (e.estado === "esperando") return;
+    clearInterval(sondeo); $("bConectarSc").disabled = false;
+    $("msgSc").textContent = e.estado === "ok" ? `Conectado${e.usuario ? " como " + e.usuario : ""}.` : (e.error || "No se pudo conectar.");
+    pintar();
+  }, 1500);
+};
+$("bDesconectarSc").onclick = async () => { await api().soundcloud_desconectar(); $("msgSc").textContent = ""; aviso("SoundCloud desconectado."); pintar(); };
+$("bAgregar").onclick = async () => { const r = await api().ajustes_agregar_carpeta(); if (!r.ok) aviso(r.error); pintar(); };
+
+if (window.pywebview && window.pywebview.api) pintar(); else window.addEventListener("pywebviewready", pintar);
+</script>
+</body>
+</html>

@@ -6,13 +6,16 @@ carpetas o lo que suena en el PC) por medio de la clase Api.
 """
 import logging
 import sys
+import threading
+import time
 
 import webview
 
 import config
 import servidor
-from fuentes import musica, pc
+from fuentes import musica, pc, soundcloud_acceso
 from fuentes.soundcloud import SoundCloud
+from fuentes import spotify
 from fuentes.spotify import Spotify
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
@@ -28,6 +31,7 @@ class Api:
         self._sp = None
         self._sp_pistas: dict[str, list] = {}   # lista -> canciones (para tocar por posición)
         self._captura = pc.Captura()
+        self._login_sc = {"estado": "nada"}
 
     # ---- SoundCloud ----
     def _soundcloud(self) -> SoundCloud:
@@ -61,10 +65,7 @@ class Api:
     # ---- Spotify (API + tu Spotify de escritorio) ----
     def _spotify(self) -> Spotify:
         if self._sp is None:
-            cid = (self.cfg.get("spotify") or {}).get("client_id")
-            if not cid:
-                raise ValueError("Falta el Client ID de Spotify (ver PLAN.md).")
-            self._sp = Spotify(cid)
+            self._sp = Spotify((self.cfg.get("spotify") or {}).get("client_id") or spotify.CLIENT_ID_APP)   # uno propio gana (avanzado)
         return self._sp
 
     def _sp_llamar(self, f, *a):
@@ -75,10 +76,7 @@ class Api:
             return {"ok": False, "error": str(e)[:200]}
 
     def spotify_cuenta(self) -> dict:
-        try:
-            return {"configurado": True, "conectado": self._spotify().conectado}
-        except ValueError:
-            return {"configurado": False, "conectado": False}
+        return {"configurado": True, "conectado": self._spotify().conectado}
 
     def spotify_conectar(self) -> dict:
         """Abre el navegador para aceptar el acceso (espera hasta 3 minutos)."""
@@ -118,6 +116,108 @@ class Api:
 
     def spotify_volumen(self, porcentaje: int) -> dict:
         return self._sp_llamar(lambda: self._spotify().volumen(int(porcentaje)))
+
+    # ---- Ajustes: cuentas y carpetas, sin tocar archivos ----
+    def ajustes(self) -> dict:
+        """Estado de cada cosa (nunca devuelve tokens ni claves)."""
+        sc = self.cfg.get("soundcloud") or {}
+        return {"carpetas": self.cfg.get("carpetas") or [],
+                "soundcloud": {"conectado": bool(sc.get("oauth_token") and sc.get("client_id"))},
+                "spotify": self.spotify_cuenta()}
+
+    def _guardar_cfg(self) -> None:
+        config.guardar(self.cfg)
+        servidor.actualizar(self.cfg.get("carpetas") or [])
+
+    def ajustes_agregar_carpeta(self) -> dict:
+        """Abre el selector de carpetas de Windows y suma la elegida."""
+        ventana = webview.windows[0] if webview.windows else None
+        if ventana is None:
+            return {"ok": False, "error": "No hay ventana abierta."}
+        elegida = ventana.create_file_dialog(webview.FOLDER_DIALOG)
+        if not elegida:
+            return {"ok": True, "cancelado": True}
+        carpetas = self.cfg.setdefault("carpetas", [])
+        if elegida[0] not in carpetas:
+            carpetas.append(elegida[0])
+            self._guardar_cfg()
+        return {"ok": True, "carpetas": carpetas}
+
+    def ajustes_quitar_carpeta(self, ruta: str) -> dict:
+        self.cfg["carpetas"] = [c for c in self.cfg.get("carpetas") or [] if c != ruta]
+        self._guardar_cfg()
+        return {"ok": True, "carpetas": self.cfg["carpetas"]}
+
+    def soundcloud_login(self) -> dict:
+        """Abre el login de SoundCloud en una ventana; al entrar lee la cookie de sesión (la app
+        nunca ve la contraseña) y detecta el Client ID. El avance se consulta con soundcloud_login_estado."""
+        if self._login_sc.get("estado") == "esperando":
+            return {"ok": False, "error": "Ya hay una ventana de inicio de sesión abierta."}
+        self._login_sc = {"estado": "esperando"}
+        threading.Thread(target=self._login_soundcloud, daemon=True, name="sc-login").start()
+        return {"ok": True}
+
+    def soundcloud_login_estado(self) -> dict:
+        return self._login_sc
+
+    def _login_soundcloud(self) -> None:
+        ventana = None
+        try:
+            ventana = webview.create_window("Iniciar sesión en SoundCloud", "https://soundcloud.com/signin", width=520, height=760)
+            cerrada = threading.Event()
+            ventana.events.closed += cerrada.set
+            limite, token = time.time() + 600, None
+            while not cerrada.is_set() and time.time() < limite and not token:
+                time.sleep(1.5)
+                try:
+                    token = soundcloud_acceso.token_de_cookies(ventana.get_cookies())
+                except Exception:
+                    logger.debug("Todavía sin cookies legibles", exc_info=True)
+            if not token:
+                self._login_sc = {"estado": "error", "error": "No se detectó el inicio de sesión. Inténtalo de nuevo."}
+                return
+            cid = soundcloud_acceso.detectar_client_id()
+            if not cid:
+                self._login_sc = {"estado": "error", "error": "Entraste, pero no se pudo leer el Client ID de SoundCloud."}
+                return
+            usuario = SoundCloud(token, cid).conectar()   # valida: falla si el token no sirve
+            self.cfg["soundcloud"] = {"oauth_token": token, "client_id": cid}
+            self._guardar_cfg()
+            self._sc = None
+            self._login_sc = {"estado": "ok", "usuario": usuario.get("usuario")}
+        except Exception as e:
+            logger.exception("Login de SoundCloud")
+            self._login_sc = {"estado": "error", "error": str(e)[:150]}
+        finally:
+            try:
+                if ventana is not None:
+                    ventana.destroy()
+            except Exception:
+                pass
+
+    def soundcloud_desconectar(self) -> dict:
+        self.cfg.pop("soundcloud", None)
+        self._guardar_cfg()
+        self._sc = None
+        self._login_sc = {"estado": "nada"}
+        return {"ok": True}
+
+    def spotify_guardar_client_id(self, client_id: str) -> dict:
+        cid = (client_id or "").strip()
+        if len(cid) != 32 or not cid.isalnum():
+            return {"ok": False, "error": "El Client ID de Spotify son 32 letras y números."}
+        self.cfg["spotify"] = {"client_id": cid}
+        self._guardar_cfg()
+        self._sp = None
+        return {"ok": True}
+
+    def spotify_desconectar(self) -> dict:
+        try:
+            spotify.TOKENS.unlink(missing_ok=True)
+        except OSError:
+            pass
+        self._sp = None
+        return {"ok": True}
 
     # ---- Mi música ----
     def musica_listas(self) -> list:
