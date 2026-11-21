@@ -232,6 +232,32 @@ class Api:
         self._sp = None
         return {"ok": True}
 
+    # ---- Imágenes propias (fondos) ----
+    def imagen_elegir(self, plantilla: str, ranura: str) -> dict:
+        """Selector de archivos de Windows; la imagen se reduce a 1920 px y se guarda como WebP."""
+        if not (plantilla.isalnum() and ranura.isalnum()):
+            return {"ok": False, "error": "Nombre no válido."}
+        ventana = webview.windows[0] if webview.windows else None
+        elegida = ventana.create_file_dialog(webview.OPEN_DIALOG, file_types=("Imágenes (*.png;*.jpg;*.jpeg;*.webp;*.gif;*.bmp)",)) if ventana else None
+        if not elegida:
+            return {"ok": True, "cancelado": True}
+        try:
+            from PIL import Image
+            img = Image.open(elegida[0]).convert("RGB")
+            img.thumbnail((1920, 1920))
+            servidor.CARPETA_IMAGENES.mkdir(parents=True, exist_ok=True)
+            nombre = f"{plantilla}-{ranura}.webp"
+            img.save(servidor.CARPETA_IMAGENES / nombre, "WEBP", quality=85)
+        except Exception as e:
+            logger.exception("Imagen propia")
+            return {"ok": False, "error": f"No se pudo usar esa imagen: {str(e)[:100]}"}
+        return {"ok": True, "url": f"/imagen?n={nombre}&v={int(time.time())}"}
+
+    def imagen_quitar(self, plantilla: str, ranura: str) -> dict:
+        if plantilla.isalnum() and ranura.isalnum():
+            (servidor.CARPETA_IMAGENES / f"{plantilla}-{ranura}.webp").unlink(missing_ok=True)
+        return {"ok": True}
+
     # ---- Mi música ----
     def musica_listas(self) -> list:
         return musica.listas(self.cfg.get("carpetas") or [])

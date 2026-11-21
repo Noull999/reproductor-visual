@@ -14,6 +14,16 @@ const R = (() => {
   // "remoto": el audio no sale de esta página (lo toca Spotify o la app del PC) y los visuales usan la captura del PC
   const remoto = fuente === "pc" || fuente === "spotify";
   const spotify = fuente === "spotify";
+  // Propiedades de la plantilla (las pone la Biblioteca): intensidad, velocidad, lista, solo visual y fondo propio
+  const props = typeof Props !== "undefined" ? Props.leer(Props.plantillaActual()) : { intensidad: 50, velocidad: 50, lista: true, soloVisual: true, fondo: "" };
+  const factorI = typeof Props !== "undefined" ? Props.factorIntensidad(props.intensidad) : 1;
+  const factorV = typeof Props !== "undefined" ? Props.factorVelocidad(props.velocidad) : 1;
+  if (!props.lista) document.body.classList.add("sin-lista");
+  if (props.fondo) {
+    document.body.classList.add("fondo-propio");
+    const f = document.createElement("div"); f.id = "fondo-propio"; f.style.backgroundImage = `url("${props.fondo}")`;
+    document.body.appendChild(f);
+  }
   const mudoForzado = q.get("mudo") === "1";   // vista previa: los visuales siguen el audio pero no suena nada
   const listaSpotify = /^[A-Za-z0-9_-]+$/.test(carpeta) ? carpeta : "me-gusta";   // ids de Spotify; cualquier otra cosa (una ruta) = likes
 
@@ -142,13 +152,23 @@ const R = (() => {
   const pcPosicion = () => pcEstado.posicion + (pcEstado.sonando ? (performance.now() - pcVisto) / 1000 : 0);
 
   // ---- Lo que las plantillas leen ----
-  let t = 0;
-  function espectro() {
+  let t = 0, cuadro = 0, espectroDe = -1, espectroEscalado = new Uint8Array(512);
+  function espectroCrudo() {
     if (remoto) return pcEspectro;
     if (analizador && !audio.paused) { analizador.getByteFrequencyData(frec); return frec; }
     const d = new Uint8Array(512);   // sin música: animación suave
     for (let i = 0; i < 512; i++) d[i] = 40 + 30 * Math.sin(t * 2 + i * 0.05) * Math.exp(-i / 160);
     return d;
+  }
+  // Intensidad: se escala el espectro una vez por cuadro (todas las plantillas lo leen de aquí)
+  function espectro() {
+    const d = espectroCrudo();
+    if (Math.abs(factorI - 1) < 0.01) return d;
+    if (espectroDe !== cuadro) {
+      espectroDe = cuadro;
+      for (let i = 0; i < d.length && i < 512; i++) espectroEscalado[i] = Math.min(255, d[i] * factorI);
+    }
+    return espectroEscalado;
   }
   function ondaAudio() {
     if (!remoto && analizador && !audio.paused) { analizador.getByteTimeDomainData(onda); return onda; }
@@ -230,6 +250,11 @@ const R = (() => {
       /* Modo "solo visual": sin mover el mouse, lo marcado como .ocultable se desvanece */
       .ocultable{transition:opacity .6s}
       body.inactivo{cursor:none}
+      /* Propiedades: fondo propio (reemplaza lo marcado data-fondo) y lista oculta (data-prop="lista") */
+      #fondo-propio{position:fixed;inset:0;z-index:-1;background-size:cover;background-position:center;filter:brightness(.8)}
+      body.fondo-propio{background:transparent !important}   /* si no, el fondo del body tapa la imagen */
+      body.fondo-propio [data-fondo]{display:none !important}
+      body.sin-lista [data-prop="lista"]{display:none !important}
       body.inactivo .ocultable,body.inactivo a.volver{opacity:0 !important;pointer-events:none}`;
     document.head.appendChild(estilo);
     const volver = document.createElement("a");
@@ -257,8 +282,8 @@ const R = (() => {
     on("barra", "pointerdown", () => { arrastrando = true; });
     addEventListener("pointerup", () => { arrastrando = false; });
     // Solo visual: 3 s sin mover el mouse mientras suena. La tecla H lo activa o desactiva.
-    let ultimoMovimiento = performance.now(), soloVisual = !mudoForzado;   // en la vista previa la interfaz debe verse
-    try { if (!mudoForzado) soloVisual = localStorage.getItem("solo-visual") !== "0"; } catch (e) {}
+    let ultimoMovimiento = performance.now(), soloVisual = !mudoForzado && props.soloVisual;   // en la vista previa la interfaz debe verse
+    try { if (!mudoForzado && localStorage.getItem("solo-visual") === "0") soloVisual = false; } catch (e) {}
     const moverMouse = () => { ultimoMovimiento = performance.now(); document.body.classList.remove("inactivo"); };
     ["mousemove", "pointerdown", "wheel", "keydown"].forEach(ev => addEventListener(ev, moverMouse, { passive: true }));
     addEventListener("keydown", (e) => {
@@ -299,14 +324,14 @@ const R = (() => {
 
   const cuadros = [];
   function cadaCuadro(fn) { cuadros.push(fn); }
-  function bucle() { t += 0.016; cuadros.forEach(fn => fn(t)); requestAnimationFrame(bucle); }
+  function bucle() { t += 0.016 * factorV; cuadro++; cuadros.forEach(fn => fn(t)); requestAnimationFrame(bucle); }
   requestAnimationFrame(bucle);
 
   if (window.pywebview && window.pywebview.api) document.addEventListener("DOMContentLoaded", arrancar);
   else window.addEventListener("pywebviewready", arrancar);
 
   return {
-    audio, pistas, fuente, cargar, alternar, espectro, ondaAudio, energia, fmt, progreso, tiempoActual, saltarA,
+    audio, pistas, fuente, cargar, velocidad: factorV, alternar, espectro, ondaAudio, energia, fmt, progreso, tiempoActual, saltarA,
     get actual() { return actual; },
     alCambiar: (fn) => avisos.push(fn),
     cadaCuadro,

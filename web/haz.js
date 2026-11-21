@@ -17,7 +17,7 @@ function iniciarHaz(canvas, energia, color) {
   }
 
   function cuadro() {
-    t += 0.016;
+    t += 0.016 * (typeof R !== "undefined" && R.velocidad ? R.velocidad : 1);
     const w = canvas.width, h = canvas.height;
     if (!w || !h) { requestAnimationFrame(cuadro); return; }
     const { bajo, medio, agudo } = leer();

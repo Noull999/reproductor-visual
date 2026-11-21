@@ -79,7 +79,7 @@
 </style>
 </head>
 <body>
-<canvas id="escena"></canvas>
+<canvas id="escena" data-fondo></canvas>
 <div id="app">
   <header class="lbl ocultable" id="paletas">Paleta:</header>
   <main>
@@ -87,7 +87,7 @@
       <canvas id="portada" width="64" height="64"></canvas>
       <div class="lbl" id="leyenda">Sonando ahora</div>
     </div>
-    <div id="lista" class="panel px ocultable"></div>
+    <div id="lista" class="panel px ocultable" data-prop="lista"></div>
   </main>
   <footer class="ocultable">
     <div class="tema"><canvas id="mini" width="32" height="32"></canvas>
@@ -105,6 +105,7 @@
   </footer>
 </div>
 
+<script src="propiedades.js"></script>
 <script src="nucleo.js"></script>
 <script>
 "use strict";

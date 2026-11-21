@@ -76,7 +76,7 @@
   <feGaussianBlur in="ruido" stdDeviation="2.5" result="suave"/>
   <feDisplacementMap in="SourceGraphic" in2="suave" scale="70" xChannelSelector="R" yChannelSelector="G"/>
 </filter></svg>
-<canvas id="haz"></canvas>
+<canvas id="haz" data-fondo></canvas>
 
 <div class="capa">
   <main>
@@ -87,7 +87,7 @@
         <div id="titulo">—</div><div id="artista"></div>
       </div>
     </section>
-    <section class="lista-caja vidrio tarjeta ocultable">
+    <section class="lista-caja vidrio tarjeta ocultable" data-prop="lista">
       <div class="mono"><span>Tus likes</span><span id="temas" title="Color"></span><span id="cuenta"></span></div>
       <div id="lista"></div>
     </section>
@@ -106,6 +106,7 @@
 </div>
 
 <script src="haz.js"></script>
+<script src="propiedades.js"></script>
 <script src="nucleo.js"></script>
 <script>
 "use strict";

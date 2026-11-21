@@ -33,7 +33,7 @@
   .card b { font-weight: 600; font-size: 15px; }
   .card span { color: var(--suave); font-size: 12px; }
   .der { padding: 18px; display: flex; flex-direction: column; gap: 14px; min-height: 0; overflow-y: auto; }
-  #vista { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 14px; display: block; background: #120a0c; box-shadow: 0 16px 50px rgba(0,0,0,.5), 0 0 0 1px var(--borde); }
+  #vista { height: 25vh; max-width: 100%; align-self: center; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 14px; display: block; background: #120a0c; box-shadow: 0 16px 50px rgba(0,0,0,.5), 0 0 0 1px var(--borde); }
   h2 { font-size: 26px; font-weight: 500; letter-spacing: -.03em; margin: 0; }
   .der p { margin: 4px 0 0; color: var(--suave); font-size: 14px; line-height: 1.5; }
   .grupo { display: flex; flex-direction: column; gap: 8px; }
@@ -43,6 +43,19 @@
     border: .8px solid var(--borde); background: rgba(255,255,255,.05); }
   .color i { width: 16px; height: 16px; border-radius: 50%; display: inline-block; background: var(--c); box-shadow: 0 0 8px var(--c); }
   .color.elegida { border-color: var(--texto); background: rgba(255,255,255,.14); }
+  .ctl { display: flex; flex-direction: column; gap: 4px; }
+  .ctl .fila { display: flex; justify-content: space-between; font-size: 13px; color: var(--suave); }
+  .ctl .fila b { color: var(--texto); font-weight: 500; font-variant-numeric: tabular-nums; }
+  input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 6px; border-radius: 999px; margin: 6px 0; cursor: pointer; background: rgba(255,255,255,.14); }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: 0 0 12px var(--rojo); }
+  .interruptor { display: flex; align-items: center; gap: 10px; font-size: 14px; cursor: pointer; }
+  .interruptor input { accent-color: var(--rojo); width: 16px; height: 16px; }
+  .ranura { display: flex; align-items: center; gap: 12px; padding: 8px 10px; border-radius: 14px; border: .8px solid var(--borde); background: rgba(255,255,255,.04); }
+  .ranura .mini { width: 64px; height: 36px; border-radius: 8px; background: rgba(255,255,255,.08) center / cover; flex: none; }
+  .ranura .nombre { flex: 1; font-size: 14px; } .ranura .nombre small { display: block; color: var(--suave); font-size: 12px; }
+  .ranura button, .acciones .suave { background: none; border: .8px solid var(--borde); color: var(--texto); border-radius: 999px; padding: 6px 14px; cursor: pointer; font: 13px Geist, system-ui; }
+  .ranura button:hover, .acciones .suave:hover { border-color: var(--texto); }
+  #msgProps { color: var(--suave); font-size: 12px; min-height: 1.3em; }
   .acciones { margin-top: auto; display: flex; gap: 10px; align-items: center; }
   .acciones .btn { padding: 13px 28px; }
   .acciones .pronto { color: var(--suave); font-size: 12px; }
@@ -68,11 +81,22 @@
       <img id="vista" alt="">
       <div><h2 id="nombre"></h2><p id="descripcion"></p></div>
       <div id="gruposColor" class="grupo"></div>
-      <div class="acciones"><button class="btn btn-principal" id="usar">Usar esta</button><span class="pronto mono">Personalizar: próximamente</span></div>
+      <div class="grupo" id="personalizar">
+        <div class="mono">Personalizar</div>
+        <div class="ctl"><div class="fila"><span>Intensidad de los visuales</span><b id="vInt"></b></div><input type="range" id="intensidad" min="0" max="100" step="1"></div>
+        <div class="ctl"><div class="fila"><span>Velocidad de las animaciones</span><b id="vVel"></b></div><input type="range" id="velocidad" min="0" max="100" step="1"></div>
+        <label class="interruptor"><input type="checkbox" id="pLista"> Mostrar la lista de temas</label>
+        <label class="interruptor"><input type="checkbox" id="pSolo"> Ocultar los controles tras 3 s sin mover el mouse</label>
+        <div class="ranura"><div class="mini" id="miniFondo"></div><div class="nombre">Fondo propio<small id="textoFondo"></small></div>
+          <button id="cambiarFondo">Cambiar…</button><button id="quitarFondo">Quitar</button></div>
+        <div id="msgProps"></div>
+      </div>
+      <div class="acciones"><button class="btn btn-principal" id="usar">Usar esta</button><button class="suave" id="restablecer">Restablecer</button></div>
     </section>
   </main>
 </div>
 <script src="haz.js"></script>
+<script src="propiedades.js"></script>
 <script>
 "use strict";
 iniciarHaz(document.getElementById("haz"));
@@ -128,6 +152,7 @@ function pintar() {
   $("nombre").textContent = actual.nombre;
   $("descripcion").textContent = actual.desc;
   const caja = $("gruposColor"); caja.innerHTML = "";
+  pintarProps();
   actual.grupos.forEach(gr => {
     const t = document.createElement("div"); t.className = "mono"; t.textContent = gr.titulo; caja.appendChild(t);
     const fila = document.createElement("div"); fila.className = "colores";
@@ -141,6 +166,31 @@ function pintar() {
     caja.appendChild(fila);
   });
 }
+// ---- Personalizar: intensidad, velocidad, lista, solo visual y fondo propio (por plantilla) ----
+let props = Props.leer(actual.id), aviso = 0;
+function mensaje(t) { $("msgProps").textContent = t; clearTimeout(aviso); aviso = setTimeout(() => { $("msgProps").textContent = ""; }, 4000); }
+function pintarProps() {
+  props = Props.leer(actual.id);
+  $("intensidad").value = props.intensidad; $("vInt").textContent = props.intensidad === 50 ? "normal" : props.intensidad;
+  $("velocidad").value = props.velocidad; $("vVel").textContent = props.velocidad === 50 ? "normal" : props.velocidad;
+  $("pLista").checked = props.lista; $("pSolo").checked = props.soloVisual;
+  $("miniFondo").style.backgroundImage = props.fondo ? `url("${props.fondo}")` : "none";
+  $("textoFondo").textContent = props.fondo ? "Tu imagen" : "El de la plantilla";
+  $("quitarFondo").hidden = !props.fondo;
+}
+const cambiar = (campo, val) => { props[campo] = val; Props.guardar(actual.id, props); pintarProps(); };
+$("intensidad").oninput = (e) => cambiar("intensidad", +e.target.value);
+$("velocidad").oninput = (e) => cambiar("velocidad", +e.target.value);
+$("pLista").onchange = (e) => cambiar("lista", e.target.checked);
+$("pSolo").onchange = (e) => cambiar("soloVisual", e.target.checked);
+$("cambiarFondo").onclick = async () => {
+  const r = await window.pywebview.api.imagen_elegir(actual.id, "fondo");
+  if (!r.ok) return mensaje(r.error);
+  if (!r.cancelado) { cambiar("fondo", r.url); mensaje("Fondo cambiado. Pulsa \"Usar esta\" para verlo."); }
+};
+$("quitarFondo").onclick = async () => { await window.pywebview.api.imagen_quitar(actual.id, "fondo"); cambiar("fondo", ""); mensaje("Volvió el fondo de la plantilla."); };
+$("restablecer").onclick = async () => { await window.pywebview.api.imagen_quitar(actual.id, "fondo"); Props.guardar(actual.id, { ...Props.DEFECTO }); pintarProps(); mensaje("Se restableció esta plantilla."); };
+
 // "Usar esta": deja la variante elegida guardada (la plantilla la lee al abrir) y entra
 $("usar").onclick = () => {
   const x = elegida[actual.id];

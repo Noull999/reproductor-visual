@@ -19,6 +19,8 @@ mimetypes.add_type("audio/aiff", ".aiff")
 mimetypes.add_type("audio/aiff", ".aif")
 
 carpetas_permitidas: list[Path] = []
+CARPETA_IMAGENES = Path.home() / ".visualizador" / "imagenes"   # fondos que sube la persona
+PUERTO = 47831   # fijo: el navegador guarda las preferencias (colores, skins…) por puerto; uno al azar las borraba en cada arranque
 
 
 def permitido(ruta: str) -> Path | None:
@@ -55,6 +57,8 @@ class Manejador(SimpleHTTPRequestHandler):
         url = urlparse(self.path)
         if url.path == "/musica":
             return self._musica(parse_qs(url.query).get("r", [""])[0])
+        if url.path == "/imagen":
+            return self._imagen(parse_qs(url.query).get("n", [""])[0])
         if url.path == "/caratula":
             return self._caratula(parse_qs(url.query).get("r", [""])[0])
         return super().do_GET()
@@ -94,6 +98,18 @@ class Manejador(SimpleHTTPRequestHandler):
             except (BrokenPipeError, ConnectionResetError):
                 pass   # el reproductor cortó (cambió de tema o adelantó)
 
+    def _imagen(self, nombre):
+        """Imagen propia de la carpeta ~/.visualizador/imagenes (solo nombres simples, nada de rutas)."""
+        p = CARPETA_IMAGENES / nombre
+        if not nombre or nombre != Path(nombre).name or p.suffix.lower() != ".webp" or not p.is_file():
+            return self.send_error(404)
+        datos = p.read_bytes()
+        self.send_response(200)
+        self.send_header("Content-Type", "image/webp")
+        self.send_header("Content-Length", str(len(datos)))
+        self.end_headers()
+        self.wfile.write(datos)
+
     def _caratula(self, ruta):
         p = permitido(ruta)
         datos = None
@@ -125,8 +141,11 @@ def actualizar(carpetas: list[str]) -> None:
 
 
 def iniciar(carpetas: list[str]) -> int:
-    """Arranca en un puerto libre y devuelve el puerto."""
+    """Arranca en el puerto fijo (o en uno libre si está ocupado) y devuelve el puerto."""
     actualizar(carpetas)
-    srv = ThreadingHTTPServer(("127.0.0.1", 0), Manejador)
+    try:
+        srv = ThreadingHTTPServer(("127.0.0.1", PUERTO), Manejador)
+    except OSError:
+        srv = ThreadingHTTPServer(("127.0.0.1", 0), Manejador)
     threading.Thread(target=srv.serve_forever, daemon=True).start()
     return srv.server_address[1]

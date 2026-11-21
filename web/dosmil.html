@@ -111,10 +111,10 @@
 </style>
 </head>
 <body class="conLista">
-<canvas id="tunel"></canvas>
-<div id="nucleoOscuro"></div>
+<canvas id="tunel" data-fondo></canvas>
+<div id="nucleoOscuro" data-fondo></div>
 
-<aside id="ventanaLista" class="chasis ocultable">
+<aside id="ventanaLista" class="chasis ocultable" data-prop="lista">
   <div class="tope grabado"><span class="marca">PLAYLIST</span><span id="cuenta"></span></div>
   <div id="lista" class="lcd"></div>
 </aside>
@@ -123,7 +123,7 @@
   <div class="tope grabado">
     <span class="marca">SONIDO · 2K</span>
     <div id="skins">SKIN</div>
-    <button id="bLista" class="metal" title="Mostrar u ocultar la playlist">PL</button>
+    <button id="bLista" class="metal" data-prop="lista" title="Mostrar u ocultar la playlist">PL</button>
   </div>
   <div class="cuerpo">
     <div id="lcd" class="lcd">
@@ -156,6 +156,7 @@
   <input id="volumen" type="range" min="0" max="100" value="80">
 </div>
 
+<script src="propiedades.js"></script>
 <script src="nucleo.js"></script>
 <script src="tunel.js"></script>
 <script>

@@ -85,7 +85,24 @@ Límite a tener en cuenta: con la API en modo desarrollo, Spotify permite al due
 (Premium) y hasta 5 usuarios autorizados. Para "la gente" el panel Spotify necesitaría
 la cuota ampliada de Spotify (trámite aparte); mientras tanto usan "otra app".
 
-## Fase 2 — Imágenes propias en las plantillas
+## Fase 2 — Biblioteca y personalización (modelo: Wallpaper Engine)  ← AHORA
+
+Idea: una página **Biblioteca** (plantillas con vista previa + panel de propiedades en vivo), luego un
+**Editor** y por último una **Comunidad**. Cada plantilla declara qué se puede cambiar; lo que se
+comparte son solo datos e imágenes, nunca código.
+
+- [x] Biblioteca: cuadrícula con vista previa por plantilla y variante de color; "Usar esta" abre la plantilla ya con esa variante.
+- [x] Vistas previas generadas con la app real y **carátulas pixeladas** (`tools/capturar_previas.py`, 31 imágenes en `web/img/previas/`).
+- [x] Panel **Personalizar**: intensidad y velocidad de los visuales, mostrar/ocultar la lista, modo solo visual y
+      **fondo propio** (imagen reducida a 1920 px y guardada en `~/.visualizador/imagenes/`). Se guarda por plantilla
+      (`propiedades.js`) y se aplica en `nucleo.js`. Botón "Restablecer".
+- [x] Puerto fijo del servidor local: antes cambiaba en cada arranque y se perdían los colores/skins elegidos.
+- [ ] Cuerpo propio en Headspace y chasis propio en 2000s (la imagen necesita saber dónde van pantalla, botones…).
+- [ ] Vista previa en vivo dentro del panel (hoy son capturas fijas).
+- [ ] Más propiedades por plantilla (colores libres, tamaños, mostrar/ocultar piezas).
+- [ ] Guía de imágenes: medidas y qué pedirle a Higgsfield u otros generadores.
+
+## (Antes) Imágenes propias en las plantillas
 
 - [ ] Cada plantilla declara **ranuras** de imagen (fondo, cabeza, botones…) con su
       tamaño recomendado. *(Headspace ya funciona así: el cuerpo es el dibujo o una imagen,

@@ -112,7 +112,7 @@
 </style>
 </head>
 <body>
-<canvas id="fondo"></canvas>
+<canvas id="fondo" data-fondo></canvas>
 <div id="cabeza">
   <div id="cuerpo">
   </div>
@@ -130,14 +130,15 @@
   <div id="zonaBarra" class="zona"><input id="barra" type="range" min="0" max="1000" value="0" title="Avance"></div>
   <div id="boca" class="zona"></div>
 </div>
-<aside id="cajon" class="ocultable"><div class="cab-lista"><span id="nombreFuente"></span><span id="cuenta"></span></div><div id="lista"></div></aside>
+<aside id="cajon" class="ocultable" data-prop="lista"><div class="cab-lista"><span id="nombreFuente"></span><span id="cuenta"></span></div><div id="lista"></div></aside>
 <div id="pie" class="ocultable">
-  <div class="grupo"><button id="bLista" class="gel" title="Mostrar la lista de temas">Lista</button></div>
+  <div class="grupo"><button id="bLista" class="gel" data-prop="lista" title="Mostrar la lista de temas">Lista</button></div>
   <div class="grupo" id="cuerpos"><span class="nombre">Cuerpo</span></div>
   <div class="grupo" id="colores"><span class="nombre">Color</span></div>
   <div class="grupo"><button id="iconoVol" title="Silenciar">🔊</button><input id="volumen" type="range" min="0" max="100" value="80" title="Volumen"></div>
 </div>
 
+<script src="propiedades.js"></script>
 <script src="nucleo.js"></script>
 <script>
 "use strict";
@@ -209,7 +210,7 @@ $("nombreFuente").textContent = { spotify: "Spotify", soundcloud: "Tus likes", m
 if (R.fuente === "pc") { $("bLista").hidden = true; }
 function cajon(abierto) { document.body.classList.toggle("conLista", abierto); $("bLista").classList.toggle("elegido", abierto); guardar("lista-headspace", abierto ? "1" : "0"); }
 $("bLista").onclick = () => cajon(!document.body.classList.contains("conLista"));
-cajon(R.fuente !== "pc" && leer("lista-headspace") !== "0");
+cajon(R.fuente !== "pc" && leer("lista-headspace") !== "0" && !document.body.classList.contains("sin-lista"));
 // Título que no cabe en la pantalla: se desplaza; si cabe, queda quieto
 function ajustarTitulo() {
   const t = $("titulo"), caja = t.parentElement, sobra = t.scrollWidth - caja.clientWidth;

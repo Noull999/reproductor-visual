@@ -84,8 +84,8 @@
 </style>
 </head>
 <body>
-<div id="fondoImg"></div>
-<canvas id="luces"></canvas>
+<div id="fondoImg" data-fondo></div>
+<canvas id="luces" data-fondo></canvas>
 <div id="velo"></div>
 <div id="app">
   <main>
@@ -99,7 +99,7 @@
         <h1 id="grandeTitulo">—</h1>
         <div id="grandeArtista"></div>
       </div>
-      <div id="lista" class="ocultable"></div>
+      <div id="lista" class="ocultable" data-prop="lista"></div>
     </div>
   </main>
   <footer class="ocultable">
@@ -116,6 +116,7 @@
   </footer>
 </div>
 
+<script src="propiedades.js"></script>
 <script src="nucleo.js"></script>
 <script>
 "use strict";
