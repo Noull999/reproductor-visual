@@ -11,6 +11,21 @@ import time
 
 logger = logging.getLogger(__name__)
 BINS = 512   # mismo formato que el analizador de la página: 512 valores 0..255
+PISO_DB = -90.0   # bajo esto es silencio o ruido: la ganancia automática no lo amplifica
+RANGO_DB = 65.0
+BAJADA_DB = 0.04  # cuánto baja el techo por lectura (~2 dB/s): se adapta a temas más bajos
+
+
+def escalar(db, techo):
+    """Ganancia automática: el pico reciente queda cerca de 243 (como el analizador del
+    navegador con un tema fuerte), sin importar el volumen de Windows o de la app.
+    Devuelve (valores 0..255, techo nuevo)."""
+    import numpy as np
+    pico = float(np.percentile(db[1:300], 99))
+    if pico < PISO_DB:   # silencio o ruido: no hay música que mostrar
+        return np.zeros_like(db), techo
+    techo = max(pico, techo - BAJADA_DB, PISO_DB)
+    return np.clip((db - (techo - RANGO_DB + 3)) / RANGO_DB * 255, 0, 255), techo
 
 
 def _correr(coro):
@@ -101,7 +116,7 @@ class Captura:
         canales, tasa = int(disp["maxInputChannels"]), int(disp["defaultSampleRate"])
         flujo = pa.open(format=pyaudio.paFloat32, channels=canales, rate=tasa, input=True,
                         input_device_index=disp["index"], frames_per_buffer=1024)
-        ventana, previo = np.hanning(BINS * 2), np.zeros(BINS)
+        ventana, previo, techo = np.hanning(BINS * 2), np.zeros(BINS), PISO_DB
         memoria = np.zeros(BINS * 2, dtype=np.float32)
         while True:
             try:
@@ -113,8 +128,6 @@ class Captura:
             mono = datos.reshape(-1, canales).mean(axis=1)
             memoria = np.concatenate([memoria, mono])[-BINS * 2:]
             mag = np.abs(np.fft.rfft(memoria * ventana))[:BINS] / BINS
-            db = 20 * np.log10(mag + 1e-12)
-            # Igual que el analizador del navegador: -100 dB → 0, -30 dB → 255, con suavizado.
-            valor = np.clip((db + 100) / 70 * 255, 0, 255)
+            valor, techo = escalar(20 * np.log10(mag + 1e-12), techo)
             previo = previo * 0.8 + valor * 0.2
             self.espectro = previo.astype(int).tolist()

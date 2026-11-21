@@ -42,9 +42,12 @@ Este plan se ajusta según prioridades: lo de arriba se hace primero.
 
 Orden de trabajo (cada paso se prueba en la app antes del siguiente):
 
-1. **Captura del audio del PC** (bloquea los visuales con Spotify). Diagnosticar con
-   Spotify sonando: dispositivo de salida, loopback correcto, nivel. Sin esto, la fuente
-   Spotify funciona pero el espectro no reacciona.
+1. **Captura del audio del PC** — ✔ arreglada. Causa del silencio: el dispositivo estaba
+   bien (parlantes Realtek), pero con el volumen bajo de Windows el sonido caía bajo la
+   escala fija del analizador. Ahora la captura usa ganancia automática (`escalar` en
+   `fuentes/pc.py`): la música se ve igual a cualquier volumen y el silencio no se amplifica.
+   Medido con Spotify sonando: máx 226/255, graves 156, medios 128, agudos 81.
+   Pendiente: comprobarlo dentro de una plantilla a la vez que suena Spotify.
 2. **Fuente Spotify**
    - [x] Conexión con PKCE (sin secreto), tokens en `~/.visualizador/spotify.json`.
          Probado: lee lo que suena, dispositivos y likes; pausa/reanuda (Premium confirmado).
