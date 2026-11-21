@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mi plantilla</title>
+<link rel="stylesheet" href="fonts/geist.css">
+<link rel="stylesheet" href="fonts/headspace.css">
+<link rel="stylesheet" href="fonts/ambiente.css">
+<link rel="stylesheet" href="fonts/pixel.css">
+<link rel="stylesheet" href="fonts/dosmil.css">
+<script src="hls.min.js"></script>
+<style>
+  :root { --acento: #ff2d3d; --fuente: "Geist"; --p: 0%; --v: 80%; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #08080a; color: #f3f3f5; font-family: var(--fuente), system-ui, sans-serif; }
+  #fondoL { position: fixed; inset: 0; z-index: 0; }
+  #fondoL canvas, #fondoL div { position: absolute; inset: 0; width: 100%; height: 100%; background-size: cover; background-position: center; }
+  .pz { position: fixed; z-index: 1; container-type: size; display: flex; align-items: center; }
+
+  /* Estilos de panel: cambian el aspecto de paneles, botones, lista y barras */
+  body[data-panel=vidrio] { --bg: rgba(255,255,255,.09); --borde: .8px solid rgba(255,255,255,.22); --rad: 16px; --radp: 22px; --pt: #f3f3f5; --sombra: 0 10px 30px rgba(0,0,0,.35); --blur: blur(10px); }
+  body[data-panel=metal] { --bg: linear-gradient(180deg,#eef1f5,#b1b9c6 55%,#8f97a5); --borde: 1px solid rgba(0,0,0,.55); --rad: 10px; --radp: 14px; --pt: #272c35; --sombra: inset 0 1px 0 rgba(255,255,255,.75), 0 6px 14px rgba(0,0,0,.45); --blur: none; }
+  body[data-panel=gel] { --bg: linear-gradient(180deg,rgba(255,255,255,.78),rgba(255,255,255,.14) 50%,transparent 52%), var(--acento); --borde: 1px solid rgba(0,0,0,.35); --rad: 999px; --radp: 28px; --pt: #0e1f08; --sombra: inset 0 -3px 6px rgba(0,0,0,.25), 0 4px 10px rgba(0,0,0,.45); --blur: none; }
+  body[data-panel=pixel] { --bg: #1a1620; --borde: 3px solid var(--acento); --rad: 0; --radp: 0; --pt: #f3f3f5; --sombra: none; --blur: none; }
+  body[data-panel=liso] { --bg: rgba(14,14,18,.86); --borde: 1px solid #2c2c36; --rad: 8px; --radp: 10px; --pt: #f3f3f5; --sombra: none; --blur: none; }
+  .caja { background: var(--bg); border: var(--borde); border-radius: var(--radp); box-shadow: var(--sombra); -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur); width: 100%; height: 100%; color: var(--pt); }
+  body[data-panel=gel] .caja { background: linear-gradient(180deg,rgba(255,255,255,.35),rgba(255,255,255,.05) 50%,rgba(0,0,0,.25)), color-mix(in srgb, var(--acento) 55%, #000); color: #fff; }
+  body[data-panel=pixel] .caja, body[data-panel=pixel] .bt { clip-path: polygon(0 8px,4px 8px,4px 4px,8px 4px,8px 0,calc(100% - 8px) 0,calc(100% - 8px) 4px,calc(100% - 4px) 4px,calc(100% - 4px) 8px,100% 8px,100% calc(100% - 8px),calc(100% - 4px) calc(100% - 8px),calc(100% - 4px) calc(100% - 4px),calc(100% - 8px) calc(100% - 4px),calc(100% - 8px) 100%,8px 100%,8px calc(100% - 4px),4px calc(100% - 4px),4px calc(100% - 8px),0 calc(100% - 8px)); }
+
+  .tit { font-weight: 600; font-size: min(78cqh, 9cqw); line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; text-shadow: 0 2px 10px rgba(0,0,0,.5); }
+  .art { font-size: min(80cqh, 6cqw); opacity: .75; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; text-shadow: 0 2px 10px rgba(0,0,0,.5); }
+  #caratula { width: 100%; height: 100%; object-fit: cover; border-radius: var(--radp); box-shadow: 0 12px 40px rgba(0,0,0,.5); }
+  body[data-panel=pixel] #caratula { image-rendering: pixelated; border-radius: 0; box-shadow: 0 0 0 3px var(--acento); }
+  .pz canvas { width: 100%; height: 100%; display: block; }
+  .botones { display: flex; gap: 6cqh; justify-content: center; width: 100%; height: 100%; padding: 4cqh 0; }
+  .bt { height: 100%; aspect-ratio: 1.45; max-width: 34%; background: var(--bg); border: var(--borde); border-radius: var(--rad); box-shadow: var(--sombra); color: var(--pt); cursor: pointer;
+    font: 400 min(46cqh, 9cqw) "Segoe UI Symbol", system-ui, sans-serif; padding: 0; -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur); transition: transform .1s, filter .15s; }
+  .bt:hover { filter: brightness(1.15); } .bt:active { transform: scale(.94); }
+  .bt.mayor { aspect-ratio: 1.8; }
+  input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: min(100cqh, 12px); margin: 0; border-radius: 999px; cursor: pointer;
+    background: linear-gradient(90deg, var(--acento) var(--p), rgba(255,255,255,.16) var(--p)); }
+  #volumen { background: linear-gradient(90deg, var(--acento) var(--v), rgba(255,255,255,.16) var(--v)); }
+  body[data-panel=pixel] input[type=range] { border-radius: 0; height: min(100cqh, 14px); background: repeating-linear-gradient(90deg, transparent 0 8px, #1a1620 8px 10px), linear-gradient(90deg, var(--acento) var(--p), #0a0810 var(--p)); }
+  body[data-panel=pixel] #volumen { background: repeating-linear-gradient(90deg, transparent 0 8px, #1a1620 8px 10px), linear-gradient(90deg, var(--acento) var(--v), #0a0810 var(--v)); }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #fff; box-shadow: 0 0 10px var(--acento); }
+  body[data-panel=pixel] input[type=range]::-webkit-slider-thumb { border-radius: 0; width: 10px; height: 18px; }
+  .tiempo { font: 500 min(70cqh, 14cqw) "Geist Mono", monospace; opacity: .8; width: 100%; text-align: center; white-space: nowrap; }
+  .vol { display: flex; gap: 8px; align-items: center; width: 100%; }
+  #iconoVol { background: none; border: none; color: #fff; font-size: min(70cqh, 18px); cursor: pointer; opacity: .8; padding: 0; }
+  #lista { width: 100%; height: 100%; overflow-y: auto; padding: 8px 0 14px; scrollbar-width: thin; scrollbar-color: var(--acento) transparent; }
+  .fila { display: grid; grid-template-columns: 34px 24px 1fr 42px; gap: 10px; align-items: center; padding: 4px 12px; font-size: 13px; cursor: pointer; opacity: .8; }
+  .fila:hover { opacity: 1; background: rgba(255,255,255,.08); }
+  .fila.sonando { opacity: 1; background: color-mix(in srgb, var(--acento) 32%, transparent); font-weight: 600; }
+  .fila img { width: 34px; height: 34px; object-fit: cover; border-radius: 4px; }
+  .fila .nombre { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .fila .n, .fila .dur { font: 11px "Geist Mono", monospace; opacity: .7; }
+  .imagen { width: 100%; height: 100%; object-fit: contain; }
+  #vacio { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; color: #aaa; z-index: 5; }
+</style>
+</head>
+<body data-panel="vidrio">
+<div id="fondoL"></div>
+<script src="propiedades.js"></script>
+<script src="plantillas-propias.js"></script>
+<script src="tunel.js"></script>
+<script src="haz.js"></script>
+<script src="nucleo.js"></script>
+<script>
+"use strict";
+const spec = Propias.obtener(new URLSearchParams(location.search).get("plantilla"));
+const rgb = (h) => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+const tono = ([r, g, b]) => { const mx = Math.max(r, g, b), mn = Math.min(r, g, b); if (mx === mn) return 0; const d = mx - mn; const h = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; return (h * 60 + 360) % 360; };
+
+function construir(s) {
+  document.title = s.nombre;
+  document.body.dataset.panel = s.estilo.panel;
+  document.documentElement.style.setProperty("--acento", s.estilo.acento);
+  document.documentElement.style.setProperty("--fuente", `"${s.estilo.fuente}"`);
+  const acento = rgb(s.estilo.acento), h0 = tono(acento);
+  fondo(s.fondo, acento, h0);
+  s.piezas.forEach((p, i) => {
+    const e = document.createElement("div");
+    e.className = "pz" + (["botones", "barra", "tiempo", "volumen", "lista"].includes(p.tipo) ? " ocultable" : ""); e.dataset.tipo = p.tipo;
+    e.style.cssText = `left:${p.x}%;top:${p.y}%;width:${p.w}%;height:${p.h}%;z-index:${i + 1}`;
+    if (p.tipo === "lista") e.dataset.prop = "lista";   // lo apaga la propiedad "Mostrar la lista"
+    const dentro = pieza(p, acento);
+    if (dentro) e.appendChild(dentro);
+    document.body.appendChild(e);
+  });
+  R.cadaCuadro(() => {
+    document.documentElement.style.setProperty("--p", (R.progreso() * 100).toFixed(2) + "%");
+  });
+  const vol = document.getElementById("volumen");
+  if (vol) vol.addEventListener("input", () => document.documentElement.style.setProperty("--v", vol.value + "%"));
+}
+
+// ---- Fondos ----
+function lienzoDe(contenedor) { const c = document.createElement("canvas"); contenedor.appendChild(c); return c; }
+function ajustar(c) { const w = innerWidth, h = innerHeight; if (c.width !== w || c.height !== h) { c.width = w; c.height = h; } return c.getContext("2d"); }
+function fondo(f, acento, h0) {
+  const c = document.getElementById("fondoL");
+  c.style.filter = `brightness(${(f.brillo || 100) / 100})`;
+  if (f.tipo === "color") { const d = document.createElement("div"); d.style.background = f.color; c.appendChild(d); return; }
+  if (f.tipo === "imagen") { const d = document.createElement("div"); d.style.background = `${f.color} ${f.imagen ? `url("${f.imagen}")` : ""} center / cover`; c.appendChild(d); return; }
+  const base = document.createElement("div"); base.style.background = f.color || "#08080a"; c.appendChild(base);
+  const lienzo = lienzoDe(c);
+  if (f.tipo === "haz") {
+    iniciarHaz(lienzo, () => { const d = R.espectro(); return { bajo: Math.min(1, R.energia(d, 1, 10) * 1.2), medio: R.energia(d, 10, 60), agudo: R.energia(d, 60, 200) }; }, () => acento);
+  } else if (f.tipo === "tunel") {
+    R.cadaCuadro((t) => { const d = R.espectro(); dibujarTunel(lienzo, d, R.energia(d, 1, 8), R.energia(d, 60, 200), t, (i, tt) => h0 + 40 * Math.sin(tt * 0.3 + i * 0.25)); });
+  } else if (f.tipo === "burbujas") {
+    const bs = Array.from({ length: 34 }, () => ({ x: Math.random(), y: Math.random(), r: 8 + Math.random() * 46, v: 0.0004 + Math.random() * 0.0012 }));
+    R.cadaCuadro((t) => {
+      const g = ajustar(lienzo), w = lienzo.width, h = lienzo.height, bajo = R.energia(R.espectro(), 1, 8);
+      g.clearRect(0, 0, w, h);
+      const halo = g.createRadialGradient(w / 2, h * .45, 0, w / 2, h * .45, h * (.35 + bajo * .25)); halo.addColorStop(0, `rgba(${acento},${0.15 + bajo * .5})`); halo.addColorStop(1, `rgba(${acento},0)`); g.fillStyle = halo; g.fillRect(0, 0, w, h);
+      for (const b of bs) {
+        b.y -= b.v * (1 + bajo * 5); if (b.y < -.1) { b.y = 1.1; b.x = Math.random(); }
+        const x = b.x * w + Math.sin(t * .6 + b.r) * 12, y = b.y * h, r = b.r * (1 + bajo * .25);
+        g.fillStyle = `rgba(${acento},.08)`; g.strokeStyle = "rgba(255,255,255,.22)"; g.lineWidth = 1.2; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); g.stroke();
+        g.fillStyle = "rgba(255,255,255,.3)"; g.beginPath(); g.ellipse(x - r * .35, y - r * .4, r * .28, r * .14, -.6, 0, 7); g.fill();
+      }
+    });
+  } else if (f.tipo === "luces") {
+    R.cadaCuadro((t) => {
+      const g = ajustar(lienzo), w = lienzo.width, h = lienzo.height, bajo = R.energia(R.espectro(), 1, 8);
+      g.clearRect(0, 0, w, h); g.globalCompositeOperation = "lighter";
+      [0, 1, 2].forEach(i => {
+        const x = w * (.3 + .35 * Math.sin(t * .13 + i * 2.1)), y = h * (.45 + .3 * Math.cos(t * .11 + i * 1.7)), r = Math.max(w, h) * (.3 + bajo * .18);
+        const grad = g.createRadialGradient(x, y, 0, x, y, r); grad.addColorStop(0, `hsla(${h0 + i * 40},80%,55%,${.3 + bajo * .3})`); grad.addColorStop(1, "hsla(0,0%,0%,0)");
+        g.fillStyle = grad; g.fillRect(0, 0, w, h);
+      });
+      g.globalCompositeOperation = "source-over";
+    });
+  } else if (f.tipo === "estrellas") {
+    const T = 4, es = Array.from({ length: 220 }, () => [Math.random(), Math.random(), Math.random()]);
+    R.cadaCuadro((t) => {
+      const g = ajustar(lienzo), w = lienzo.width, h = lienzo.height, bajo = R.energia(R.espectro(), 1, 8);
+      g.clearRect(0, 0, w, h); g.fillStyle = `rgb(${acento})`;
+      es.forEach(s => { s[0] -= (.0003 + s[2] * .0012) * (1 + bajo * 6); if (s[0] < 0) s[0] += 1; if ((t * 3 + s[2] * 10) % 4 > .6) g.fillRect(Math.round(s[0] * w / T) * T, Math.round(s[1] * h / T) * T, T, T); });
+    });
+  }
+}
+
+// ---- Visuales ----
+function visual(canvas, tipo, color) {
+  R.cadaCuadro((t) => {
+    const w = canvas.clientWidth, h = canvas.clientHeight; if (!w || !h) return;
+    if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
+    const g = canvas.getContext("2d"), d = R.espectro(), col = color;
+    g.clearRect(0, 0, w, h); g.fillStyle = g.strokeStyle = col;
+    const banda = (i, n) => R.energia(d, Math.floor(2 * Math.pow(140, i / n)), Math.max(Math.floor(2 * Math.pow(140, (i + 1) / n)), Math.floor(2 * Math.pow(140, i / n)) + 1));
+    if (tipo === "barras") {
+      const n = 40, a = w / n;
+      for (let i = 0; i < n; i++) { const v = Math.pow(banda(i, n), 1.3), alto = Math.max(3, v * h); g.globalAlpha = .55 + v * .45; g.beginPath(); g.roundRect(i * a + a * .15, h - alto, a * .7, alto, Math.min(6, a * .35)); g.fill(); }
+      g.globalAlpha = 1;
+    } else if (tipo === "pixel") {
+      const B = Math.max(6, Math.round(h / 16)), n = Math.floor(w / (B + 2)), filas = Math.floor(h / (B + 2));
+      for (let i = 0; i < n; i++) { const m = Math.round(Math.pow(banda(i, n), 1.6) * filas); for (let f = 0; f < m; f++) g.fillRect(i * (B + 2), h - (f + 1) * (B + 2), B, B); }
+    } else if (tipo === "lcd") {
+      const n = 22, SEG = 16, a = w / n, al = h / SEG;
+      for (let i = 0; i < n; i++) { const m = Math.round(Math.pow(banda(i, n), 1.6) * SEG); for (let s = 0; s < SEG; s++) { g.globalAlpha = s < m ? 1 : .1; g.fillRect(i * a + 1, h - (s + 1) * al + 1, a - 2, al - 2); } }
+      g.globalAlpha = 1;
+    } else if (tipo === "onda") {
+      const o = R.ondaAudio(); g.lineWidth = Math.max(2, h / 60); g.shadowColor = col; g.shadowBlur = 12; g.beginPath();
+      for (let i = 0; i < o.length; i += 2) { const x = i / o.length * w, y = h / 2 + (o[i] - 128) / 128 * h * .45; i ? g.lineTo(x, y) : g.moveTo(x, y); }
+      g.stroke();
+    } else if (tipo === "circulo") {
+      const cx = w / 2, cy = h / 2, r0 = Math.min(w, h) * (.2 + R.energia(d, 1, 8) * .08), N = 72; g.lineWidth = Math.max(2, Math.min(w, h) / 90); g.lineCap = "round";
+      for (let i = 0; i < N; i++) { const v = banda(i % (N / 2) * 2, N), a = i / N * Math.PI * 2 - Math.PI / 2, l = Math.min(w, h) * (.04 + v * .26); g.beginPath(); g.moveTo(cx + Math.cos(a) * r0, cy + Math.sin(a) * r0); g.lineTo(cx + Math.cos(a) * (r0 + l), cy + Math.sin(a) * (r0 + l)); g.stroke(); }
+    }
+  });
+}
+
+function pieza(p, acento) {
+  const el = (html) => { const d = document.createElement("div"); d.style.cssText = "width:100%;height:100%;display:flex;align-items:center"; d.innerHTML = html; return d; };
+  switch (p.tipo) {
+    case "visual": { const c = document.createElement("canvas"); visual(c, p.visual || "barras", p.color || `rgb(${acento})`); return c; }
+    case "caratula": { const i = document.createElement("img"); i.id = "caratula"; i.alt = ""; return i; }
+    case "titulo": return el('<div id="titulo" class="tit">—</div>');
+    case "artista": return el('<div id="artista" class="art"></div>');
+    case "botones": return el('<div class="botones"><button class="bt" id="bAnt" title="Anterior">&#x23EE;&#xFE0E;</button><button class="bt mayor" id="bPlay" title="Play / pausa">▶</button><button class="bt" id="bSig" title="Siguiente">&#x23ED;&#xFE0E;</button></div>');
+    case "barra": return el('<input id="barra" type="range" min="0" max="1000" value="0" title="Avance">');
+    case "tiempo": return el('<div id="tiempo" class="tiempo">0:00 / 0:00</div>');
+    case "volumen": return el('<div class="vol"><button id="iconoVol" title="Silenciar">🔊</button><input id="volumen" type="range" min="0" max="100" value="80" title="Volumen"></div>');
+    case "lista": { const c = document.createElement("div"); c.className = "caja"; c.innerHTML = '<div id="lista"></div>'; return c; }
+    case "panel": { const c = document.createElement("div"); c.className = "caja"; return c; }
+    case "imagen": { if (!p.imagen) { const c = document.createElement("div"); c.className = "caja"; c.style.opacity = .4; return c; } const i = document.createElement("img"); i.className = "imagen"; i.src = p.imagen; i.alt = ""; return i; }
+  }
+  return null;
+}
+
+if (!spec) { const d = document.createElement("div"); d.id = "vacio"; d.textContent = "Esta plantilla ya no existe."; document.body.appendChild(d); }
+else construir(spec);
+</script>
+</body>
+</html>

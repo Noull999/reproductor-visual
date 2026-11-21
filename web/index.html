@@ -29,6 +29,9 @@
   .card:hover { transform: translateY(-3px); }
   .card.elegida { box-shadow: 0 0 0 1.5px var(--rojo), 0 10px 40px rgba(255,45,61,.25); }
   .card img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; display: block; background: #120a0c; }
+  .card .mia { width: 100%; aspect-ratio: 16 / 9; display: flex; align-items: flex-end; padding: 8px 10px; box-sizing: border-box; font: 11px "Geist Mono", monospace; color: rgba(255,255,255,.7); }
+  .card.nueva .mia { background: rgba(255,255,255,.05); align-items: center; justify-content: center; }
+  .card.nueva .mia b { font-size: 34px; font-weight: 300; color: var(--suave); }
   .card .info { padding: 9px 12px 11px; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
   .card b { font-weight: 600; font-size: 15px; }
   .card span { color: var(--suave); font-size: 12px; }
@@ -106,7 +109,7 @@
         <a class="enlace" href="guia.html">Guía de imágenes: medidas y qué pedirle al generador →</a>
         <div id="msgProps"></div>
       </div>
-      <div class="acciones"><button class="btn btn-principal" id="usar">Usar esta</button><button class="suave" id="restablecer">Restablecer</button></div>
+      <div class="acciones"><button class="btn btn-principal" id="usar">Usar esta</button><button class="suave" id="editar" hidden>Editar</button><button class="suave" id="restablecer">Restablecer</button></div>
     </section>
   </main>
 </div>
@@ -123,6 +126,7 @@
 </div></div>
 <script src="haz.js"></script>
 <script src="propiedades.js"></script>
+<script src="plantillas-propias.js"></script>
 <script>
 "use strict";
 iniciarHaz(document.getElementById("haz"));
@@ -168,18 +172,30 @@ const guardado = (k, def) => { try { return localStorage.getItem(k) || def; } ca
 // Qué variante tiene cada plantilla ahora: la que dejaste la última vez, o la predeterminada
 const elegida = {};
 PLANTILLAS.forEach(p => { elegida[p.id] = todas(p).find(x => p.guardar(x) && Object.entries(p.guardar(x)).every(([k, val]) => guardado(k, "") === val)) || todas(p).find(x => x.nombre === p.predeterminada); });
-let actual = PLANTILLAS.find(p => p.id === guardado("biblioteca-plantilla", "")) || PLANTILLAS[0];
+// Las plantillas propias (hechas en el Editor) se suman a la cuadrícula; se dibujan con libre.html
+const propias = () => Propias.leer().map(s => ({ id: "libre-" + s.id, idPropia: s.id, propio: true, nombre: s.nombre, desc: `Plantilla tuya · ${s.piezas.length} piezas · ${Propias.PANELES[s.estilo.panel]}`, grupos: [], guardar: () => ({}), spec: s }));
+const todasLasPlantillas = () => [...PLANTILLAS, ...propias()];
+const urlDe = (p, f) => p.propio ? `libre.html?plantilla=${p.idPropia}&fuente=${f}` : `${p.pagina}?fuente=${f}`;
+let actual = todasLasPlantillas().find(p => p.id === guardado("biblioteca-plantilla", "")) || PLANTILLAS[0];
 
 function pintar() {
   const g = $("grilla"); g.innerHTML = "";
-  PLANTILLAS.forEach(p => {
+  todasLasPlantillas().forEach(p => {
     const b = document.createElement("button");
     b.className = "card" + (p === actual ? " elegida" : "");
-    b.innerHTML = `<img alt="" loading="lazy" src="${elegida[p.id].previa}"><div class="info"><b>${p.nombre}</b><span>${todas(p).length} variantes</span></div>`;
+    b.innerHTML = p.propio
+      ? `<div class="mia" style="background:linear-gradient(135deg, ${p.spec.fondo.color || "#0b0708"}, color-mix(in srgb, ${p.spec.estilo.acento} 55%, #000))"><span>${p.spec.piezas.length} piezas</span></div><div class="info"><b></b><span>Tuya</span></div>`
+      : `<img alt="" loading="lazy" src="${elegida[p.id].previa}"><div class="info"><b>${p.nombre}</b><span>${todas(p).length} variantes</span></div>`;
+    if (p.propio) b.querySelector("b").textContent = p.nombre;
     b.onclick = () => { actual = p; try { localStorage.setItem("biblioteca-plantilla", p.id); } catch (e) {} pintar(); refrescar(true); };
     g.appendChild(b);
   });
+  const nueva = document.createElement("button"); nueva.className = "card nueva";
+  nueva.innerHTML = '<div class="mia"><b>+</b></div><div class="info"><b>Nueva plantilla</b><span>En el Editor</span></div>';
+  nueva.onclick = () => { location.href = "editor.html?base=central"; };
+  g.appendChild(nueva);
   const sel = elegida[actual.id];
+  $("editar").hidden = !actual.propio; $("restablecer").hidden = !!actual.propio;
   $("nombre").textContent = actual.nombre;
   $("descripcion").textContent = actual.desc;
   const caja = $("gruposColor"); caja.innerHTML = "";
@@ -203,7 +219,7 @@ let props = Props.leer(actual.id), aviso = 0, recarga = 0;
 function mensaje(t) { $("msgProps").textContent = t; clearTimeout(aviso); aviso = setTimeout(() => { $("msgProps").textContent = ""; }, 4000); }
 function refrescar(rapido) {   // la plantilla lee sus propiedades al abrir: se vuelve a cargar (con calma si se está arrastrando un control)
   clearTimeout(recarga);
-  recarga = setTimeout(() => { $("cargandoVista").style.opacity = 1; $("vistaViva").src = `${actual.pagina}?fuente=demo&r=${Date.now()}`; }, rapido ? 0 : 350);
+  recarga = setTimeout(() => { $("cargandoVista").style.opacity = 1; $("vistaViva").src = `${urlDe(actual, "demo")}&r=${Date.now()}`; }, rapido ? 0 : 350);
 }
 $("vistaViva").addEventListener("load", () => { $("cargandoVista").style.opacity = 0; });
 new ResizeObserver(() => { $("vistaViva").style.transform = `scale(${$("marco").clientWidth / 1440})`; }).observe($("marco"));
@@ -232,7 +248,8 @@ function pintarProps() {
     const l = document.createElement("label"); l.className = "interruptor"; l.innerHTML = `<input type="checkbox"> ${texto}`;
     const c = l.querySelector("input"); c.checked = props[campo]; c.onchange = () => cambiar(campo, c.checked, true); caja.appendChild(l);
   });
-  const r = $("ranuras"); r.innerHTML = '<div class="mono">Imágenes propias</div>';
+  const r = $("ranuras"); r.innerHTML = actual.propio ? "" : '<div class="mono">Imágenes propias</div>';
+  if (actual.propio) return;   // sus imágenes se cambian en el Editor
   [...(RANURAS[actual.id] || []), FONDO].forEach(x => {
     const url = x.id === "fondo" ? props.fondo : (props.cuerpo && props.cuerpo.imagen);
     const d = document.createElement("div"); d.className = "ranura";
@@ -305,10 +322,11 @@ $("zCancelar").onclick = () => $("zonasFondo").classList.remove("abierto");
 $("zRestaurar").onclick = () => { plano = aPlano(Props.ZONAS_HEADSPACE); Object.keys(plano).forEach(pintarRect); };
 
 // "Usar esta": deja la variante elegida guardada (la plantilla la lee al abrir) y entra
+$("editar").onclick = () => { location.href = `editor.html?id=${actual.idPropia}`; };
 $("usar").onclick = () => {
   const x = elegida[actual.id];
-  try { Object.entries(actual.guardar(x)).forEach(([k, val]) => localStorage.setItem(k, val)); } catch (e) {}
-  location.href = `${actual.pagina}?fuente=${fuente}`;
+  if (x) try { Object.entries(actual.guardar(x)).forEach(([k, val]) => localStorage.setItem(k, val)); } catch (e) {}
+  location.href = urlDe(actual, fuente);
 };
 
 // Mi música: primero se elige la carpeta. Spotify: "Tus me gusta" viene elegida y las playlists son opcionales.

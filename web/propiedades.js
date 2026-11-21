@@ -32,7 +32,11 @@ const Props = (() => {
     // 50 = tal cual está hoy; los extremos van de 0,3× a 1,7× (intensidad) y de 0,25× a 1,75× (velocidad)
     factorIntensidad: (v) => 0.3 + (v / 100) * 1.4,
     factorVelocidad: (v) => 0.25 + (v / 100) * 1.5,
-    plantillaActual: () => (location.pathname.split("/").pop() || "").replace(".html", ""),
+    // Las plantillas propias comparten libre.html: cada una guarda sus propiedades con su id ("libre-p123")
+    plantillaActual: () => {
+      const n = (location.pathname.split("/").pop() || "").replace(".html", "");
+      return n === "libre" ? "libre-" + new URLSearchParams(location.search).get("plantilla") : n;
+    },
   };
   return api;
 })();

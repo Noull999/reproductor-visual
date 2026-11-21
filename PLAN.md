@@ -104,6 +104,25 @@ comparte son solo datos e imágenes, nunca código.
 - [ ] Colores libres (un selector de color además de las variantes).
 - [x] Guía de imágenes (`guia.html`): medidas, esquema de zonas y textos para pedirle al generador.
 
+## Fase 3 — Editor de plantillas (modelo de datos, sin código)  ← HECHA (primera versión)
+
+Las 5 plantillas incluidas son páginas con su propio código y no se pueden recombinar pieza por pieza.
+Para crear y mezclar hay un **motor de plantillas basado solo en datos** (`libre.html`) y un **editor** (`editor.html`).
+Una plantilla propia es un objeto JSON (`plantillas-propias.js`): fondo, estilo y una lista de piezas con su posición en %.
+
+- [x] **Crear la tuya**: "Nueva plantilla" en la Biblioteca (parte de una base: en blanco, reproductor central o con lista).
+- [x] **Skin libre**: cada pieza (visual, carátula, título, artista, botones, barra, tiempo, volumen, lista, panel, imagen)
+      se arrastra y se estira sobre una vista previa en vivo; el orden de capas se cambia con ▲ ▼; "Imagen" permite
+      poner un cuerpo propio (PNG transparente) debajo de todo.
+- [x] **Mezclar**: fondo (haz de luz, túnel, burbujas, luces, estrellas de píxel, color liso, imagen propia),
+      visual (barras, bloques de píxel, segmentos LCD, onda, círculo), estilo de paneles (vidrio, metal, gel, píxel, liso),
+      color de acento y letra. Son los elementos de las plantillas incluidas, combinables libremente.
+- [x] Aparecen en la Biblioteca (con Editar, intensidad, velocidad y lista), se duplican y se eliminan.
+- [x] Sin código propio: lo que se guarda es solo configuración e imágenes (listo para compartir).
+- [ ] Reproducir los diseños exactos de las 5 plantillas incluidas como "bases" editables.
+- [ ] Más visuales y fondos; piezas con colores y tamaños de letra propios; deshacer; alinear a una cuadrícula.
+- [ ] Visuales programables en un entorno aislado (modo avanzado), más adelante.
+
 ## (Antes) Imágenes propias en las plantillas
 
 - [ ] Cada plantilla declara **ranuras** de imagen (fondo, cabeza, botones…) con su
@@ -115,7 +134,7 @@ comparte son solo datos e imágenes, nunca código.
       Si la ranura está vacía, se usa el dibujo original.
 - [ ] Pensado para imágenes de Higgsfield u otros generadores.
 
-## Fase 3 — Editor de plantillas
+## (Plan original) Fase 3 — Editor de plantillas
 
 - [ ] Modificar: colores, intensidad y velocidad de los visuales, mostrar/ocultar piezas.
 - [ ] **Mezclar**: elegir el fondo de una plantilla, el panel de otra y la barra de otra.
