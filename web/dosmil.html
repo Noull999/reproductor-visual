@@ -161,6 +161,7 @@
 <script src="tunel.js"></script>
 <script>
 "use strict";
+document.getElementById("tunel").style.filter = `brightness(${Props.extra("dosmil", "tunel") / 100})`;
 const $ = (id) => document.getElementById(id);
 const raiz = document.documentElement.style;
 const SKINS = {

@@ -97,10 +97,12 @@ comparte son solo datos e imágenes, nunca código.
       **fondo propio** (imagen reducida a 1920 px y guardada en `~/.visualizador/imagenes/`). Se guarda por plantilla
       (`propiedades.js`) y se aplica en `nucleo.js`. Botón "Restablecer".
 - [x] Puerto fijo del servidor local: antes cambiaba en cada arranque y se perdían los colores/skins elegidos.
-- [ ] Cuerpo propio en Headspace y chasis propio en 2000s (la imagen necesita saber dónde van pantalla, botones…).
-- [ ] Vista previa en vivo dentro del panel (hoy son capturas fijas).
-- [ ] Más propiedades por plantilla (colores libres, tamaños, mostrar/ocultar piezas).
-- [ ] Guía de imágenes: medidas y qué pedirle a Higgsfield u otros generadores.
+- [x] **Cuerpo propio en Headspace**: se sube un PNG transparente y un **editor de zonas** (recuadros que se arrastran y se estiran) indica dónde van pantalla, botones, barra, ojos, boca y parlantes. Los colores del panel pasan a teñir LED y botones.
+- [ ] Chasis propio en 2000s: su cuerpo es una maqueta CSS (varias piezas alineadas), no una imagen plana con zonas; necesita otro diseño (por ahora solo fondo propio).
+- [x] **Vista previa en vivo** en el panel: la plantilla real corriendo en un marco con música inventada (fuente `demo`), que se recarga al cambiar cualquier propiedad. Las tarjetas de la cuadrícula siguen con capturas fijas.
+- [x] Más propiedades por plantilla: deformación del vidrio (Líquido), cantidad de burbujas (Headspace), brillo del túnel (2000s), desenfoque del fondo (Ambiente) y tamaño de los píxeles (Pixel). Se definen en `propiedades.js` (`EXTRAS`).
+- [ ] Colores libres (un selector de color además de las variantes).
+- [x] Guía de imágenes (`guia.html`): medidas, esquema de zonas y textos para pedirle al generador.
 
 ## (Antes) Imágenes propias en las plantillas
 

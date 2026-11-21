@@ -110,6 +110,7 @@
 <script src="nucleo.js"></script>
 <script>
 "use strict";
+document.querySelector("#liquido feDisplacementMap").setAttribute("scale", Props.extra("liquido", "deformacion"));
 const $ = (id) => document.getElementById(id);
 const NOMBRES = { soundcloud: "Tus likes", musica: "Tu música", pc: "Sonando en el PC" };
 document.querySelector(".lista-caja .mono span").textContent = NOMBRES[R.fuente];

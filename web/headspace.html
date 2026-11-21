@@ -148,15 +148,15 @@ const guardar = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
 const leer = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
 
 // Zonas de las imágenes de video maker (misma composición en las dos; pantalla y ojos medidos en píxeles).
-const ZONAS_IMAGEN = {
-  pantalla: [23.4, 23.4, 53.4, 38.6], botones: [33, 9.8, 34, 6.6], barra: [33, 64.6, 34, 4.2],
-  ojos: [[24.5, 70.8, 15, 7.4], [61, 70.8, 15, 7.4]], boca: [43, 80.3, 14, 5],
-  parlantes: [[5.3, 29.8, 11.4, 32.4], [83.3, 29.8, 11.4, 32.4]] };
+const ZONAS_IMAGEN = Props.ZONAS_HEADSPACE;   // compartidas con la Biblioteca (ajuste de zonas del cuerpo propio)
 // Cada cuerpo dice dónde van las piezas, en % de la caja [x, y, ancho, alto].
 const CUERPOS = {
   "Y2K": { imagen: "img/headspace/y2k.webp", zonas: ZONAS_IMAGEN },
   "Gel": { imagen: "img/headspace/gel.webp", zonas: ZONAS_IMAGEN },
 };
+// Cuerpo propio: imagen que subió la persona y las zonas que ajustó en la Biblioteca
+const propio = Props.leer("headspace").cuerpo;
+if (propio && propio.imagen) CUERPOS["Propio"] = { imagen: propio.imagen, zonas: propio.zonas || ZONAS_IMAGEN };
 const COLORES = {
   "Lima":      { filtro: "", led: "#8dff4a", gel: "#9be22a", fondo: "#123a00" },
   "Chicle":    { filtro: "hue-rotate(235deg) saturate(1.1)", led: "#ff6ad5", gel: "#ff7ad9", fondo: "#3a0230" },
@@ -167,9 +167,11 @@ const COLORES = {
 let color = COLORES.Lima, ojos = [], anillos = [];
 
 function ubicar(el, [x, y, w, h]) { Object.assign(el.style, { left: x + "%", top: y + "%", width: w + "%", height: h + "%" }); }
+let cuerpoActual = "Y2K";
 function usarCuerpo(nombre) {
   const c = CUERPOS[nombre];
   if (!c) return;
+  cuerpoActual = nombre;
   const img = new Image(); img.src = c.imagen; img.alt = "";
   $("cuerpo").replaceChildren(img);
   const z = c.zonas;
@@ -181,7 +183,7 @@ function usarCuerpo(nombre) {
   guardar("cuerpo-headspace", nombre);
   aplicarFiltro();
 }
-function aplicarFiltro() { $("cuerpo").style.filter = `${color.filtro} drop-shadow(0 18px 30px rgba(0,0,0,.6))`; }
+function aplicarFiltro() { $("cuerpo").style.filter = `${cuerpoActual === "Propio" ? "" : color.filtro} drop-shadow(0 18px 30px rgba(0,0,0,.6))`; }
 function usarColor(nombre) {
   color = COLORES[nombre] || COLORES.Lima;
   for (const k of ["led", "gel", "fondo"]) raiz.setProperty("--" + k, color[k]);
@@ -224,7 +226,7 @@ usarCuerpo(CUERPOS[elegido] ? elegido : "Y2K");
 
 // ---- Fondo: burbujas que suben con el bajo y destellos con los agudos ----
 const fondo = $("fondo"), fg = fondo.getContext("2d");
-const burbujas = Array.from({ length: 34 }, () => ({ x: Math.random(), y: Math.random(), r: 8 + Math.random() * 46, v: 0.0004 + Math.random() * 0.0012 }));
+const burbujas = Array.from({ length: Props.extra("headspace", "burbujas") }, () => ({ x: Math.random(), y: Math.random(), r: 8 + Math.random() * 46, v: 0.0004 + Math.random() * 0.0012 }));
 const destellos = Array.from({ length: 26 }, () => ({ x: Math.random(), y: Math.random(), f: Math.random() * 6, s: 6 + Math.random() * 14 }));
 function estrella(x, y, s) {
   fg.beginPath(); fg.moveTo(x, y - s);

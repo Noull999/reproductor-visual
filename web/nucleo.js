@@ -8,11 +8,14 @@ const R = (() => {
   const q = new URLSearchParams(location.search);
   const fuente = q.get("fuente") || sessionStorage.getItem("fuente") || "soundcloud";
   const carpeta = q.get("carpeta") || sessionStorage.getItem("carpeta") || "";   // en Spotify: la lista elegida
-  sessionStorage.setItem("fuente", fuente);
-  if (carpeta) sessionStorage.setItem("carpeta", carpeta);
+  const demo = fuente === "demo";   // vista previa en vivo de la Biblioteca: música inventada, sin cuentas ni audio
+  if (!demo) {   // el demo vive en un iframe que comparte sessionStorage con la Biblioteca: no debe pisar su fuente
+    sessionStorage.setItem("fuente", fuente);
+    if (carpeta) sessionStorage.setItem("carpeta", carpeta);
+  }
   const api = () => window.pywebview.api;
   // "remoto": el audio no sale de esta página (lo toca Spotify o la app del PC) y los visuales usan la captura del PC
-  const remoto = fuente === "pc" || fuente === "spotify";
+  const remoto = fuente === "pc" || fuente === "spotify" || demo;
   const spotify = fuente === "spotify";
   // Propiedades de la plantilla (las pone la Biblioteca): intensidad, velocidad, lista, solo visual y fondo propio
   const props = typeof Props !== "undefined" ? Props.leer(Props.plantillaActual()) : { intensidad: 50, velocidad: 50, lista: true, soloVisual: true, fondo: "" };
@@ -24,7 +27,7 @@ const R = (() => {
     const f = document.createElement("div"); f.id = "fondo-propio"; f.style.backgroundImage = `url("${props.fondo}")`;
     document.body.appendChild(f);
   }
-  const mudoForzado = q.get("mudo") === "1";   // vista previa: los visuales siguen el audio pero no suena nada
+  const mudoForzado = q.get("mudo") === "1" || demo;   // vista previa: los visuales siguen el audio pero no suena nada
   const listaSpotify = /^[A-Za-z0-9_-]+$/.test(carpeta) ? carpeta : "me-gusta";   // ids de Spotify; cualquier otra cosa (una ruta) = likes
 
   const audio = document.createElement("audio");
@@ -80,6 +83,11 @@ const R = (() => {
     await listo;   // un play antes de que cargue la lista no se pierde
     if (!pistas.length) return;
     actual = (i + pistas.length) % pistas.length;
+    if (demo) {
+      mostrar(actual);
+      pcEstado = { sonando: true, posicion: 0, duracion: pistas[actual].duracion }; pcVisto = performance.now(); icono(true);
+      return;
+    }
     if (spotify) {
       mostrar(actual);
       ignorarHasta = performance.now() + 3000;   // que el sondeo no vuelva a mostrar el tema anterior mientras Spotify cambia
@@ -153,7 +161,20 @@ const R = (() => {
 
   // ---- Lo que las plantillas leen ----
   let t = 0, cuadro = 0, espectroDe = -1, espectroEscalado = new Uint8Array(512);
+  // Demo: un "tema" inventado a 128 BPM (bombo, medios que ondulan y platillos) para ver cómo reacciona cada plantilla
+  const sintetico = new Uint8Array(512);
+  function espectroDemo() {
+    if (!pcEstado.sonando) { sintetico.fill(0); return sintetico; }
+    const fase = (t * 2.133) % 1, bombo = Math.exp(-fase * 5), plato = Math.exp(-(((t * 4.267) + 0.5) % 1) * 9);
+    for (let i = 0; i < 512; i++) {
+      const grave = i < 10 ? 210 * bombo + 25 : 0, medio = i >= 8 && i < 90 ? (90 + 70 * Math.sin(t * 2.2 + i * 0.35)) * (0.55 + 0.45 * bombo) * Math.exp(-i / 160) : 0,
+        agudo = i >= 60 && i < 260 ? 150 * plato * Math.exp(-(i - 60) / 120) : 0;
+      sintetico[i] = Math.min(255, grave + medio + agudo + 6);
+    }
+    return sintetico;
+  }
   function espectroCrudo() {
+    if (demo) return espectroDemo();
     if (remoto) return pcEspectro;
     if (analizador && !audio.paused) { analizador.getByteFrequencyData(frec); return frec; }
     const d = new Uint8Array(512);   // sin música: animación suave
@@ -185,6 +206,7 @@ const R = (() => {
 
   function alternar() {
     if (fuente === "pc") { api().pc_control("alternar").then(vigilarPc); return; }
+    if (demo) { pcEstado = { ...pcEstado, posicion: pcPosicion(), sonando: !pcEstado.sonando }; pcVisto = performance.now(); icono(pcEstado.sonando); return; }
     if (spotify) {
       const sonaba = pcEstado.sonando;
       pcEstado = { ...pcEstado, posicion: pcPosicion(), sonando: !sonaba }; pcVisto = performance.now(); icono(!sonaba);   // respuesta inmediata
@@ -199,8 +221,8 @@ const R = (() => {
     if (fuente === "pc") return api().pc_control(accion).then(() => setTimeout(vigilarPc, 600));
     return api().pc_control(accion).then(() => setTimeout(vigilarSpotify, 900));   // spotify: también por teclas multimedia
   };
-  const siguiente = () => remoto ? salto("siguiente") : cargar(actual + 1);
-  const anterior = () => remoto ? salto("anterior") : cargar(actual - 1);
+  const siguiente = () => remoto && !demo ? salto("siguiente") : cargar(actual + 1);
+  const anterior = () => remoto && !demo ? salto("anterior") : cargar(actual - 1);
   const saltarA = (fraccion) => {
     if (spotify) { if (pcEstado.duracion) { pcEstado = { ...pcEstado, posicion: fraccion * pcEstado.duracion }; pcVisto = performance.now(); api().spotify_seek(fraccion * pcEstado.duracion); } }
     else if (!remoto && isFinite(audio.duration)) audio.currentTime = fraccion * audio.duration;
@@ -262,8 +284,24 @@ const R = (() => {
     document.body.appendChild(volver);
   }
 
+  // Carátulas inventadas (degradados) y títulos de ejemplo para la vista previa en vivo
+  function pistasDemo() {
+    const nombres = [["Neón en la lluvia", "Aurora Vega"], ["Cuarto de espejos", "Los Faroles"], ["Marea baja", "Nico Alba"], ["Ciudad dormida", "Sintético"],
+      ["Humo violeta", "Casa Verde"], ["Último tren", "Aurora Vega"], ["Fuego lento", "Mar y Cobre"], ["Cristal líquido", "Los Faroles"],
+      ["Verano 99", "Nico Alba"], ["Señal perdida", "Sintético"], ["Órbita", "Casa Verde"], ["Madrugada", "Mar y Cobre"]];
+    return nombres.map(([titulo, artista], i) => {
+      const c = document.createElement("canvas"); c.width = c.height = 200;
+      const g = c.getContext("2d"), h = (i * 47 + 10) % 360;
+      const fondo = g.createLinearGradient(0, 0, 200, 200); fondo.addColorStop(0, `hsl(${h} 80% 55%)`); fondo.addColorStop(1, `hsl(${(h + 70) % 360} 70% 18%)`);
+      g.fillStyle = fondo; g.fillRect(0, 0, 200, 200);
+      g.fillStyle = `hsla(${(h + 180) % 360} 90% 75% / .55)`; g.beginPath(); g.arc(70 + (i % 4) * 22, 80 + (i % 3) * 20, 46, 0, 7); g.fill();
+      g.fillStyle = "rgba(0,0,0,.28)"; g.fillRect(0, 140, 200, 60);
+      return { titulo, artista, caratula: c.toDataURL("image/jpeg", .8), duracion: 150 + (i * 37) % 130 };
+    });
+  }
+
   async function arrancar() {
-    botonVolver();
+    if (!demo) botonVolver();
     const on = (id, ev, fn) => { const e = $(id); if (e) e.addEventListener(ev, fn); };
     on("bPlay", "click", alternar);
     on("bSig", "click", siguiente);
@@ -302,6 +340,12 @@ const R = (() => {
       poner("tiempo", `${fmt(tiempoActual())} / ${fmt(d)}`);
     });
 
+    if (demo) {
+      pistas.push(...pistasDemo()); listaLista(); dibujarLista(); mostrar(0);
+      pcEstado = { sonando: true, posicion: 0, duracion: pistas[0].duracion }; pcVisto = performance.now(); icono(true);
+      cadaCuadro(() => { if (pcEstado.sonando && pcPosicion() >= pcEstado.duracion) cargar(actual + 1); });
+      return;
+    }
     if (fuente === "pc") {
       if ($("volumen")) $("volumen").disabled = true;   // el volumen lo maneja la otra app
       vigilarPc(); setInterval(vigilarPc, 1000); escucharPc();
@@ -327,7 +371,7 @@ const R = (() => {
   function bucle() { t += 0.016 * factorV; cuadro++; cuadros.forEach(fn => fn(t)); requestAnimationFrame(bucle); }
   requestAnimationFrame(bucle);
 
-  if (window.pywebview && window.pywebview.api) document.addEventListener("DOMContentLoaded", arrancar);
+  if (demo || (window.pywebview && window.pywebview.api)) document.addEventListener("DOMContentLoaded", arrancar);
   else window.addEventListener("pywebviewready", arrancar);
 
   return {

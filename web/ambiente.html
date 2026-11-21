@@ -120,6 +120,7 @@
 <script src="nucleo.js"></script>
 <script>
 "use strict";
+document.getElementById("fondoImg").style.filter = `blur(${Props.extra("ambiente", "desenfoque")}px) saturate(1.4) brightness(.42)`;
 const $ = (id) => document.getElementById(id);
 const raiz = document.documentElement.style;
 $("nombreFuente").textContent = { soundcloud: "SoundCloud", musica: "Mi música", pc: "En el PC" }[R.fuente];

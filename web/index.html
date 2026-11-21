@@ -33,7 +33,25 @@
   .card b { font-weight: 600; font-size: 15px; }
   .card span { color: var(--suave); font-size: 12px; }
   .der { padding: 18px; display: flex; flex-direction: column; gap: 14px; min-height: 0; overflow-y: auto; }
-  #vista { height: 25vh; max-width: 100%; align-self: center; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 14px; display: block; background: #120a0c; box-shadow: 0 16px 50px rgba(0,0,0,.5), 0 0 0 1px var(--borde); }
+  /* Vista previa en vivo: la plantilla real (música inventada) a 1440x810 reducida al ancho del marco */
+  #marco { width: min(100%, calc(27vh * 16 / 9)); aspect-ratio: 16 / 9; align-self: center; border-radius: 14px; overflow: hidden; position: relative; background: #120a0c;
+    box-shadow: 0 16px 50px rgba(0,0,0,.5), 0 0 0 1px var(--borde); flex: none; }
+  #vistaViva { position: absolute; left: 0; top: 0; width: 1440px; height: 810px; border: 0; transform-origin: 0 0; pointer-events: none; }
+  #cargandoVista { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--suave); font-size: 13px; pointer-events: none; transition: opacity .3s; }
+  .enlace { color: var(--suave); font-size: 13px; text-decoration: none; } .enlace:hover { color: var(--texto); }
+  .ranura .botones { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+  /* Editor de zonas */
+  #zonasFondo { position: fixed; inset: 0; z-index: 50; background: rgba(4,2,3,.82); display: none; align-items: center; justify-content: center; padding: 20px; }
+  #zonasFondo.abierto { display: flex; }
+  #zonasCaja { display: flex; gap: 22px; align-items: stretch; max-height: 100%; padding: 20px; }
+  #escenario { height: min(74vh, 640px); aspect-ratio: 600 / 760; position: relative; background: repeating-conic-gradient(#1b1214 0 25%, #120a0c 0 50%) 0 0 / 22px 22px; border-radius: 10px; overflow: hidden; touch-action: none; user-select: none; }
+  #escenario img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+  .rz { position: absolute; border: 2px solid var(--c); background: color-mix(in srgb, var(--c) 18%, transparent); cursor: move; box-sizing: border-box; border-radius: 4px; }
+  .rz span { position: absolute; left: 2px; top: 1px; font: 10px "Geist Mono", monospace; color: #fff; text-shadow: 0 1px 2px #000; pointer-events: none; white-space: nowrap; }
+  .rz .hd { position: absolute; right: -1px; bottom: -1px; width: 14px; height: 14px; background: var(--c); cursor: nwse-resize; border-radius: 3px 0 4px 0; }
+  #zonasLado { display: flex; flex-direction: column; gap: 12px; width: 270px; }
+  #zonasLado p { margin: 0; color: var(--suave); font-size: 14px; line-height: 1.5; }
+  #zonasLado .btn { padding: 11px 22px; justify-content: center; }
   h2 { font-size: 26px; font-weight: 500; letter-spacing: -.03em; margin: 0; }
   .der p { margin: 4px 0 0; color: var(--suave); font-size: 14px; line-height: 1.5; }
   .grupo { display: flex; flex-direction: column; gap: 8px; }
@@ -78,23 +96,31 @@
   <main id="principal">
     <div class="izq" id="grilla"></div>
     <section class="der vidrio tarjeta">
-      <img id="vista" alt="">
+      <div id="marco"><iframe id="vistaViva" title="Vista previa en vivo" tabindex="-1"></iframe><div id="cargandoVista">Cargando vista previa…</div></div>
       <div><h2 id="nombre"></h2><p id="descripcion"></p></div>
       <div id="gruposColor" class="grupo"></div>
       <div class="grupo" id="personalizar">
         <div class="mono">Personalizar</div>
-        <div class="ctl"><div class="fila"><span>Intensidad de los visuales</span><b id="vInt"></b></div><input type="range" id="intensidad" min="0" max="100" step="1"></div>
-        <div class="ctl"><div class="fila"><span>Velocidad de las animaciones</span><b id="vVel"></b></div><input type="range" id="velocidad" min="0" max="100" step="1"></div>
-        <label class="interruptor"><input type="checkbox" id="pLista"> Mostrar la lista de temas</label>
-        <label class="interruptor"><input type="checkbox" id="pSolo"> Ocultar los controles tras 3 s sin mover el mouse</label>
-        <div class="ranura"><div class="mini" id="miniFondo"></div><div class="nombre">Fondo propio<small id="textoFondo"></small></div>
-          <button id="cambiarFondo">Cambiar…</button><button id="quitarFondo">Quitar</button></div>
+        <div id="extras" class="grupo"></div>
+        <div id="ranuras" class="grupo"></div>
+        <a class="enlace" href="guia.html">Guía de imágenes: medidas y qué pedirle al generador →</a>
         <div id="msgProps"></div>
       </div>
       <div class="acciones"><button class="btn btn-principal" id="usar">Usar esta</button><button class="suave" id="restablecer">Restablecer</button></div>
     </section>
   </main>
 </div>
+<div id="zonasFondo"><div id="zonasCaja" class="vidrio tarjeta">
+  <div id="escenario"><img id="imgZonas" alt=""></div>
+  <div id="zonasLado">
+    <h2 style="font-size:22px">Ajustar zonas</h2>
+    <p>Mueve cada recuadro y estíralo desde su esquina para que calce con tu imagen: la <b>pantalla</b> es donde se ven el título y el espectro, los <b>botones</b> y la <b>barra</b> van encima, los <b>ojos</b> y la <b>boca</b> se encienden con la música, y los <b>parlantes</b> laten con el bajo.</p>
+    <p>No hace falta que sea perfecto: se ve en la vista previa al guardar.</p>
+    <button class="btn btn-principal" id="zGuardar">Guardar zonas</button>
+    <button class="btn vidrio pastilla" id="zRestaurar">Volver a las zonas por defecto</button>
+    <button class="btn vidrio pastilla" id="zCancelar">Cancelar</button>
+  </div>
+</div></div>
 <script src="haz.js"></script>
 <script src="propiedades.js"></script>
 <script>
@@ -131,7 +157,13 @@ const PLANTILLAS = [
     guardar: (x) => ({ "paleta-pixel": x.nombre }),
     grupos: [{ titulo: "Paleta", items: [v("Sangre", "#e8452c", "pixel-sangre"), v("Game Boy", "#9bbc0f", "pixel-game-boy"), v("NES", "#e40058", "pixel-nes"), v("Vaporwave", "#ff71ce", "pixel-vaporwave"), v("Matrix", "#39ff6a", "pixel-matrix"), v("Hielo", "#8fe3ff", "pixel-hielo"), v("Ámbar", "#ffb000", "pixel-ambar")] }] },
 ];
-const todas = (p) => p.grupos.flatMap(g => g.items);
+// Headspace suma un grupo "Cuerpo propio" cuando la persona subió uno
+const gruposDe = (p) => {
+  if (p.id !== "headspace" || !Props.leer("headspace").cuerpo) return p.grupos;
+  const colores = [["Lima", "#9be22a"], ["Chicle", "#ff7ad9"], ["Cielo", "#6cc8ff"], ["Mandarina", "#ff9a2a"], ["Cromo", "#c9d3dc"]];
+  return [...p.grupos, { titulo: "Cuerpo propio", items: colores.map(([n, col]) => v(`Propio · ${n}`, col, `headspace-y2k-${n.toLowerCase()}`, { cuerpo: "Propio", color2: n })) }];
+};
+const todas = (p) => gruposDe(p).flatMap(g => g.items);
 const guardado = (k, def) => { try { return localStorage.getItem(k) || def; } catch (e) { return def; } };
 // Qué variante tiene cada plantilla ahora: la que dejaste la última vez, o la predeterminada
 const elegida = {};
@@ -144,52 +176,133 @@ function pintar() {
     const b = document.createElement("button");
     b.className = "card" + (p === actual ? " elegida" : "");
     b.innerHTML = `<img alt="" loading="lazy" src="${elegida[p.id].previa}"><div class="info"><b>${p.nombre}</b><span>${todas(p).length} variantes</span></div>`;
-    b.onclick = () => { actual = p; try { localStorage.setItem("biblioteca-plantilla", p.id); } catch (e) {} pintar(); };
+    b.onclick = () => { actual = p; try { localStorage.setItem("biblioteca-plantilla", p.id); } catch (e) {} pintar(); refrescar(true); };
     g.appendChild(b);
   });
   const sel = elegida[actual.id];
-  $("vista").src = sel.previa;
   $("nombre").textContent = actual.nombre;
   $("descripcion").textContent = actual.desc;
   const caja = $("gruposColor"); caja.innerHTML = "";
   pintarProps();
-  actual.grupos.forEach(gr => {
+  gruposDe(actual).forEach(gr => {
     const t = document.createElement("div"); t.className = "mono"; t.textContent = gr.titulo; caja.appendChild(t);
     const fila = document.createElement("div"); fila.className = "colores";
     gr.items.forEach(x => {
       const c = document.createElement("button");
       c.className = "color" + (x === sel ? " elegida" : ""); c.style.setProperty("--c", x.color);
-      c.innerHTML = `<i></i>${x.nombre.replace(/^(Y2K|Gel) · /, "")}`;
-      c.onclick = () => { elegida[actual.id] = x; pintar(); };
+      c.innerHTML = `<i></i>${x.nombre.replace(/^(Y2K|Gel|Propio) · /, "")}`;
+      // elegir una variante la deja puesta (la vista previa en vivo la lee al recargarse); "Usar esta" solo entra
+      c.onclick = () => { elegida[actual.id] = x; try { Object.entries(actual.guardar(x)).forEach(([k, val]) => localStorage.setItem(k, val)); } catch (e) {} pintar(); refrescar(true); };
       fila.appendChild(c);
     });
     caja.appendChild(fila);
   });
 }
-// ---- Personalizar: intensidad, velocidad, lista, solo visual y fondo propio (por plantilla) ----
-let props = Props.leer(actual.id), aviso = 0;
+// ---- Personalizar: lo que se cambia aquí se guarda al instante y la vista previa en vivo se recarga ----
+let props = Props.leer(actual.id), aviso = 0, recarga = 0;
 function mensaje(t) { $("msgProps").textContent = t; clearTimeout(aviso); aviso = setTimeout(() => { $("msgProps").textContent = ""; }, 4000); }
+function refrescar(rapido) {   // la plantilla lee sus propiedades al abrir: se vuelve a cargar (con calma si se está arrastrando un control)
+  clearTimeout(recarga);
+  recarga = setTimeout(() => { $("cargandoVista").style.opacity = 1; $("vistaViva").src = `${actual.pagina}?fuente=demo&r=${Date.now()}`; }, rapido ? 0 : 350);
+}
+$("vistaViva").addEventListener("load", () => { $("cargandoVista").style.opacity = 0; });
+new ResizeObserver(() => { $("vistaViva").style.transform = `scale(${$("marco").clientWidth / 1440})`; }).observe($("marco"));
+const cambiar = (campo, val, rapido) => { props[campo] = val; Props.guardar(actual.id, props); refrescar(rapido); };
+
+const RANURAS = { headspace: [{ id: "cuerpo", nombre: "Cuerpo propio", transparente: true, zonas: true, ayuda: "PNG con fondo transparente, de frente" }] };
+const FONDO = { id: "fondo", nombre: "Fondo propio", ayuda: "Reemplaza el fondo animado" };
+
+function fila(titulo, valor, texto, onInput, ctl) {
+  const d = document.createElement("div"); d.className = "ctl";
+  d.innerHTML = `<div class="fila"><span>${titulo}</span><b>${texto}</b></div>`;
+  const r = document.createElement("input"); r.type = "range"; Object.assign(r, { min: ctl.min, max: ctl.max, step: 1, value: valor });
+  r.oninput = () => onInput(+r.value, r); d.appendChild(r); return d;
+}
 function pintarProps() {
   props = Props.leer(actual.id);
-  $("intensidad").value = props.intensidad; $("vInt").textContent = props.intensidad === 50 ? "normal" : props.intensidad;
-  $("velocidad").value = props.velocidad; $("vVel").textContent = props.velocidad === 50 ? "normal" : props.velocidad;
-  $("pLista").checked = props.lista; $("pSolo").checked = props.soloVisual;
-  $("miniFondo").style.backgroundImage = props.fondo ? `url("${props.fondo}")` : "none";
-  $("textoFondo").textContent = props.fondo ? "Tu imagen" : "El de la plantilla";
-  $("quitarFondo").hidden = !props.fondo;
+  const caja = $("extras"); caja.innerHTML = "";
+  const ctl = (titulo, campo, texto) => fila(titulo, props[campo], texto(props[campo]), (v, r) => { r.parentElement.querySelector("b").textContent = texto(v); cambiar(campo, v); }, { min: 0, max: 100 });
+  caja.appendChild(ctl("Intensidad de los visuales", "intensidad", v => v === 50 ? "normal" : v));
+  caja.appendChild(ctl("Velocidad de las animaciones", "velocidad", v => v === 50 ? "normal" : v));
+  (Props.EXTRAS[actual.id] || []).forEach(x => {
+    const val = props.extra && props.extra[x.id] !== undefined ? props.extra[x.id] : x.def, texto = v => `${v}${x.unidad || ""}`;
+    caja.appendChild(fila(x.nombre, val, texto(val), (v, r) => { r.parentElement.querySelector("b").textContent = texto(v); props.extra = { ...(props.extra || {}), [x.id]: v }; Props.guardar(actual.id, props); refrescar(); }, x));
+  });
+  [["Mostrar la lista de temas", "lista"], ["Ocultar los controles tras 3 s sin mover el mouse", "soloVisual"]].forEach(([texto, campo]) => {
+    const l = document.createElement("label"); l.className = "interruptor"; l.innerHTML = `<input type="checkbox"> ${texto}`;
+    const c = l.querySelector("input"); c.checked = props[campo]; c.onchange = () => cambiar(campo, c.checked, true); caja.appendChild(l);
+  });
+  const r = $("ranuras"); r.innerHTML = '<div class="mono">Imágenes propias</div>';
+  [...(RANURAS[actual.id] || []), FONDO].forEach(x => {
+    const url = x.id === "fondo" ? props.fondo : (props.cuerpo && props.cuerpo.imagen);
+    const d = document.createElement("div"); d.className = "ranura";
+    d.innerHTML = `<div class="mini" style="background-image:${url ? `url('${url}')` : "none"}"></div><div class="nombre">${x.nombre}<small>${url ? "Tu imagen" : x.ayuda}</small></div><div class="botones"></div>`;
+    const bs = d.querySelector(".botones"), boton = (t, f) => { const b = document.createElement("button"); b.textContent = t; b.onclick = f; bs.appendChild(b); };
+    boton(url ? "Cambiar…" : "Elegir…", () => elegirImagen(x));
+    if (url && x.zonas) boton("Ajustar zonas", abrirZonas);
+    if (url) boton("Quitar", () => quitarImagen(x));
+    r.appendChild(d);
+  });
 }
-const cambiar = (campo, val) => { props[campo] = val; Props.guardar(actual.id, props); pintarProps(); };
-$("intensidad").oninput = (e) => cambiar("intensidad", +e.target.value);
-$("velocidad").oninput = (e) => cambiar("velocidad", +e.target.value);
-$("pLista").onchange = (e) => cambiar("lista", e.target.checked);
-$("pSolo").onchange = (e) => cambiar("soloVisual", e.target.checked);
-$("cambiarFondo").onclick = async () => {
-  const r = await window.pywebview.api.imagen_elegir(actual.id, "fondo");
+async function elegirImagen(x) {
+  const r = await window.pywebview.api.imagen_elegir(actual.id, x.id, !!x.transparente);
   if (!r.ok) return mensaje(r.error);
-  if (!r.cancelado) { cambiar("fondo", r.url); mensaje("Fondo cambiado. Pulsa \"Usar esta\" para verlo."); }
+  if (r.cancelado) return;
+  if (x.id === "fondo") { props.fondo = r.url; Props.guardar(actual.id, props); pintarProps(); refrescar(true); mensaje("Fondo cambiado."); return; }
+  props.cuerpo = { imagen: r.url, zonas: JSON.parse(JSON.stringify(Props.ZONAS_HEADSPACE)) };
+  Props.guardar(actual.id, props);
+  try { localStorage.setItem("cuerpo-headspace", "Propio"); } catch (e) {}
+  pintarProps(); pintar(); refrescar(true); abrirZonas();   // un cuerpo nuevo necesita que se indique dónde va cada pieza
+}
+async function quitarImagen(x) {
+  await window.pywebview.api.imagen_quitar(actual.id, x.id);
+  if (x.id === "fondo") props.fondo = ""; else { props.cuerpo = null; try { if (localStorage.getItem("cuerpo-headspace") === "Propio") localStorage.setItem("cuerpo-headspace", "Y2K"); } catch (e) {} }
+  Props.guardar(actual.id, props); pintarProps(); pintar(); refrescar(true); mensaje("Se quitó la imagen.");
+}
+$("restablecer").onclick = async () => {
+  const api = window.pywebview.api;
+  await api.imagen_quitar(actual.id, "fondo"); await api.imagen_quitar(actual.id, "cuerpo");
+  try { if (localStorage.getItem("cuerpo-headspace") === "Propio") localStorage.setItem("cuerpo-headspace", "Y2K"); } catch (e) {}
+  Props.guardar(actual.id, { ...Props.DEFECTO, extra: {} }); pintarProps(); pintar(); refrescar(true); mensaje("Se restableció esta plantilla.");
 };
-$("quitarFondo").onclick = async () => { await window.pywebview.api.imagen_quitar(actual.id, "fondo"); cambiar("fondo", ""); mensaje("Volvió el fondo de la plantilla."); };
-$("restablecer").onclick = async () => { await window.pywebview.api.imagen_quitar(actual.id, "fondo"); Props.guardar(actual.id, { ...Props.DEFECTO }); pintarProps(); mensaje("Se restableció esta plantilla."); };
+
+// ---- Editor de zonas del cuerpo propio (Headspace): recuadros que se mueven y se estiran sobre la imagen ----
+const ETIQUETAS = { pantalla: "Pantalla", botones: "Botones", barra: "Barra", boca: "Boca", ojoI: "Ojo izq.", ojoD: "Ojo der.", parlanteI: "Parlante izq.", parlanteD: "Parlante der." };
+const COLORES_Z = { pantalla: "#4da3ff", botones: "#ffd23d", barra: "#3ddc84", boca: "#ff7a45", ojoI: "#ff4da6", ojoD: "#ff4da6", parlanteI: "#b36bff", parlanteD: "#b36bff" };
+const aPlano = (z) => ({ pantalla: [...z.pantalla], botones: [...z.botones], barra: [...z.barra], boca: [...z.boca], ojoI: [...z.ojos[0]], ojoD: [...z.ojos[1]], parlanteI: [...z.parlantes[0]], parlanteD: [...z.parlantes[1]] });
+const aZonas = (p) => ({ pantalla: p.pantalla, botones: p.botones, barra: p.barra, boca: p.boca, ojos: [p.ojoI, p.ojoD], parlantes: [p.parlanteI, p.parlanteD] });
+let plano = {}, arrastre = null;
+function pintarRect(k) {
+  const e = $("escenario").querySelector(`[data-k="${k}"]`), [x, y, w, h] = plano[k];
+  Object.assign(e.style, { left: x + "%", top: y + "%", width: w + "%", height: h + "%" });
+}
+function abrirZonas() {
+  plano = aPlano(props.cuerpo.zonas || Props.ZONAS_HEADSPACE);
+  const esc = $("escenario"); esc.querySelectorAll(".rz").forEach(e => e.remove());
+  $("imgZonas").src = props.cuerpo.imagen;
+  Object.keys(plano).forEach(k => {
+    const e = document.createElement("div"); e.className = "rz"; e.dataset.k = k; e.style.setProperty("--c", COLORES_Z[k]);
+    e.innerHTML = `<span>${ETIQUETAS[k]}</span><div class="hd"></div>`; esc.appendChild(e); pintarRect(k);
+  });
+  $("zonasFondo").classList.add("abierto");
+}
+const limitar = (n, a, b) => Math.max(a, Math.min(b, n));
+$("escenario").addEventListener("pointerdown", (e) => {
+  const r = e.target.closest(".rz"); if (!r) return;
+  arrastre = { k: r.dataset.k, tam: e.target.classList.contains("hd"), x: e.clientX, y: e.clientY, z: [...plano[r.dataset.k]] };
+  $("escenario").setPointerCapture(e.pointerId); e.preventDefault();
+});
+$("escenario").addEventListener("pointermove", (e) => {
+  if (!arrastre) return;
+  const b = $("escenario").getBoundingClientRect(), dx = (e.clientX - arrastre.x) / b.width * 100, dy = (e.clientY - arrastre.y) / b.height * 100;
+  let [x, y, w, h] = arrastre.z;
+  if (arrastre.tam) { w = limitar(w + dx, 2, 100 - x); h = limitar(h + dy, 1.5, 100 - y); } else { x = limitar(x + dx, 0, 100 - w); y = limitar(y + dy, 0, 100 - h); }
+  plano[arrastre.k] = [x, y, w, h].map(n => Math.round(n * 10) / 10); pintarRect(arrastre.k);
+});
+$("escenario").addEventListener("pointerup", () => { arrastre = null; });
+$("zGuardar").onclick = () => { props.cuerpo.zonas = aZonas(plano); Props.guardar(actual.id, props); $("zonasFondo").classList.remove("abierto"); refrescar(true); mensaje("Zonas guardadas."); };
+$("zCancelar").onclick = () => $("zonasFondo").classList.remove("abierto");
+$("zRestaurar").onclick = () => { plano = aPlano(Props.ZONAS_HEADSPACE); Object.keys(plano).forEach(pintarRect); };
 
 // "Usar esta": deja la variante elegida guardada (la plantilla la lee al abrir) y entra
 $("usar").onclick = () => {
@@ -222,7 +335,7 @@ async function listas() {
     chips(l, 'No hay carpetas con música. <a href="ajustes.html" style="color:inherit">Agregar una en Ajustes</a>', sessionStorage.getItem("carpeta"), true);
   }
 }
-pintar();
+pintar(); refrescar(true);
 if (fuente === "spotify" || fuente === "musica") {
   if (window.pywebview && window.pywebview.api) listas(); else window.addEventListener("pywebviewready", listas);
 }

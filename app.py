@@ -233,8 +233,9 @@ class Api:
         return {"ok": True}
 
     # ---- Imágenes propias (fondos) ----
-    def imagen_elegir(self, plantilla: str, ranura: str) -> dict:
-        """Selector de archivos de Windows; la imagen se reduce a 1920 px y se guarda como WebP."""
+    def imagen_elegir(self, plantilla: str, ranura: str, transparente: bool = False) -> dict:
+        """Selector de archivos de Windows; la imagen se reduce a 1920 px (1600 si es un cuerpo) y se guarda
+        como WebP. Si `transparente`, conserva el fondo transparente del PNG (cuerpos de plantilla)."""
         if not (plantilla.isalnum() and ranura.isalnum()):
             return {"ok": False, "error": "Nombre no válido."}
         ventana = webview.windows[0] if webview.windows else None
@@ -243,8 +244,8 @@ class Api:
             return {"ok": True, "cancelado": True}
         try:
             from PIL import Image
-            img = Image.open(elegida[0]).convert("RGB")
-            img.thumbnail((1920, 1920))
+            img = Image.open(elegida[0]).convert("RGBA" if transparente else "RGB")
+            img.thumbnail((1600, 1600) if transparente else (1920, 1920))
             servidor.CARPETA_IMAGENES.mkdir(parents=True, exist_ok=True)
             nombre = f"{plantilla}-{ranura}.webp"
             img.save(servidor.CARPETA_IMAGENES / nombre, "WEBP", quality=85)

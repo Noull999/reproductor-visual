@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guía de imágenes</title>
+<link rel="stylesheet" href="vidrio-liquido.css">
+<style>
+  body { overflow: auto; }
+  .capa { position: relative; z-index: 1; min-height: 100%; display: flex; flex-direction: column; align-items: center; padding: 28px 24px 48px; box-sizing: border-box; gap: 18px; }
+  .ancho { width: min(900px, 100%); }
+  .tope a { color: var(--suave); text-decoration: none; } .tope a:hover { color: var(--texto); }
+  h1 { font-size: 34px; font-weight: 500; letter-spacing: -.03em; margin: 0; }
+  h2 { font-size: 20px; font-weight: 600; margin: 0; }
+  p, li { color: var(--suave); font-size: 15px; line-height: 1.6; margin: 0; }
+  ul { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 4px; }
+  .tarjeta { padding: 24px 26px; display: flex; flex-direction: column; gap: 12px; box-sizing: border-box; }
+  .medidas { display: flex; gap: 10px; flex-wrap: wrap; }
+  .medida { padding: 8px 14px; border-radius: 999px; border: .8px solid var(--borde); background: rgba(255,255,255,.05); color: var(--texto); font: 13px "Geist Mono", monospace; }
+  .dos { display: grid; grid-template-columns: minmax(0, 1fr) 220px; gap: 22px; align-items: start; }
+  @media (max-width: 760px) { .dos { grid-template-columns: 1fr; } }
+  .prompt { padding: 14px 16px; border-radius: 14px; background: rgba(0,0,0,.4); border: .8px solid var(--borde); color: var(--texto); font: 13px/1.55 "Geist Mono", monospace; user-select: all; white-space: pre-wrap; }
+  .esquema { aspect-ratio: 600 / 760; position: relative; border-radius: 40% 40% 36% 36% / 22% 22% 18% 18%; border: 1.5px dashed var(--suave); background: rgba(255,255,255,.04); }
+  .esquema i { position: absolute; border: 2px solid var(--c); background: color-mix(in srgb, var(--c) 22%, transparent); border-radius: 4px; box-sizing: border-box; }
+  .esquema i b { position: absolute; left: 3px; top: 1px; font: 9px "Geist Mono", monospace; color: #fff; font-weight: 400; white-space: nowrap; }
+  .leyenda { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 14px; font-size: 13px; color: var(--suave); }
+  .leyenda span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 3px; background: var(--c); margin-right: 7px; }
+  b.k { color: var(--texto); font-weight: 500; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute"><filter id="liquido" x="0%" y="0%" width="100%" height="100%" color-interpolation-filters="sRGB">
+  <feTurbulence type="fractalNoise" baseFrequency="0.006 0.009" numOctaves="2" seed="11" result="ruido"/>
+  <feGaussianBlur in="ruido" stdDeviation="2.5" result="suave"/>
+  <feDisplacementMap in="SourceGraphic" in2="suave" scale="70" xChannelSelector="R" yChannelSelector="G"/>
+</filter></svg>
+<canvas id="haz"></canvas>
+<div class="capa">
+  <div class="ancho tope mono"><a href="index.html">← Biblioteca</a></div>
+  <h1 class="ancho">Guía de imágenes</h1>
+  <p class="ancho">Qué medidas usar y qué pedirle a un generador de imágenes (Higgsfield u otro) para que tus fondos y cuerpos se vean bien en las plantillas. La app reduce y optimiza lo que subas, así que no te preocupes por el peso.</p>
+
+  <section class="ancho vidrio tarjeta">
+    <h2>Fondo propio</h2>
+    <p>Reemplaza el fondo animado de cualquier plantilla. Se ve detrás de toda la interfaz.</p>
+    <div class="medidas"><span class="medida">Horizontal 16:9</span><span class="medida">1920 × 1080 px</span><span class="medida">PNG, JPG o WebP</span></div>
+    <ul>
+      <li>Mejor si es <b class="k">oscuro y sin mucho detalle</b>: así los textos y la lista se leen. La app lo oscurece un 20 % para ayudar.</li>
+      <li>Evita texto, logos y marcas de agua dentro de la imagen.</li>
+      <li>Una imagen más grande no se ve mejor: la app la reduce a 1920 px.</li>
+    </ul>
+    <p>Para pedirlo:</p>
+    <div class="prompt">dark abstract wallpaper, deep colors, soft gradients and light streaks, wide 16:9, low detail in the center, no text, no logos</div>
+  </section>
+
+  <section class="ancho vidrio tarjeta">
+    <h2>Cuerpo propio (Headspace)</h2>
+    <p>El "cuerpo" es la figura del reproductor. Encima se colocan, en las zonas que tú marcas, la pantalla con el título y el espectro, los botones, la barra, los ojos, la boca y los parlantes.</p>
+    <div class="medidas"><span class="medida">Vertical, proporción 600:760</span><span class="medida">1500 × 1900 px o más</span><span class="medida">PNG con fondo transparente</span></div>
+    <div class="dos">
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <ul>
+          <li><b class="k">De frente y centrado</b>, simétrico, ocupando casi todo el alto de la imagen.</li>
+          <li>Una <b class="k">pantalla grande y vacía</b>, de color liso (azul casi negro): ahí se dibujan el título y el espectro. No le pongas dibujos ni reflejos.</li>
+          <li>Una <b class="k">ranura o bandeja vacía</b> arriba de la pantalla, para los 4 botones, y una <b class="k">franja plana</b> debajo, para la barra de avance.</li>
+          <li><b class="k">Ojos (visores) y boca (rejilla) apagados</b>, en tono oscuro: se encienden con la música.</li>
+          <li><b class="k">Parlantes redondos</b>, de frente, a cada lado: laten con el bajo.</li>
+          <li>Un solo color dominante saturado: la app puede teñirlo después. En este cuerpo propio los colores del panel cambian los LED y los botones, no la imagen.</li>
+        </ul>
+        <p>En <b class="k">Biblioteca → Headspace → Cuerpo propio → Elegir…</b> subes la imagen y se abre el ajuste de zonas: arrastra y estira los recuadros hasta que calcen.</p>
+      </div>
+      <div>
+        <div class="esquema" id="esquema"></div>
+        <div class="leyenda" id="leyenda" style="margin-top:10px"></div>
+      </div>
+    </div>
+    <p>Para pedirlo:</p>
+    <div class="prompt">front view of a glossy toy robot head, perfectly symmetrical and centered, orthographic flat frontal view, a large empty dark navy rounded-rectangle screen on the face with nothing on it, a narrow recessed empty slot above the screen, a thin flat strip below the screen, two dark unlit rounded visor windows below, a dark horizontal grille mouth, round speaker cones on both sides, saturated lime green plastic with chrome details, transparent background, high resolution, no text, no logos</div>
+    <p>Cambia "lime green plastic" por el material y el color que quieras (translúcido, metal, madera, pixel art…).</p>
+  </section>
+
+  <section class="ancho vidrio tarjeta">
+    <h2>Fondo transparente</h2>
+    <p>El cuerpo necesita fondo transparente. Muchos generadores permiten exportar PNG con transparencia: búscalo en las opciones de descarga. Si el tuyo no lo permite, genera la imagen sobre un fondo liso y blanco, y luego usa una herramienta de quitar fondo antes de subirla (así se hizo con las imágenes de Headspace que vienen incluidas).</p>
+  </section>
+
+  <section class="ancho vidrio tarjeta">
+    <h2>Derechos</h2>
+    <ul>
+      <li>Usa imágenes tuyas o generadas con una licencia que permita usarlas así. No uses diseños de otras apps o marcas (skins, íconos, logos).</li>
+      <li>Si más adelante compartes una plantilla, las imágenes viajan incluidas: asegúrate de poder compartirlas.</li>
+    </ul>
+  </section>
+</div>
+<script src="haz.js"></script>
+<script src="propiedades.js"></script>
+<script>
+"use strict";
+iniciarHaz(document.getElementById("haz"));
+// Esquema de las zonas (las mismas por defecto que usa el ajuste de zonas)
+const Z = Props.ZONAS_HEADSPACE, es = document.getElementById("esquema"), ley = document.getElementById("leyenda");
+const piezas = [["Pantalla", Z.pantalla, "#4da3ff"], ["Botones", Z.botones, "#ffd23d"], ["Barra", Z.barra, "#3ddc84"], ["Boca", Z.boca, "#ff7a45"],
+  ["Ojo", Z.ojos[0], "#ff4da6"], ["Ojo", Z.ojos[1], "#ff4da6"], ["Parlante", Z.parlantes[0], "#b36bff"], ["Parlante", Z.parlantes[1], "#b36bff"]];
+piezas.forEach(([n, [x, y, w, h], c]) => {
+  const i = document.createElement("i"); i.style.cssText = `left:${x}%;top:${y}%;width:${w}%;height:${h}%;--c:${c}`; i.innerHTML = `<b>${n}</b>`; es.appendChild(i);
+});
+[["Pantalla", "#4da3ff"], ["Botones", "#ffd23d"], ["Barra", "#3ddc84"], ["Boca", "#ff7a45"], ["Ojos", "#ff4da6"], ["Parlantes", "#b36bff"]].forEach(([n, c]) => {
+  const s = document.createElement("span"); s.style.setProperty("--c", c); s.textContent = n; ley.appendChild(s);
+});
+</script>
+</body>
+</html>

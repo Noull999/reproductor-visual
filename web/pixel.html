@@ -184,7 +184,7 @@ try { guardada = localStorage.getItem("paleta-pixel") || guardada; } catch (e) {
 usarPaleta(PALETAS[guardada] ? guardada : "Sangre");
 
 // ---- Escena: espectro en bloques con topes que caen y estrellas ----
-const escena = $("escena"), g = escena.getContext("2d"), ESCALA = 5;
+const escena = $("escena"), g = escena.getContext("2d"), ESCALA = Props.extra("pixel", "pixel");
 let W = 0, H = 0, topes = [], estrellas = [];
 function medir() {
   W = Math.ceil(escena.clientWidth / ESCALA); H = Math.ceil(escena.clientHeight / ESCALA);
