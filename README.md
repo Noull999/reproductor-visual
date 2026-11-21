@@ -123,4 +123,4 @@ python tools/capturar_previas.py   # regenera web/img/previas (abre la app y sac
 
 ## Licencia
 
-Aún sin definir (hasta elegir una, todos los derechos quedan reservados). Si quieres usar o modificar el código, abre un *issue*.
+[MIT](LICENSE): puedes usar, copiar, modificar y compartir el código. Las tipografías y hls.js conservan sus propias licencias (ver arriba).
