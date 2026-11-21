@@ -53,6 +53,8 @@ class Spotify:
             self.t = json.loads(TOKENS.read_text(encoding="utf-8"))
         except (OSError, ValueError):
             self.t = {}
+        # si Spotify pidió esperar, no se le insiste (cada intento cuenta contra la cuota); sobrevive a reiniciar la app
+        self.bloqueado_hasta = float(self.t.get("bloqueado_hasta", 0))
 
     # ---- acceso ----
     @property
@@ -61,7 +63,10 @@ class Spotify:
 
     def _guardar(self, j: dict) -> None:
         self.t = {"access_token": j["access_token"], "refresh_token": j.get("refresh_token") or self.t.get("refresh_token", ""),
-                  "vence": time.time() + j.get("expires_in", 3600) - 60}
+                  "vence": time.time() + j.get("expires_in", 3600) - 60, "bloqueado_hasta": self.bloqueado_hasta}
+        self._escribir()
+
+    def _escribir(self) -> None:
         config.CARPETA.mkdir(parents=True, exist_ok=True)
         TOKENS.write_text(json.dumps(self.t), encoding="utf-8")
 
@@ -112,12 +117,25 @@ class Spotify:
         return self.t["access_token"]
 
     def _pedir(self, metodo: str, ruta: str, **kw) -> requests.Response:
+        if time.time() < self.bloqueado_hasta:
+            raise RuntimeError(self._mensaje_espera())
         r = self.s.request(metodo, API + ruta if ruta.startswith("/") else ruta,
                            headers={"Authorization": f"Bearer {self._token()}"}, timeout=20, **kw)
         if r.status_code == 429:
-            time.sleep(min(10, int(r.headers.get("Retry-After", "2"))))
-            return self._pedir(metodo, ruta, **kw)
+            espera = int(r.headers.get("Retry-After", "5"))
+            if espera <= 3:   # un respiro corto: se reintenta una vez
+                time.sleep(espera)
+                return self._pedir(metodo, ruta, **kw)
+            self.bloqueado_hasta = time.time() + espera
+            self.t["bloqueado_hasta"] = self.bloqueado_hasta
+            self._escribir()
+            raise RuntimeError(self._mensaje_espera())
         return r
+
+    def _mensaje_espera(self) -> str:
+        s = max(1, int(self.bloqueado_hasta - time.time()))
+        cuanto = f"{s // 3600} h {s % 3600 // 60} min" if s >= 3600 else f"{max(1, s // 60)} min"
+        return f"Spotify pidió esperar {cuanto} (límite de uso). Mientras tanto puedes usar SoundCloud o Mi música."
 
     # ---- lectura ----
     def perfil(self) -> dict:

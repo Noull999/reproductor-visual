@@ -14,11 +14,13 @@ const R = (() => {
   // "remoto": el audio no sale de esta página (lo toca Spotify o la app del PC) y los visuales usan la captura del PC
   const remoto = fuente === "pc" || fuente === "spotify";
   const spotify = fuente === "spotify";
+  const mudoForzado = q.get("mudo") === "1";   // vista previa: los visuales siguen el audio pero no suena nada
   const listaSpotify = /^[A-Za-z0-9_-]+$/.test(carpeta) ? carpeta : "me-gusta";   // ids de Spotify; cualquier otra cosa (una ruta) = likes
 
   const audio = document.createElement("audio");
   audio.crossOrigin = "anonymous";
   const pistas = [];
+  let volumenActual = 0.8, salida = null;
   let actual = 0, hls = null, ctx = null, analizador = null, frec = null, onda = null, pedido = 0;
   let listaLista;   // se cumple cuando la lista de temas terminó de cargar
   const listo = new Promise(r => { listaLista = r; });
@@ -45,7 +47,9 @@ const R = (() => {
     analizador = ctx.createAnalyser();
     analizador.fftSize = 1024;
     analizador.smoothingTimeConstant = 0.8;
-    fuenteAudio.connect(analizador); analizador.connect(ctx.destination);
+    // El volumen va DESPUÉS del analizador: así los visuales siguen viendo la música completa aunque la silencies
+    salida = ctx.createGain(); salida.gain.value = mudoForzado ? 0 : volumenActual;
+    fuenteAudio.connect(analizador); analizador.connect(salida); salida.connect(ctx.destination);
     frec = new Uint8Array(analizador.frequencyBinCount);
     onda = new Uint8Array(analizador.fftSize);
   }
@@ -68,10 +72,10 @@ const R = (() => {
     actual = (i + pistas.length) % pistas.length;
     if (spotify) {
       mostrar(actual);
-      spUri = pistas[actual].uri;   // para que el sondeo no vuelva a mostrar el tema anterior mientras Spotify cambia
+      ignorarHasta = performance.now() + 3000;   // que el sondeo no vuelva a mostrar el tema anterior mientras Spotify cambia
       const r = await api().spotify_tocar(listaSpotify, actual);
-      if (!r.ok) avisar(r.error);
-      else { pcEstado.sonando = true; icono(true); setTimeout(vigilarSpotify, 900); }
+      if (!r.ok) { ignorarHasta = 0; avisar(r.error); }
+      else { spUri = ""; pcEstado = { ...pcEstado, sonando: true, posicion: 0, duracion: pistas[actual].duracion }; pcVisto = performance.now(); icono(true); setTimeout(vigilarSpotify, 3200); }
       return;
     }
     iniciarAudio();
@@ -106,23 +110,28 @@ const R = (() => {
     icono(e.sonando);
   }
   let volumenInicial = false;
+  // El estado de Spotify sale de Windows (gratis): la API de Spotify tiene un límite de uso bajo y no se gasta en sondeos
+  const norm = (t) => (t || "").toLowerCase().replace(/\s+/g, " ").trim();
+  let ignorarHasta = 0;
   async function vigilarSpotify() {
-    const e = await api().spotify_estado();
+    const e = await api().pc_estado();
+    if (performance.now() < ignorarHasta) return;   // acaba de pedirse otro tema: Windows tarda un momento en enterarse
     pcVisto = performance.now();
-    if (!e.hay) { pcEstado = { sonando: false, posicion: 0, duracion: 0 }; icono(false); if (!pistas.length) avisar(e.error || "Abre Spotify y pon música"); return; }
+    if (!e.hay || !/spotify/i.test(e.app || "")) { pcEstado = { sonando: false, posicion: 0, duracion: 0 }; icono(false); if (!pistas.length) avisar("Abre Spotify y pon música"); return; }
     pcEstado = e;
-    if (e.uri !== spUri) {
-      spUri = e.uri;
-      const i = pistas.findIndex(p => p.uri === e.uri);
+    const clave = e.titulo + "|" + e.artista;
+    if (clave !== spUri) {
+      spUri = clave;
+      const primero = norm((e.artista || "").split(",")[0]);
+      const i = pistas.findIndex(p => norm(p.titulo) === norm(e.titulo) && norm(p.artista).includes(primero));
       if (i >= 0) { actual = i; mostrar(i); }
       else {   // suena algo que no está en esta lista (por ejemplo una radio): se muestra igual
         poner("titulo", e.titulo); poner("artista", e.artista);
         if ($("caratula")) $("caratula").src = e.caratula || "";
         document.querySelectorAll("#lista [data-i]").forEach(f => f.classList.remove("sonando"));
-        avisos.forEach(fn => fn({ titulo: e.titulo, artista: e.artista, caratula: e.caratula, duracion: e.duracion, uri: e.uri }, -1));
+        avisos.forEach(fn => fn({ titulo: e.titulo, artista: e.artista, caratula: e.caratula, duracion: e.duracion }, -1));
       }
     }
-    if (!volumenInicial && e.volumen != null && $("volumen")) { volumenInicial = true; $("volumen").value = e.volumen; $("volumen").dispatchEvent(new Event("input")); }
     icono(e.sonando);
   }
   async function escucharPc() {
@@ -159,7 +168,7 @@ const R = (() => {
     if (spotify) {
       const sonaba = pcEstado.sonando;
       pcEstado = { ...pcEstado, posicion: pcPosicion(), sonando: !sonaba }; pcVisto = performance.now(); icono(!sonaba);   // respuesta inmediata
-      api().spotify_control(sonaba ? "pausa" : "reanudar").then(r => { if (!r.ok) avisar(r.error); setTimeout(vigilarSpotify, 600); });
+      api().pc_control("alternar").then(() => setTimeout(vigilarSpotify, 700));   // tecla multimedia: no gasta la cuota de Spotify
       return;
     }
     if (!audio.getAttribute("src") && !hls) return cargar(actual);
@@ -168,7 +177,7 @@ const R = (() => {
   }
   const salto = (accion) => {
     if (fuente === "pc") return api().pc_control(accion).then(() => setTimeout(vigilarPc, 600));
-    return api().spotify_control(accion).then(r => { if (!r.ok) avisar(r.error); setTimeout(vigilarSpotify, 700); });
+    return api().pc_control(accion).then(() => setTimeout(vigilarSpotify, 900));   // spotify: también por teclas multimedia
   };
   const siguiente = () => remoto ? salto("siguiente") : cargar(actual + 1);
   const anterior = () => remoto ? salto("anterior") : cargar(actual - 1);
@@ -180,7 +189,8 @@ const R = (() => {
   // ---- Volumen: barra, silencio con un clic en el ícono y % al moverla ----
   let volAntes = 0, esperaVol = 0;
   function aplicarVolumen(v) {
-    audio.volume = v / 100;
+    volumenActual = v / 100;
+    if (salida && !mudoForzado) salida.gain.value = volumenActual;
     if (spotify) { clearTimeout(esperaVol); esperaVol = setTimeout(() => api().spotify_volumen(v), 250); }
   }
   function silenciar() {
@@ -239,7 +249,7 @@ const R = (() => {
     if ($("iconoVol")) $("iconoVol").title = "Silenciar";
     // Spotify: se adelanta al soltar (no una orden por cada pixel que se arrastra)
     on("barra", spotify ? "change" : "input", (e) => { if (!remoto || spotify) saltarA(e.target.value / 1000); });
-    audio.volume = $("volumen") ? $("volumen").value / 100 : 0.8;
+    volumenActual = $("volumen") ? $("volumen").value / 100 : 0.8;
     audio.addEventListener("ended", () => cargar(actual + 1));
     const alAudio = () => { if (!remoto) icono(!audio.paused); };
     audio.addEventListener("play", alAudio); audio.addEventListener("pause", alAudio);
@@ -247,8 +257,8 @@ const R = (() => {
     on("barra", "pointerdown", () => { arrastrando = true; });
     addEventListener("pointerup", () => { arrastrando = false; });
     // Solo visual: 3 s sin mover el mouse mientras suena. La tecla H lo activa o desactiva.
-    let ultimoMovimiento = performance.now(), soloVisual = true;
-    try { soloVisual = localStorage.getItem("solo-visual") !== "0"; } catch (e) {}
+    let ultimoMovimiento = performance.now(), soloVisual = !mudoForzado;   // en la vista previa la interfaz debe verse
+    try { if (!mudoForzado) soloVisual = localStorage.getItem("solo-visual") !== "0"; } catch (e) {}
     const moverMouse = () => { ultimoMovimiento = performance.now(); document.body.classList.remove("inactivo"); };
     ["mousemove", "pointerdown", "wheel", "keydown"].forEach(ev => addEventListener(ev, moverMouse, { passive: true }));
     addEventListener("keydown", (e) => {
@@ -282,7 +292,7 @@ const R = (() => {
     dibujarLista();
     if (spotify) {
       avisar("Elige un tema de la lista");
-      vigilarSpotify(); setInterval(vigilarSpotify, 2000);
+      vigilarSpotify(); setInterval(vigilarSpotify, 1000);
     } else if (pistas.length) mostrar(0);
     else { poner("titulo", "Lista vacía"); avisar(""); }
   }

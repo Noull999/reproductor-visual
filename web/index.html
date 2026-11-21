@@ -3,26 +3,49 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Plantillas</title>
+<title>Biblioteca</title>
 <link rel="stylesheet" href="vidrio-liquido.css">
 <style>
   body { overflow: hidden; }
-  .capa { position: relative; z-index: 1; height: 100%; display: flex; flex-direction: column; align-items: center;
-    justify-content: center; gap: 22px; padding: 24px; box-sizing: border-box; }
-  h1 { font-size: 34px; font-weight: 500; letter-spacing: -.03em; margin: 0; }
-  .grilla { display: grid; grid-template-columns: repeat(3, 250px); gap: 16px; }
-  a.tarjeta { display: flex; flex-direction: column; gap: 6px; padding: 20px; text-decoration: none; color: inherit;
-    transition: transform .25s cubic-bezier(.2,.8,.2,1); }
-  a.tarjeta:hover { transform: translateY(-4px); }
-  a b { font-size: 17px; font-weight: 600; }
-  a span { color: var(--suave); font-size: 13px; line-height: 1.45; }
-  .pie { color: var(--suave); }
-  .pie a { color: inherit; }
-  #carpetas { display: none; flex-wrap: wrap; gap: 8px; justify-content: center; max-width: 900px; }
-  #carpetas button { padding: 8px 16px; color: var(--texto); cursor: pointer; font: 13px Geist, system-ui; }
+  [hidden] { display: none !important; }
+  .capa { position: relative; z-index: 1; height: 100%; display: flex; flex-direction: column; padding: 18px 28px 22px; box-sizing: border-box; gap: 14px; }
+  nav { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px 10px 20px; }
+  nav b { display: flex; align-items: center; gap: 10px; font-weight: 600; }
+  nav .tabs { display: flex; gap: 6px; }
+  nav .tabs a, nav .tabs span { padding: 7px 16px; border-radius: 999px; font-size: 14px; text-decoration: none; color: var(--suave); }
+  nav .tabs a:hover { color: var(--texto); }
+  nav .tabs .actual { background: rgba(255,255,255,.1); color: var(--texto); }
+  nav .tabs .pronto { opacity: .45; }
+  .barra-fuente { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; color: var(--suave); }
+  #carpetas { display: none; flex-wrap: wrap; gap: 8px; }
+  #carpetas button { padding: 7px 14px; color: var(--texto); cursor: pointer; font: 13px Geist, system-ui; }
   #carpetas button.elegida { box-shadow: 0 0 0 1px var(--rojo), 0 0 22px rgba(255,45,61,.35); }
-  .bloqueada { opacity: .35; pointer-events: none; }
   #nota { color: var(--suave); }
+
+  main { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(340px, 480px); gap: 16px; }
+  main.bloqueada { opacity: .35; pointer-events: none; }
+  .izq { overflow-y: auto; padding: 4px 6px 4px 2px; display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; align-content: start; scrollbar-width: thin; }
+  .card { border-radius: 18px; overflow: hidden; cursor: pointer; border: .8px solid var(--borde); background: rgba(255,255,255,.04); transition: transform .2s, box-shadow .2s; text-align: left; padding: 0; color: inherit; font: inherit; }
+  .card:hover { transform: translateY(-3px); }
+  .card.elegida { box-shadow: 0 0 0 1.5px var(--rojo), 0 10px 40px rgba(255,45,61,.25); }
+  .card img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; display: block; background: #120a0c; }
+  .card .info { padding: 9px 12px 11px; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .card b { font-weight: 600; font-size: 15px; }
+  .card span { color: var(--suave); font-size: 12px; }
+  .der { padding: 18px; display: flex; flex-direction: column; gap: 14px; min-height: 0; overflow-y: auto; }
+  #vista { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 14px; display: block; background: #120a0c; box-shadow: 0 16px 50px rgba(0,0,0,.5), 0 0 0 1px var(--borde); }
+  h2 { font-size: 26px; font-weight: 500; letter-spacing: -.03em; margin: 0; }
+  .der p { margin: 4px 0 0; color: var(--suave); font-size: 14px; line-height: 1.5; }
+  .grupo { display: flex; flex-direction: column; gap: 8px; }
+  .grupo .mono { color: var(--suave); }
+  .colores { display: flex; flex-wrap: wrap; gap: 8px; }
+  .color { display: flex; align-items: center; gap: 8px; padding: 6px 12px 6px 8px; border-radius: 999px; cursor: pointer; font: 13px Geist, system-ui; color: var(--texto);
+    border: .8px solid var(--borde); background: rgba(255,255,255,.05); }
+  .color i { width: 16px; height: 16px; border-radius: 50%; display: inline-block; background: var(--c); box-shadow: 0 0 8px var(--c); }
+  .color.elegida { border-color: var(--texto); background: rgba(255,255,255,.14); }
+  .acciones { margin-top: auto; display: flex; gap: 10px; align-items: center; }
+  .acciones .btn { padding: 13px 28px; }
+  .acciones .pronto { color: var(--suave); font-size: 12px; }
 </style>
 </head>
 <body>
@@ -33,73 +56,125 @@
 </filter></svg>
 <canvas id="haz"></canvas>
 <div class="capa">
-  <div class="mono pie"><a href="inicio.html">← Inicio</a> · Fuente: <span id="nombreFuente"></span></div>
-  <h1>Elige tu pantalla</h1>
-  <div id="carpetas"></div>
-  <div class="grilla" id="grilla">
-    <a class="vidrio tarjeta" href="liquido.html"><b>Líquido</b><span>Vidrio líquido sobre un haz de luz: la carátula flota y el vidrio la deforma</span></a>
-    <a class="vidrio tarjeta" href="headspace.html"><b>Headspace</b><span>Cabeza de plástico Y2K con el reproductor adentro, burbujas y 5 colores</span></a>
-    <a class="vidrio tarjeta" href="dosmil.html"><b>2000s</b><span>Reproductor de metal con pantalla LCD sobre un túnel psicodélico, con 4 skins</span></a>
-    <a class="vidrio tarjeta" href="ambiente.html"><b>Ambiente</b><span>La carátula manda: sus colores tiñen todo, en duotono y con su onda real</span></a>
-    <a class="vidrio tarjeta" href="pixel.html"><b>Pixel</b><span>8 bits: espectro en bloques y carátula pixelada, con paletas de color a elegir</span></a>
-  </div>
+  <nav class="vidrio pastilla">
+    <b><span class="punto"></span>Reproductor</b>
+    <span class="tabs"><a href="inicio.html">Inicio</a><span class="actual">Biblioteca</span><span class="pronto" title="Próximamente">Editor</span><span class="pronto" title="Próximamente">Comunidad</span></span>
+    <a class="btn vidrio pastilla" href="ajustes.html" style="padding:8px 16px">Ajustes</a>
+  </nav>
+  <div class="barra-fuente mono"><span>Fuente: <b id="nombreFuente"></b></span><div id="carpetas"></div></div>
+  <main id="principal">
+    <div class="izq" id="grilla"></div>
+    <section class="der vidrio tarjeta">
+      <img id="vista" alt="">
+      <div><h2 id="nombre"></h2><p id="descripcion"></p></div>
+      <div id="gruposColor" class="grupo"></div>
+      <div class="acciones"><button class="btn btn-principal" id="usar">Usar esta</button><span class="pronto mono">Personalizar: próximamente</span></div>
+    </section>
+  </main>
 </div>
 <script src="haz.js"></script>
 <script>
 "use strict";
 iniciarHaz(document.getElementById("haz"));
+const $ = (id) => document.getElementById(id);
 const q = new URLSearchParams(location.search);
 const fuente = q.get("fuente") || sessionStorage.getItem("fuente") || "soundcloud";
 sessionStorage.setItem("fuente", fuente);
-document.getElementById("nombreFuente").textContent =
-  { spotify: "Spotify", soundcloud: "SoundCloud", musica: "Mi música", pc: "Lo que suena en el PC" }[fuente];
+$("nombreFuente").textContent = { spotify: "Spotify", soundcloud: "SoundCloud", musica: "Mi música", pc: "Lo que suena en el PC" }[fuente];
 
-// Mi música: primero se elige la carpeta (cada carpeta es una lista).
-async function elegirCarpeta() {
-  const caja = document.getElementById("carpetas"), grilla = document.getElementById("grilla");
-  caja.style.display = "flex";
-  grilla.classList.add("bloqueada");
-  const listas = await window.pywebview.api.musica_listas();
-  if (!listas.length) { caja.textContent = "No hay carpetas con música configuradas."; return; }
-  const previa = sessionStorage.getItem("carpeta");
+// Cada plantilla: su página, qué se guarda al elegir una variante (la propia plantilla lo lee al abrir) y sus vistas previas.
+const v = (nombre, color, archivo, extra = {}) => ({ nombre, color, previa: `img/previas/${archivo}.webp`, ...extra });
+const PLANTILLAS = [
+  { id: "liquido", nombre: "Líquido", pagina: "liquido.html", predeterminada: "Rojo",
+    desc: "Vidrio líquido sobre un haz de luz que late con el bajo. La carátula flota y el vidrio la deforma.",
+    guardar: (x) => ({ "tema-liquido": x.nombre }),
+    grupos: [{ titulo: "Color", items: [v("Rojo", "#ff2d3d", "liquido-rojo"), v("Hielo", "#3db8ff", "liquido-hielo"), v("Violeta", "#a855ff", "liquido-violeta"), v("Ácido", "#b6ff2d", "liquido-acido"), v("Oro", "#ffb02d", "liquido-oro")] }] },
+  { id: "headspace", nombre: "Headspace", pagina: "headspace.html", predeterminada: "Y2K · Lima",
+    desc: "Cabeza de plástico Y2K con el reproductor adentro, burbujas y una lista que sale del costado.",
+    guardar: (x) => ({ "cuerpo-headspace": x.cuerpo, "color-headspace": x.color2 }),
+    grupos: ["Y2K", "Gel"].map(c => ({ titulo: `Cuerpo ${c}`, items: [["Lima", "#9be22a"], ["Chicle", "#ff7ad9"], ["Cielo", "#6cc8ff"], ["Mandarina", "#ff9a2a"], ["Cromo", "#c9d3dc"]]
+      .map(([n, col]) => v(`${c} · ${n}`, col, `headspace-${c.toLowerCase()}-${n.toLowerCase()}`, { cuerpo: c, color2: n })) })) },
+  { id: "dosmil", nombre: "2000s", pagina: "dosmil.html", predeterminada: "Plata",
+    desc: "Reproductor de metal con pantalla LCD, perilla de volumen y playlist, sobre un túnel psicodélico.",
+    guardar: (x) => ({ "skin-2000s": x.nombre }),
+    grupos: [{ titulo: "Skin", items: [v("Plata", "#c3c9d3", "dosmil-plata"), v("Grafito", "#4a4e58", "dosmil-grafito"), v("LCD verde", "#b4bba6", "dosmil-lcd-verde"), v("Azul", "#2b4fae", "dosmil-azul")] }] },
+  { id: "ambiente", nombre: "Ambiente", pagina: "ambiente.html", predeterminada: "Carátula",
+    desc: "La carátula manda: sus colores tiñen todo, en duotono y con su onda real.",
+    guardar: (x) => ({ "tema-ambiente": x.nombre }),
+    grupos: [{ titulo: "Colores", items: [v("Carátula", "#9aa4b8", "ambiente-caratula"), v("Noche", "#7896ff", "ambiente-noche"), v("Atardecer", "#ff8c5a", "ambiente-atardecer"), v("Bosque", "#8ce696", "ambiente-bosque"), v("Mono", "#ebebeb", "ambiente-mono")] }] },
+  { id: "pixel", nombre: "Pixel", pagina: "pixel.html", predeterminada: "Sangre",
+    desc: "8 bits: espectro en bloques y carátula pixelada, con paletas de color a elegir.",
+    guardar: (x) => ({ "paleta-pixel": x.nombre }),
+    grupos: [{ titulo: "Paleta", items: [v("Sangre", "#e8452c", "pixel-sangre"), v("Game Boy", "#9bbc0f", "pixel-game-boy"), v("NES", "#e40058", "pixel-nes"), v("Vaporwave", "#ff71ce", "pixel-vaporwave"), v("Matrix", "#39ff6a", "pixel-matrix"), v("Hielo", "#8fe3ff", "pixel-hielo"), v("Ámbar", "#ffb000", "pixel-ambar")] }] },
+];
+const todas = (p) => p.grupos.flatMap(g => g.items);
+const guardado = (k, def) => { try { return localStorage.getItem(k) || def; } catch (e) { return def; } };
+// Qué variante tiene cada plantilla ahora: la que dejaste la última vez, o la predeterminada
+const elegida = {};
+PLANTILLAS.forEach(p => { elegida[p.id] = todas(p).find(x => p.guardar(x) && Object.entries(p.guardar(x)).every(([k, val]) => guardado(k, "") === val)) || todas(p).find(x => x.nombre === p.predeterminada); });
+let actual = PLANTILLAS.find(p => p.id === guardado("biblioteca-plantilla", "")) || PLANTILLAS[0];
+
+function pintar() {
+  const g = $("grilla"); g.innerHTML = "";
+  PLANTILLAS.forEach(p => {
+    const b = document.createElement("button");
+    b.className = "card" + (p === actual ? " elegida" : "");
+    b.innerHTML = `<img alt="" loading="lazy" src="${elegida[p.id].previa}"><div class="info"><b>${p.nombre}</b><span>${todas(p).length} variantes</span></div>`;
+    b.onclick = () => { actual = p; try { localStorage.setItem("biblioteca-plantilla", p.id); } catch (e) {} pintar(); };
+    g.appendChild(b);
+  });
+  const sel = elegida[actual.id];
+  $("vista").src = sel.previa;
+  $("nombre").textContent = actual.nombre;
+  $("descripcion").textContent = actual.desc;
+  const caja = $("gruposColor"); caja.innerHTML = "";
+  actual.grupos.forEach(gr => {
+    const t = document.createElement("div"); t.className = "mono"; t.textContent = gr.titulo; caja.appendChild(t);
+    const fila = document.createElement("div"); fila.className = "colores";
+    gr.items.forEach(x => {
+      const c = document.createElement("button");
+      c.className = "color" + (x === sel ? " elegida" : ""); c.style.setProperty("--c", x.color);
+      c.innerHTML = `<i></i>${x.nombre.replace(/^(Y2K|Gel) · /, "")}`;
+      c.onclick = () => { elegida[actual.id] = x; pintar(); };
+      fila.appendChild(c);
+    });
+    caja.appendChild(fila);
+  });
+}
+// "Usar esta": deja la variante elegida guardada (la plantilla la lee al abrir) y entra
+$("usar").onclick = () => {
+  const x = elegida[actual.id];
+  try { Object.entries(actual.guardar(x)).forEach(([k, val]) => localStorage.setItem(k, val)); } catch (e) {}
+  location.href = `${actual.pagina}?fuente=${fuente}`;
+};
+
+// Mi música: primero se elige la carpeta. Spotify: "Tus me gusta" viene elegida y las playlists son opcionales.
+function chips(listas, vacio, elegidaId, exigir) {
+  const caja = $("carpetas"); caja.style.display = "flex";
+  if (!listas.length) { caja.innerHTML = `<span id="nota">${vacio}</span>`; return; }
   listas.forEach(l => {
     const b = document.createElement("button");
-    b.className = "vidrio pastilla" + (l.ruta === previa ? " elegida" : "");
+    b.className = "vidrio pastilla" + (l.id === elegidaId ? " elegida" : "");
     b.textContent = `${l.nombre} · ${l.canciones}`;
-    b.onclick = () => {
-      sessionStorage.setItem("carpeta", l.ruta);
-      caja.querySelectorAll("button").forEach(x => x.classList.toggle("elegida", x === b));
-      grilla.classList.remove("bloqueada");
-    };
+    b.onclick = () => { sessionStorage.setItem("carpeta", l.id); caja.querySelectorAll("button").forEach(x => x.classList.toggle("elegida", x === b)); $("principal").classList.remove("bloqueada"); };
     caja.appendChild(b);
   });
-  if (previa && listas.some(l => l.ruta === previa)) grilla.classList.remove("bloqueada");
+  if (exigir && !listas.some(l => l.id === elegidaId)) $("principal").classList.add("bloqueada");
 }
-// Spotify: "Tus me gusta" ya viene elegida (como SoundCloud); las playlists tuyas son opcionales.
-async function listasSpotify() {
-  const caja = document.getElementById("carpetas");
-  const r = await window.pywebview.api.spotify_listas();
-  if (!r.ok) { caja.style.display = "flex"; caja.innerHTML = `<span id="nota">${r.error} <a href="inicio.html" style="color:inherit">Volver al inicio</a></span>`; return; }
-  const previa = sessionStorage.getItem("carpeta") || "me-gusta";
-  caja.style.display = "flex";
-  r.listas.forEach(l => {
-    const b = document.createElement("button");
-    b.className = "vidrio pastilla" + (l.id === previa ? " elegida" : "");
-    b.textContent = `${l.nombre} · ${l.canciones}`;
-    b.onclick = () => {
-      sessionStorage.setItem("carpeta", l.id);
-      caja.querySelectorAll("button").forEach(x => x.classList.toggle("elegida", x === b));
-    };
-    caja.appendChild(b);
-  });
+async function listas() {
+  const api = window.pywebview.api;
+  if (fuente === "spotify") {
+    const r = await api.spotify_listas();
+    if (!r.ok) { $("carpetas").style.display = "flex"; $("carpetas").innerHTML = `<span id="nota">${r.error} <a href="ajustes.html" style="color:inherit">Ir a Ajustes</a></span>`; return; }
+    chips(r.listas, "", sessionStorage.getItem("carpeta") || "me-gusta", false);
+  } else if (fuente === "musica") {
+    const l = (await api.musica_listas()).map(x => ({ id: x.ruta, nombre: x.nombre, canciones: x.canciones }));
+    chips(l, 'No hay carpetas con música. <a href="ajustes.html" style="color:inherit">Agregar una en Ajustes</a>', sessionStorage.getItem("carpeta"), true);
+  }
 }
-if (fuente === "spotify") {
-  if (window.pywebview && window.pywebview.api) listasSpotify();
-  else window.addEventListener("pywebviewready", listasSpotify);
-}
-if (fuente === "musica") {
-  if (window.pywebview && window.pywebview.api) elegirCarpeta();
-  else window.addEventListener("pywebviewready", elegirCarpeta);
+pintar();
+if (fuente === "spotify" || fuente === "musica") {
+  if (window.pywebview && window.pywebview.api) listas(); else window.addEventListener("pywebviewready", listas);
 }
 </script>
 </body>

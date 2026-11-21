@@ -13,7 +13,7 @@ import webview
 
 import config
 import servidor
-from fuentes import musica, pc, soundcloud_acceso
+from fuentes import musica, pc, soundcloud_acceso, vista_previa
 from fuentes.soundcloud import SoundCloud
 from fuentes import spotify
 from fuentes.spotify import Spotify
@@ -30,6 +30,7 @@ class Api:
         self._sc = None
         self._sp = None
         self._sp_pistas: dict[str, list] = {}   # lista -> canciones (para tocar por posición)
+        self._sp_cache: dict[str, tuple[float, dict]] = {}   # respuestas de listas guardadas 10 min (cada petición cuenta contra la cuota)
         self._captura = pc.Captura()
         self._login_sc = {"estado": "nada"}
 
@@ -44,7 +45,7 @@ class Api:
 
     def soundcloud_likes(self) -> dict:
         try:
-            return {"ok": True, "pistas": self._soundcloud().likes()}
+            return {"ok": True, "pistas": vista_previa.preparar(self._soundcloud().likes())}
         except Exception as e:
             logger.exception("Likes")
             return {"ok": False, "error": str(e)[:200]}
@@ -82,14 +83,26 @@ class Api:
         """Abre el navegador para aceptar el acceso (espera hasta 3 minutos)."""
         return self._sp_llamar(lambda: self._spotify().conectar())
 
+    def _con_cache(self, clave: str, f) -> dict:
+        antes = self._sp_cache.get(clave)
+        if antes and time.time() - antes[0] < 600:
+            return antes[1]
+        r = self._sp_llamar(f)
+        if r["ok"]:
+            self._sp_cache[clave] = (time.time(), r)
+        return r
+
     def spotify_listas(self) -> dict:
-        return self._sp_llamar(lambda: {"listas": self._spotify().listas()})
+        return self._con_cache("listas", lambda: {"listas": self._spotify().listas()})
 
     def spotify_canciones(self, lista: str) -> dict:
         def cargar():
             self._sp_pistas[lista] = self._spotify().canciones(lista)
             return {"pistas": self._sp_pistas[lista]}
-        return self._sp_llamar(cargar)
+        r = self._con_cache("canciones:" + lista, cargar)
+        if r["ok"]:
+            self._sp_pistas[lista] = r["pistas"]
+        return r
 
     def spotify_tocar(self, lista: str, indice: int) -> dict:
         def tocar():
