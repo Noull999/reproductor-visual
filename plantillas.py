@@ -96,8 +96,8 @@ def validar(spec, modo):
     patron = _URL_IMAGEN if modo == "exportar" else _MARCA_IMAGEN
 
     def imagen(v, nombre):
-        if v == "":
-            return ""
+        if v == "" or _es_incluida(v):   # imagen que ya viene con la app: no se empaqueta
+            return v
         if not isinstance(v, str) or not patron.match(v):
             raise PlantillaInvalida(f"{nombre}: la imagen no es válida.")
         return v
@@ -143,12 +143,16 @@ def validar(spec, modo):
     return limpia
 
 
+def _es_incluida(v):
+    return v in ESQUEMA.get("imagenesIncluidas", [])
+
+
 def _nombres_de_imagenes(spec):
     """(ranura, valor) de cada imagen de la plantilla: 'fondo' y el nombre de cada pieza imagen."""
     salida = []
-    if spec["fondo"]["imagen"]:
+    if spec["fondo"]["imagen"] and not _es_incluida(spec["fondo"]["imagen"]):
         salida.append(("fondo", spec["fondo"]["imagen"]))
-    salida += [(p["n"], p["imagen"]) for p in spec["piezas"] if p.get("imagen")]
+    salida += [(p["n"], p["imagen"]) for p in spec["piezas"] if p.get("imagen") and not _es_incluida(p["imagen"])]
     return salida
 
 

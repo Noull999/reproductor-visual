@@ -158,6 +158,10 @@ const PLANTILLAS = [
     desc: "La carátula manda: sus colores tiñen todo, en duotono y con su onda real.",
     guardar: (x) => ({ "tema-ambiente": x.nombre }),
     grupos: [{ titulo: "Colores", items: [v("Carátula", "#9aa4b8", "ambiente-caratula"), v("Noche", "#7896ff", "ambiente-noche"), v("Atardecer", "#ff8c5a", "ambiente-atardecer"), v("Bosque", "#8ce696", "ambiente-bosque"), v("Mono", "#ebebeb", "ambiente-mono")] }] },
+  { id: "anime", nombre: "Anime PS2", pagina: "libre.html?plantilla=anime", predeterminada: "Cian",
+    desc: "Estilo consola de los 2000: columnas de luz, paneles azules y una ilustración anime que golpea, brilla y lanza líneas de velocidad con el bajo.",
+    guardar: () => ({}),
+    grupos: [{ titulo: "Color", items: [v("Cian", "#19c8ff", "anime-cian")] }] },
   { id: "pixel", nombre: "Pixel", pagina: "pixel.html", predeterminada: "Sangre",
     desc: "8 bits: espectro en bloques y carátula pixelada, con paletas de color a elegir.",
     guardar: (x) => ({ "paleta-pixel": x.nombre }),
@@ -177,7 +181,7 @@ PLANTILLAS.forEach(p => { elegida[p.id] = todas(p).find(x => p.guardar(x) && Obj
 // Las plantillas propias (hechas en el Editor) se suman a la cuadrícula; se dibujan con libre.html
 const propias = () => Propias.leer().map(s => ({ id: "libre-" + s.id, idPropia: s.id, propio: true, nombre: s.nombre, desc: `Plantilla tuya · ${s.piezas.length} piezas · ${Propias.PANELES[s.estilo.panel]}`, grupos: [], guardar: () => ({}), spec: s }));
 const todasLasPlantillas = () => [...PLANTILLAS, ...propias()];
-const urlDe = (p, f) => p.propio ? `libre.html?plantilla=${p.idPropia}&fuente=${f}` : `${p.pagina}?fuente=${f}`;
+const urlDe = (p, f) => p.propio ? `libre.html?plantilla=${p.idPropia}&fuente=${f}` : `${p.pagina}${p.pagina.includes("?") ? "&" : "?"}fuente=${f}`;
 let actual = todasLasPlantillas().find(p => p.id === guardado("biblioteca-plantilla", "")) || PLANTILLAS[0];
 
 function pintar() {

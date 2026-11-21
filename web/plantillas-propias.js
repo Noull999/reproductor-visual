@@ -64,6 +64,11 @@ const Propias = (() => {
         ["titulo", [3, 49, 40, 5], { tam: 90 }], ["artista", [3, 54, 40, 3]], ["lista", [72, 4, 26, 82]], ["botones", [3, 91, 20, 8]], ["barra", [26, 94.2, 46, 2.4]],
         ["tiempo", [75, 91.5, 10, 6]], ["volumen", [86, 92, 11, 5]]]) },
   };
+  INCLUIDAS.anime = { nombre: "Anime PS2", reglas: { requeridas: ["titulo", "botones", "barra"], nota: COMUN },
+      fondo: { tipo: "columnas", color: "#02071c", color2: "#0b2f7a", brillo: 100 }, estilo: { panel: "ps2", acento: "#19c8ff", fuente: "Michroma" },
+      piezas: () => armar([["efecto", [22, 0, 56, 92], { efecto: "lineas" }], ["imagen", [27, 3, 46, 96], { imagen: "img/anime/personaje.webp", reaccion: "golpe", aura: true, aberracion: true }],
+        ["efecto", [0, 0, 100, 100], { efecto: "destellos", sensibilidad: 80 }], ["panel", [2.5, 60, 27, 26]], ["titulo", [4, 63, 24, 7], { tam: 90, mayusculas: true }], ["artista", [4, 72, 24, 4], { tam: 80 }],
+        ["caratula", [4, 5, 21, 30], { forma: "cuadrada", borde: true }], ["lista", [72, 5, 26, 78]], ["panel", [0, 88, 100, 12]], ["botones", [30, 89.5, 22, 9]], ["barra", [54, 93, 28, 2.4]], ["tiempo", [84, 91, 12, 5]]]) };
   function desdeBase(id) {
     const b = INCLUIDAS[id]; if (!b) return null;
     const spec = { id: nuevoId(), nombre: `${b.nombre} (mi versión)`, base: id, fondo: JSON.parse(JSON.stringify(b.fondo)), estilo: JSON.parse(JSON.stringify(b.estilo)), piezas: b.piezas() };
@@ -74,12 +79,13 @@ const Propias = (() => {
 
   // ---- Almacén ----
   function guardar(spec) { const l = leer(), i = l.findIndex(x => x.id === spec.id); if (i < 0) l.push(spec); else l[i] = spec; escribir(l); }
-  const obtener = (id) => leer().find(x => x.id === id) || null;
+  // "anime" (id de la plantilla incluida) se arma sola: la Biblioteca la abre en libre.html sin copiarla a localStorage
+  const obtener = (id) => leer().find(x => x.id === id) || (id === "anime" ? { id, nombre: INCLUIDAS.anime.nombre, base: "anime", fondo: INCLUIDAS.anime.fondo, estilo: INCLUIDAS.anime.estilo, piezas: INCLUIDAS.anime.piezas() } : null);
   const borrar = (id) => escribir(leer().filter(x => x.id !== id));
   function duplicar(id) {
     const o = obtener(id); if (!o) return null;
     const c = JSON.parse(JSON.stringify(o)); c.id = nuevoId(); c.nombre = o.nombre + " (copia)";
-    c.fondo.imagen = ""; c.piezas.forEach(p => { if (p.tipo === "imagen") p.imagen = ""; });   // las imágenes propias no se copian: cada plantilla guarda las suyas
+    c.fondo.imagen = ""; c.piezas.forEach(p => { if (p.tipo === "imagen" && !E.imagenesIncluidas.includes(p.imagen)) p.imagen = ""; });   // las imágenes propias no se copian: cada plantilla guarda las suyas
     guardar(c); return c;
   }
   const mapa = (k) => Object.fromEntries(Object.entries(E.tipos).map(([t, d]) => [t, d[k]]));

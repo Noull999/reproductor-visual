@@ -3,7 +3,7 @@
 // Debe seguir siendo JSON válido después de "const ESQUEMA = " (comillas dobles, sin comentarios dentro).
 // Cada opción: { "t": "enum"|"num"|"bool"|"color"|"imagen", "n": etiqueta, "v": {valor: etiqueta}, "min", "max", "def", "u": unidad, "vacio": true }
 const ESQUEMA = {
-  "fondos": { "haz": "Haz de luz", "tunel": "Túnel psicodélico", "burbujas": "Burbujas", "luces": "Luces suaves", "estrellas": "Estrellas de píxel", "caratula": "Carátula desenfocada", "degradado": "Degradado", "color": "Color liso", "imagen": "Imagen propia" },
+  "fondos": { "haz": "Haz de luz", "tunel": "Túnel psicodélico", "burbujas": "Burbujas", "luces": "Luces suaves", "estrellas": "Estrellas de píxel", "caratula": "Carátula desenfocada", "degradado": "Degradado", "color": "Color liso", "imagen": "Imagen propia", "columnas": "Columnas de luz (PS2)" },
   "fondo": {
     "color": { "t": "color", "n": "Color de base", "def": "#08080a" },
     "color2": { "t": "color", "n": "Segundo color (degradado)", "def": "#2a1030" },
@@ -13,7 +13,7 @@ const ESQUEMA = {
     "imagen": { "t": "imagen" }
   },
   "estilo": {
-    "panel": { "t": "enum", "n": "Paneles y botones", "v": { "vidrio": "Vidrio", "metal": "Metal", "gel": "Gel", "pixel": "Píxel", "liso": "Liso oscuro" }, "def": "vidrio" },
+    "panel": { "t": "enum", "n": "Paneles y botones", "v": { "vidrio": "Vidrio", "metal": "Metal", "gel": "Gel", "pixel": "Píxel", "liso": "Liso oscuro", "ps2": "Consola (PS2)" }, "def": "vidrio" },
     "acento": { "t": "color", "n": "Color de acento", "def": "#ff2d3d" },
     "acentoAuto": { "t": "bool", "n": "Acento tomado de la carátula", "def": false },
     "fuente": { "t": "enum", "n": "Letra", "v": { "Geist": "Geist (moderna)", "Fredoka": "Fredoka (redondeada)", "Instrument Serif": "Instrument Serif (serif)", "Silkscreen": "Silkscreen (píxel)", "VT323": "VT323 (pantalla LCD)", "Michroma": "Michroma (ancha)" }, "def": "Geist" },
@@ -62,7 +62,15 @@ const ESQUEMA = {
       "color": { "t": "color", "n": "Color propio", "def": "", "vacio": true } } },
     "imagen": { "etiqueta": "Imagen", "rect": [36, 8, 28, 50], "ids": [], "repetible": true, "opciones": {
       "ajuste": { "t": "enum", "n": "Ajuste", "v": { "contener": "Contener", "cubrir": "Cubrir" }, "def": "contener" },
+      "reaccion": { "t": "enum", "n": "Reacciona a la música", "v": { "ninguna": "No", "pulso": "Pulso", "golpe": "Golpe (con sacudida)", "flotar": "Flota" }, "def": "ninguna" },
+      "fuerza": { "t": "num", "n": "Fuerza de la reacción", "min": 20, "max": 200, "def": 100, "u": " %" },
+      "aura": { "t": "bool", "n": "Aura de color", "def": false },
+      "aberracion": { "t": "bool", "n": "Desfase de color en los golpes", "def": false },
       "imagen": { "t": "imagen" } } },
+    "efecto": { "etiqueta": "Efecto", "rect": [20, 5, 60, 80], "ids": [], "repetible": true, "opciones": {
+      "efecto": { "t": "enum", "n": "Tipo", "v": { "lineas": "Líneas de velocidad", "anillos": "Anillos", "destellos": "Destellos" }, "def": "lineas" },
+      "sensibilidad": { "t": "num", "n": "Sensibilidad", "min": 20, "max": 200, "def": 100, "u": " %" },
+      "color": { "t": "color", "n": "Color", "def": "", "vacio": true } } },
     "cabeza": { "etiqueta": "Cabeza Y2K (con pantalla)", "rect": [28, 3, 44, 92], "ids": ["caratula", "titulo", "artista", "bAnt", "bPlay", "bSig", "barra", "tiempo"], "aspecto": 0.789, "opciones": {
       "cuerpo": { "t": "enum", "n": "Cuerpo", "v": { "Y2K": "Y2K translúcido", "Gel": "Gel brillante", "Propio": "El que subiste en Headspace" }, "def": "Y2K" },
       "color": { "t": "enum", "n": "Color", "v": { "Lima": "Lima", "Chicle": "Chicle", "Cielo": "Cielo", "Mandarina": "Mandarina", "Cromo": "Cromo" }, "def": "Lima" } } },
@@ -72,6 +80,7 @@ const ESQUEMA = {
   "comunes": {
     "opacidad": { "t": "num", "n": "Opacidad", "min": 10, "max": 100, "def": 100, "u": " %" }
   },
-  "bases": ["liquido", "headspace", "dosmil", "ambiente", "pixel"],
+  "bases": ["liquido", "headspace", "dosmil", "ambiente", "pixel", "anime"],
+  "imagenesIncluidas": ["img/anime/personaje.webp"],
   "maxPiezas": 30
 };

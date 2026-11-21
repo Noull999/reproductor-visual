@@ -25,6 +25,8 @@
   body[data-panel=metal] { --bg: linear-gradient(180deg,#eef1f5,#b1b9c6 55%,#8f97a5); --borde: 1px solid rgba(0,0,0,.55); --rad: 10px; --radp: 14px; --pt: #272c35; --sombra: inset 0 1px 0 rgba(255,255,255,.75), 0 6px 14px rgba(0,0,0,.45); }
   body[data-panel=gel] { --bg: linear-gradient(180deg,rgba(255,255,255,.78),rgba(255,255,255,.14) 50%,transparent 52%), var(--acento); --borde: 1px solid rgba(0,0,0,.35); --rad: 999px; --radp: 28px; --pt: #0e1f08; --sombra: inset 0 -3px 6px rgba(0,0,0,.25), 0 4px 10px rgba(0,0,0,.45); }
   body[data-panel=pixel] { --bg: #1a1620; --borde: 3px solid var(--acento); --rad: 0; --radp: 0; --pt: #f3f3f5; --sombra: none; }
+  body[data-panel=ps2] { --bg: linear-gradient(180deg,rgba(70,140,255,.42),rgba(10,24,84,.78) 55%,rgba(6,14,56,.85)); --borde: 1.5px solid rgba(130,225,255,.8); --rad: 3px; --radp: 3px; --pt: #e8f6ff; --sombra: inset 0 1px 0 rgba(255,255,255,.55), 0 0 18px rgba(40,170,255,.35); }
+  body[data-panel=ps2] .caja, body[data-panel=ps2] .bt { clip-path: polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px); }
   body[data-panel=liso] { --bg: rgba(14,14,18,.86); --borde: 1px solid #2c2c36; --rad: 8px; --radp: 10px; --pt: #f3f3f5; --sombra: none; }
   .caja { background: var(--bg); border: var(--borde); border-radius: var(--radp); box-shadow: var(--sombra); width: 100%; height: 100%; color: var(--pt); }
   .caja.sinborde { border: none; box-shadow: none; }
@@ -92,6 +94,7 @@ const rgb = (h) => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
 const tono = ([r, g, b]) => { const mx = Math.max(r, g, b), mn = Math.min(r, g, b); if (mx === mn) return 0; const d = mx - mn; const h = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; return (h * 60 + 360) % 360; };
 let acento = [255, 45, 61];   // se mueve si el acento sale de la carátula
 const raiz = document.documentElement.style;
+let GOLPE = 0;
 // Valor de una opción: el de la plantilla o el predeterminado del esquema
 const val = (p, k) => { const d = (ESQUEMA.tipos[p.tipo].opciones[k] || ESQUEMA.comunes[k]); return p[k] === undefined || p[k] === null ? d.def : p[k]; };
 const fv = (k) => spec.fondo[k] === undefined ? ESQUEMA.fondo[k].def : spec.fondo[k];
@@ -130,6 +133,8 @@ function construir(s) {
     if (dentro) e.appendChild(dentro);
     document.body.appendChild(e);
   });
+  let prom = 0;   // detector de golpes: graves contra su promedio; GOLPE (0..1) decae solo
+  R.cadaCuadro(() => { const b = R.energia(R.espectro(), 1, 8); prom = prom * .94 + b * .06; if (b > prom * 1.22 + .07) GOLPE = 1; GOLPE *= .86; });
   R.cadaCuadro(() => {
     raiz.setProperty("--p", (R.progreso() * 100).toFixed(2) + "%");
     document.body.classList.toggle("sonando", (document.getElementById("bPlay") || {}).textContent === "❚❚");
@@ -147,6 +152,23 @@ function fondo() {
   if (tipo === "color") return capa(fv("color"));
   if (tipo === "degradado") return capa(`linear-gradient(${fv("angulo")}deg, ${fv("color")}, ${fv("color2")})`);
   if (tipo === "imagen") return capa(`${fv("color")} ${fv("imagen") ? `url("${fv("imagen")}")` : ""} center / cover`);
+  if (tipo === "columnas") {
+    capa(`radial-gradient(ellipse at 50% 110%, ${fv("color2")}, ${fv("color")} 70%)`);
+    const lienzo = document.createElement("canvas"); c.appendChild(lienzo);
+    const ps = Array.from({ length: 40 }, () => [Math.random(), Math.random(), .3 + Math.random()]);
+    R.cadaCuadro((t) => {
+      const g = ajustar(lienzo), w = lienzo.width, h = lienzo.height, d = R.espectro(), N = 22, a = w / N, hy = h * .92; g.clearRect(0, 0, w, h);
+      for (let i = 0; i < N; i++) {
+        const lo = Math.floor(2 * Math.pow(100, i / N)), v = Math.pow(Math.min(1, R.energia(d, lo, Math.max(lo + 1, Math.floor(2 * Math.pow(100, (i + 1) / N)))) * 1.1), 1.2);
+        const alto = h * (.12 + v * .5 + .05 * Math.sin(t * .8 + i)), x = i * a + a * .12, ww = a * .76, gr = g.createLinearGradient(0, hy - alto, 0, hy);
+        gr.addColorStop(0, `rgba(${acento},0)`); gr.addColorStop(.5, `rgba(${acento},.18)`); gr.addColorStop(1, `rgba(255,255,255,${.35 + v * .4})`);
+        g.fillStyle = gr; g.fillRect(x, hy - alto, ww, alto);
+        g.fillStyle = `rgba(255,255,255,${.5 + v * .4})`; g.fillRect(x, hy - alto, ww, 2);
+      }
+      g.fillStyle = "rgba(255,255,255,.7)";
+      ps.forEach(q => { q[1] -= .0006 * q[2] * (1 + GOLPE * 6); if (q[1] < -.02) { q[1] = 1.02; q[0] = Math.random(); } const z = 2 + q[2] * 3; g.fillRect(q[0] * w, q[1] * h, z, z); });
+    }); return;
+  }
   if (tipo === "caratula") {
     capa(fv("color")); const d = capa("none"); d.style.cssText += `;inset:-12%;width:124%;height:124%;filter:blur(${fv("desenfoque")}px) saturate(1.4) brightness(.45)`;
     R.alCambiar((p) => { d.style.backgroundImage = p.caratula ? `url("${p.caratula}")` : "none"; });
@@ -224,6 +246,26 @@ function visual(canvas, p) {
   });
 }
 
+// ---- Efecto reactivo: líneas de velocidad, anillos o destellos ----
+function efecto(c, p) {
+  const tipo = val(p, "efecto"), sn = val(p, "sensibilidad") / 100, ds = Array.from({ length: 26 }, () => [Math.random(), Math.random(), Math.random()]), an = [];
+  R.cadaCuadro((t) => {
+    const w = c.clientWidth, h = c.clientHeight; if (!w || !h) return; if (c.width !== w || c.height !== h) { c.width = w; c.height = h; }
+    const g = c.getContext("2d"), col = val(p, "color") || `rgb(${acento})`, e = Math.min(1, R.energia(R.espectro(), 1, 8) * sn), G = Math.min(1, GOLPE * sn), cx = w / 2, cy = h / 2, R0 = Math.hypot(w, h) / 2;
+    g.clearRect(0, 0, w, h); g.strokeStyle = g.fillStyle = col;
+    if (tipo === "lineas") {
+      g.lineCap = "round"; g.shadowColor = col; g.shadowBlur = 8;
+      for (let i = 0; i < 48; i++) { const a = i / 48 * 6.283 + Math.sin(i * 7.3) * .05, ini = R0 * (.28 + .1 * Math.sin(i * 3.1 + t)), l = R0 * (.08 + (.1 + e * .45 + G * .25) * (.4 + .6 * Math.abs(Math.sin(i * 12.9)))); g.globalAlpha = .18 + e * .4 + G * .4; g.lineWidth = 1 + (i % 3) + G * 3; g.beginPath(); g.moveTo(cx + Math.cos(a) * ini, cy + Math.sin(a) * ini); g.lineTo(cx + Math.cos(a) * (ini + l), cy + Math.sin(a) * (ini + l)); g.stroke(); }
+    } else if (tipo === "anillos") {
+      if (GOLPE > .95) an.push(0); g.lineWidth = 3;
+      for (let i = an.length - 1; i >= 0; i--) { an[i] += .02; if (an[i] > 1) { an.splice(i, 1); continue; } g.globalAlpha = (1 - an[i]) * .8; g.beginPath(); g.arc(cx, cy, an[i] * R0 * .9, 0, 7); g.stroke(); }
+    } else {
+      ds.forEach((q) => { const k = (t * .25 + q[2]) % 1, x = q[0] * w, y = (1 - k) * h, s = (4 + q[1] * 14) * (1 + G * 1.5) * (.4 + e); g.globalAlpha = Math.sin(k * 3.14) * (.5 + e * .5); g.beginPath(); g.moveTo(x, y - s); g.quadraticCurveTo(x, y, x + s, y); g.quadraticCurveTo(x, y, x, y + s); g.quadraticCurveTo(x, y, x - s, y); g.quadraticCurveTo(x, y, x, y - s); g.fill(); });
+    }
+    g.globalAlpha = 1; g.shadowBlur = 0;
+  });
+}
+
 // ---- Carátula con efectos ----
 function caratula(p) {
   const forma = val(p, "forma"), efecto = val(p, "efecto"), d = document.createElement("div");
@@ -296,8 +338,21 @@ function pieza(p, caja) {
     case "panel": { const c = document.createElement("div"); c.className = "caja" + (val(p, "borde") ? "" : " sinborde"); if (val(p, "color")) c.style.background = val(p, "color"); return c; }
     case "imagen": {
       if (!p.imagen) { const c = document.createElement("div"); c.className = "caja"; c.style.opacity = .4; return c; }
-      const i = document.createElement("img"); i.className = "imagen"; i.src = p.imagen; i.alt = ""; i.style.objectFit = val(p, "ajuste") === "cubrir" ? "cover" : "contain"; return i;
+      const i = document.createElement("img"); i.className = "imagen"; i.src = p.imagen; i.alt = ""; i.style.objectFit = val(p, "ajuste") === "cubrir" ? "cover" : "contain";
+      const rx = val(p, "reaccion"), f = val(p, "fuerza") / 100, aura = val(p, "aura"), ab = val(p, "aberracion");
+      if (rx !== "ninguna" || aura || ab) R.cadaCuadro((t) => {
+        const e = Math.min(1, R.energia(R.espectro(), 1, 8) * 1.2), G = GOLPE * f; let tf = "";
+        if (rx === "pulso") tf = `scale(${1 + e * .05 * f})`;
+        else if (rx === "golpe") tf = `translate(${(Math.sin(t * 90) * G * 6).toFixed(1)}px,${(-G * 10).toFixed(1)}px) scale(${1 + G * .035})`;
+        else if (rx === "flotar") tf = `translateY(${(Math.sin(t * 1.4) * 1.5 - e * 2 * f).toFixed(2)}%)`;
+        i.style.transform = tf;
+        const fl = []; if (ab && G > .05) { const o = (G * 14).toFixed(1); fl.push(`drop-shadow(${o}px 0 0 rgba(255,40,90,.75))`, `drop-shadow(-${o}px 0 0 rgba(40,220,255,.75))`); }
+        if (aura) fl.push(`drop-shadow(0 0 ${(10 + e * 30 * f).toFixed(0)}px rgba(${acento},${(.35 + e * .5).toFixed(2)}))`);
+        i.style.filter = fl.join(" ");
+      });
+      return i;
     }
+    case "efecto": { const c = document.createElement("canvas"); efecto(c, p); return c; }
     case "cabeza": Modulos.cabeza({ cuerpo: val(p, "cuerpo"), color: val(p, "color") }, caja); return null;
     case "equipo": Modulos.equipo({ skin: val(p, "skin") }, caja); return null;
   }
