@@ -119,7 +119,10 @@ Una plantilla propia es un objeto JSON (`plantillas-propias.js`): fondo, estilo 
       color de acento y letra. Son los elementos de las plantillas incluidas, combinables libremente.
 - [x] Aparecen en la Biblioteca (con Editar, intensidad, velocidad y lista), se duplican y se eliminan.
 - [x] Sin código propio: lo que se guarda es solo configuración e imágenes (listo para compartir).
-- [ ] Reproducir los diseños exactos de las 5 plantillas incluidas como "bases" editables.
+- [x] Las 5 plantillas incluidas como **bases editables** por piezas, con reglas (`plantillas-propias.js`): Líquido, Ambiente y Pixel con piezas estándar; Headspace y 2000s con los módulos "cabeza" y "equipo" (`modulos.js`). "Editar esta plantilla" en la Biblioteca.
+- [x] Más personalización: esquema único (`esquema.js`) con opciones por pieza (carátula con formas y efectos, título/artista con letra y color propios, barra de onda real, lista, opacidad…), fondos nuevos (carátula desenfocada, degradado), acento desde la carátula y deformación del vidrio.
+- [ ] **Plantilla Anime / PS2** (idea del 21-11): estética de menú de juego de los 2000, personaje como imagen propia que reacciona al bajo (pulso, vibración, aberración de color, líneas de velocidad). Requiere: estilo de panel nuevo, fondo de columnas de luz y efecto de reacción para imágenes.
+- [ ] **Comunidad**: repositorio público con `catalogo.json` + archivos `.plantilla`, que la app lee desde GitHub (pestaña Comunidad); envío por pull request con validación automática (`plantillas.py`).
 - [ ] Más visuales y fondos; piezas con colores y tamaños de letra propios; deshacer; alinear a una cuadrícula.
 - [ ] Visuales programables en un entorno aislado (modo avanzado), más adelante.
 

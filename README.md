@@ -27,7 +27,10 @@ Líquido · Headspace · 2000s · Ambiente · Pixel. Todas tienen lista de temas
 Cuadrícula de plantillas con **vista previa en vivo**: la plantilla real corriendo con música inventada. Ahí cambias colores, intensidad, velocidad, mostrar u ocultar la lista, y pones tus propias imágenes (fondo; y en Headspace, un **cuerpo propio** con un editor de zonas).
 
 **Editor y plantillas propias**
-Crea la tuya desde cero: fondo (haz, túnel, burbujas, luces, estrellas de píxel, color o imagen), visuales (barras, bloques de píxel, segmentos LCD, onda, círculo), estilo de paneles (vidrio, metal, gel, píxel, liso), letra y acento. Cada pieza (visual, carátula, título, botones, barra, lista, imágenes…) se arrastra y se estira sobre una vista previa en vivo.
+Cada plantilla se puede hacer de **piezas** que se arrastran y se estiran sobre una vista previa en vivo.
+- **Editar una de las 5 incluidas:** "Editar esta plantilla" crea tu versión hecha de piezas (Líquido, Headspace, 2000s, Ambiente y Pixel). Cada una trae sus **reglas**: por ejemplo, Headspace exige su cabeza (que ya trae título, botones y barra adentro) y las demás exigen título, botones y barra de avance. Lo que no está bloqueado se puede mover, cambiar o quitar, y una pieza no puede cumplir la misma función que otra.
+- **Crear una libre:** parte de una base (en blanco, reproductor central, con lista) y agrega lo que quieras.
+- **Personalización:** fondo (haz, túnel, burbujas, luces, estrellas de píxel, carátula desenfocada, degradado, color o imagen), visuales (barras, bloques de píxel, segmentos LCD, onda, círculo, con opción de reflejo e intensidad), estilo de paneles (vidrio, metal, gel, píxel, liso) con deformación del vidrio opcional, acento fijo o tomado de la carátula, y 6 letras. Cada pieza tiene sus opciones: carátula (cuadrada, redondeada, círculo, vinilo que gira; efecto normal, duotono, pixelada o blanco y negro; inclinación), título y artista (tamaño, alineación, mayúsculas, letra y color propios), barra (línea, onda real del tema o segmentos), botones, lista (con o sin carátulas y números) y opacidad.
 
 **Compartir**
 Una plantilla propia se exporta como **un solo archivo `.plantilla`** (configuración + imágenes) y se importa en otro equipo. Son solo datos: no lleva código.
@@ -63,7 +66,8 @@ plantillas.py       Exportar/importar .plantilla con validación estricta
 web/                Todas las pantallas (HTML/CSS/JS sin framework)
   nucleo.js           Reproductor compartido: fuentes, lista, volumen, solo visual, modo demo
   propiedades.js      Propiedades por plantilla (intensidad, velocidad, extras…)
-  plantillas-propias.js, libre.html, editor.html   Motor y editor de plantillas propias
+  esquema.js          Qué puede contener una plantilla (única fuente de verdad: motor, editor y validador)
+  plantillas-propias.js, libre.html, modulos.js, editor.html   Motor, módulos (cabeza y equipo) y editor de plantillas propias
 tools/              Generador de las vistas previas
 tests/              Pruebas
 ```
@@ -81,7 +85,7 @@ tests/              Pruebas
 | Cuentas y carpetas desde la app (Ajustes) | ✅ (sin probar el selector de carpetas a mano) |
 | Biblioteca con vista previa en vivo y personalización | ✅ |
 | Cuerpo propio de Headspace con editor de zonas | ✅ |
-| Editor de plantillas propias (crear, mezclar, skin libre) | ✅ primera versión |
+| Editor de plantillas propias (crear, mezclar, skin libre) y las 5 incluidas editables por piezas con sus reglas | ✅ |
 | Exportar e importar plantillas | ✅ |
 | Visuales con Spotify (captura del sonido) | ⚠️ Funciona con sonido saliendo por el dispositivo por defecto; se vuelve a detectar si cambias de parlantes |
 | Nombre definitivo, ícono y ejecutable (.exe) | ⏳ Pendiente |
@@ -95,8 +99,8 @@ Detalle y decisiones en [PLAN.md](PLAN.md).
 - **Solo Windows** por ahora (controles multimedia y captura de sonido).
 - **Spotify en modo desarrollo**: la app solo la pueden usar las cuentas que su dueño autorice (hasta 5), exige Premium y tiene una cuota baja de peticiones: si se agota, Spotify pide esperar (la app lo avisa y no insiste). De las playlists, Spotify solo deja leer las **tuyas o colaborativas**. SoundCloud y Mi música no tienen estos límites.
 - Spotify no entrega el audio ni su análisis a apps nuevas; por eso los visuales usan la captura del sonido del PC.
-- Las plantillas incluidas tienen código propio y no se pueden recombinar pieza por pieza; el editor usa su propio motor de datos.
-- El chasis de 2000s no acepta cuerpo propio (solo fondo propio).
+- Las plantillas incluidas siguen siendo páginas con su propio código; "Editar esta plantilla" crea una versión equivalente hecha de piezas en el motor de datos (muy parecida, no idéntica pixel a pixel).
+- La cabeza de Headspace y el equipo de 2000s son piezas indivisibles: se mueven, se agrandan y cambian de cuerpo, color o skin, pero no se desarman.
 
 ## Seguridad y privacidad
 

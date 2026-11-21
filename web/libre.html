@@ -9,107 +9,156 @@
 <link rel="stylesheet" href="fonts/ambiente.css">
 <link rel="stylesheet" href="fonts/pixel.css">
 <link rel="stylesheet" href="fonts/dosmil.css">
+<link rel="stylesheet" href="modulos.css">
 <script src="hls.min.js"></script>
 <style>
-  :root { --acento: #ff2d3d; --fuente: "Geist"; --p: 0%; --v: 80%; }
+  :root { --acento: #ff2d3d; --fuente: "Geist"; --p: 0%; --v: 80%; --blur: none; }
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; overflow: hidden; background: #08080a; color: #f3f3f5; font-family: var(--fuente), system-ui, sans-serif; }
   #fondoL { position: fixed; inset: 0; z-index: 0; }
-  #fondoL canvas, #fondoL div { position: absolute; inset: 0; width: 100%; height: 100%; background-size: cover; background-position: center; }
+  #fondoL canvas, #fondoL > div { position: absolute; inset: 0; width: 100%; height: 100%; background-size: cover; background-position: center; }
   .pz { position: fixed; z-index: 1; container-type: size; display: flex; align-items: center; }
 
   /* Estilos de panel: cambian el aspecto de paneles, botones, lista y barras */
-  body[data-panel=vidrio] { --bg: rgba(255,255,255,.09); --borde: .8px solid rgba(255,255,255,.22); --rad: 16px; --radp: 22px; --pt: #f3f3f5; --sombra: 0 10px 30px rgba(0,0,0,.35); --blur: blur(10px); }
-  body[data-panel=metal] { --bg: linear-gradient(180deg,#eef1f5,#b1b9c6 55%,#8f97a5); --borde: 1px solid rgba(0,0,0,.55); --rad: 10px; --radp: 14px; --pt: #272c35; --sombra: inset 0 1px 0 rgba(255,255,255,.75), 0 6px 14px rgba(0,0,0,.45); --blur: none; }
-  body[data-panel=gel] { --bg: linear-gradient(180deg,rgba(255,255,255,.78),rgba(255,255,255,.14) 50%,transparent 52%), var(--acento); --borde: 1px solid rgba(0,0,0,.35); --rad: 999px; --radp: 28px; --pt: #0e1f08; --sombra: inset 0 -3px 6px rgba(0,0,0,.25), 0 4px 10px rgba(0,0,0,.45); --blur: none; }
-  body[data-panel=pixel] { --bg: #1a1620; --borde: 3px solid var(--acento); --rad: 0; --radp: 0; --pt: #f3f3f5; --sombra: none; --blur: none; }
-  body[data-panel=liso] { --bg: rgba(14,14,18,.86); --borde: 1px solid #2c2c36; --rad: 8px; --radp: 10px; --pt: #f3f3f5; --sombra: none; --blur: none; }
-  .caja { background: var(--bg); border: var(--borde); border-radius: var(--radp); box-shadow: var(--sombra); -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur); width: 100%; height: 100%; color: var(--pt); }
+  body[data-panel=vidrio] { --bg: rgba(255,255,255,.09); --borde: .8px solid rgba(255,255,255,.22); --rad: 16px; --radp: 22px; --pt: #f3f3f5; --sombra: 0 10px 30px rgba(0,0,0,.35); }
+  body[data-panel=vidrio] .caja, body[data-panel=vidrio] .bt { -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur); }
+  body[data-panel=metal] { --bg: linear-gradient(180deg,#eef1f5,#b1b9c6 55%,#8f97a5); --borde: 1px solid rgba(0,0,0,.55); --rad: 10px; --radp: 14px; --pt: #272c35; --sombra: inset 0 1px 0 rgba(255,255,255,.75), 0 6px 14px rgba(0,0,0,.45); }
+  body[data-panel=gel] { --bg: linear-gradient(180deg,rgba(255,255,255,.78),rgba(255,255,255,.14) 50%,transparent 52%), var(--acento); --borde: 1px solid rgba(0,0,0,.35); --rad: 999px; --radp: 28px; --pt: #0e1f08; --sombra: inset 0 -3px 6px rgba(0,0,0,.25), 0 4px 10px rgba(0,0,0,.45); }
+  body[data-panel=pixel] { --bg: #1a1620; --borde: 3px solid var(--acento); --rad: 0; --radp: 0; --pt: #f3f3f5; --sombra: none; }
+  body[data-panel=liso] { --bg: rgba(14,14,18,.86); --borde: 1px solid #2c2c36; --rad: 8px; --radp: 10px; --pt: #f3f3f5; --sombra: none; }
+  .caja { background: var(--bg); border: var(--borde); border-radius: var(--radp); box-shadow: var(--sombra); width: 100%; height: 100%; color: var(--pt); }
+  .caja.sinborde { border: none; box-shadow: none; }
   body[data-panel=gel] .caja { background: linear-gradient(180deg,rgba(255,255,255,.35),rgba(255,255,255,.05) 50%,rgba(0,0,0,.25)), color-mix(in srgb, var(--acento) 55%, #000); color: #fff; }
   body[data-panel=pixel] .caja, body[data-panel=pixel] .bt { clip-path: polygon(0 8px,4px 8px,4px 4px,8px 4px,8px 0,calc(100% - 8px) 0,calc(100% - 8px) 4px,calc(100% - 4px) 4px,calc(100% - 4px) 8px,100% 8px,100% calc(100% - 8px),calc(100% - 4px) calc(100% - 8px),calc(100% - 4px) calc(100% - 4px),calc(100% - 8px) calc(100% - 4px),calc(100% - 8px) 100%,8px 100%,8px calc(100% - 4px),4px calc(100% - 4px),4px calc(100% - 8px),0 calc(100% - 8px)); }
 
-  .tit { font-weight: 600; font-size: min(78cqh, 9cqw); line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; text-shadow: 0 2px 10px rgba(0,0,0,.5); }
-  .art { font-size: min(80cqh, 6cqw); opacity: .75; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; text-shadow: 0 2px 10px rgba(0,0,0,.5); }
-  #caratula { width: 100%; height: 100%; object-fit: cover; border-radius: var(--radp); box-shadow: 0 12px 40px rgba(0,0,0,.5); }
-  body[data-panel=pixel] #caratula { image-rendering: pixelated; border-radius: 0; box-shadow: 0 0 0 3px var(--acento); }
+  .tit { font-weight: 600; font-size: calc(min(78cqh, 9cqw) * var(--tam, 1)); line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; text-shadow: 0 2px 10px rgba(0,0,0,.5); }
+  .art { font-size: calc(min(80cqh, 6cqw) * var(--tam, 1)); opacity: .75; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; text-shadow: 0 2px 10px rgba(0,0,0,.5); }
+  .cwrap { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+  .cwrap > * { position: absolute; max-width: 100%; max-height: 100%; aspect-ratio: 1; width: auto; height: 100%; object-fit: cover; box-shadow: 0 12px 40px rgba(0,0,0,.5); }
+  .cwrap.f-cuadrada > * { border-radius: 0; } .cwrap.f-redondeada > * { border-radius: var(--radp, 18px); } .cwrap.f-circulo > *, .cwrap.f-vinilo > * { border-radius: 50%; }
+  .cwrap.f-vinilo > * { animation: girar 9s linear infinite paused; } body.sonando .cwrap.f-vinilo > * { animation-play-state: running; }
+  @keyframes girar { to { transform: rotate(360deg); } }
+  .cwrap.borde > * { box-shadow: 0 0 0 3px var(--acento), 0 12px 40px rgba(0,0,0,.5); }
+  .cwrap.bn > img { filter: grayscale(1); }
+  body[data-panel=pixel] .cwrap > img, body[data-panel=pixel] .cwrap > canvas { image-rendering: pixelated; }
   .pz canvas { width: 100%; height: 100%; display: block; }
-  .botones { display: flex; gap: 6cqh; justify-content: center; width: 100%; height: 100%; padding: 4cqh 0; }
+  .botones { display: flex; gap: calc(var(--sep, 6) * 1cqh); justify-content: center; width: 100%; height: 100%; padding: 4cqh 0; transform: scale(var(--tam, 1)); }
   .bt { height: 100%; aspect-ratio: 1.45; max-width: 34%; background: var(--bg); border: var(--borde); border-radius: var(--rad); box-shadow: var(--sombra); color: var(--pt); cursor: pointer;
-    font: 400 min(46cqh, 9cqw) "Segoe UI Symbol", system-ui, sans-serif; padding: 0; -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur); transition: transform .1s, filter .15s; }
+    font: 400 min(46cqh, 9cqw) "Segoe UI Symbol", system-ui, sans-serif; padding: 0; transition: transform .1s, filter .15s; }
+  .botones.redondos .bt { border-radius: 50%; aspect-ratio: 1; }
   .bt:hover { filter: brightness(1.15); } .bt:active { transform: scale(.94); }
-  .bt.mayor { aspect-ratio: 1.8; }
-  input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: min(100cqh, 12px); margin: 0; border-radius: 999px; cursor: pointer;
-    background: linear-gradient(90deg, var(--acento) var(--p), rgba(255,255,255,.16) var(--p)); }
+  .bt.mayor { aspect-ratio: 1.8; } .botones.redondos .bt.mayor { aspect-ratio: 1; }
+  input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: min(100cqh, var(--grosor, 12px)); margin: 0; border-radius: 999px; cursor: pointer; background: linear-gradient(90deg, var(--acento) var(--p), rgba(255,255,255,.16) var(--p)); }
   #volumen { background: linear-gradient(90deg, var(--acento) var(--v), rgba(255,255,255,.16) var(--v)); }
-  body[data-panel=pixel] input[type=range] { border-radius: 0; height: min(100cqh, 14px); background: repeating-linear-gradient(90deg, transparent 0 8px, #1a1620 8px 10px), linear-gradient(90deg, var(--acento) var(--p), #0a0810 var(--p)); }
+  body[data-panel=pixel] input[type=range] { border-radius: 0; background: repeating-linear-gradient(90deg, transparent 0 8px, #1a1620 8px 10px), linear-gradient(90deg, var(--acento) var(--p), #0a0810 var(--p)); }
   body[data-panel=pixel] #volumen { background: repeating-linear-gradient(90deg, transparent 0 8px, #1a1620 8px 10px), linear-gradient(90deg, var(--acento) var(--v), #0a0810 var(--v)); }
   input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #fff; box-shadow: 0 0 10px var(--acento); }
   body[data-panel=pixel] input[type=range]::-webkit-slider-thumb { border-radius: 0; width: 10px; height: 18px; }
-  .tiempo { font: 500 min(70cqh, 14cqw) "Geist Mono", monospace; opacity: .8; width: 100%; text-align: center; white-space: nowrap; }
+  .barra-c { width: 100%; height: 100%; cursor: pointer; position: relative; } .barra-c input { display: none; }
+  .tiempo { font: 500 calc(min(70cqh, 14cqw) * var(--tam, 1)) "Geist Mono", monospace; opacity: .8; width: 100%; text-align: center; white-space: nowrap; }
   .vol { display: flex; gap: 8px; align-items: center; width: 100%; }
   #iconoVol { background: none; border: none; color: #fff; font-size: min(70cqh, 18px); cursor: pointer; opacity: .8; padding: 0; }
-  #lista { width: 100%; height: 100%; overflow-y: auto; padding: 8px 0 14px; scrollbar-width: thin; scrollbar-color: var(--acento) transparent; }
-  .fila { display: grid; grid-template-columns: 34px 24px 1fr 42px; gap: 10px; align-items: center; padding: 4px 12px; font-size: 13px; cursor: pointer; opacity: .8; }
+  #lista { width: 100%; height: 100%; overflow-y: auto; padding: 8px 0 14px; scrollbar-width: thin; scrollbar-color: var(--acento) transparent; font-size: calc(13px * var(--tam, 1)); }
+  .fila { display: grid; grid-template-columns: 34px 24px 1fr 42px; gap: 10px; align-items: center; padding: 4px 12px; cursor: pointer; opacity: .8; }
   .fila:hover { opacity: 1; background: rgba(255,255,255,.08); }
   .fila.sonando { opacity: 1; background: color-mix(in srgb, var(--acento) 32%, transparent); font-weight: 600; }
   .fila img { width: 34px; height: 34px; object-fit: cover; border-radius: 4px; }
   .fila .nombre { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .fila .n, .fila .dur { font: 11px "Geist Mono", monospace; opacity: .7; }
-  .imagen { width: 100%; height: 100%; object-fit: contain; }
+  .sin-mini .fila img { display: none; } .sin-mini .fila { grid-template-columns: 24px 1fr 42px; }
+  .sin-num .fila .n { display: none; } .sin-num .fila { grid-template-columns: 34px 1fr 42px; } .sin-mini.sin-num .fila { grid-template-columns: 1fr 42px; }
+  .imagen { width: 100%; height: 100%; }
   #vacio { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; color: #aaa; z-index: 5; }
 </style>
 </head>
 <body data-panel="vidrio">
+<svg width="0" height="0" style="position:absolute"><filter id="liquido" x="0%" y="0%" width="100%" height="100%" color-interpolation-filters="sRGB">
+  <feTurbulence type="fractalNoise" baseFrequency="0.006 0.009" numOctaves="2" seed="11" result="ruido"/>
+  <feGaussianBlur in="ruido" stdDeviation="2.5" result="suave"/>
+  <feDisplacementMap id="desplaza" in="SourceGraphic" in2="suave" scale="70" xChannelSelector="R" yChannelSelector="G"/>
+</filter></svg>
 <div id="fondoL"></div>
 <script src="propiedades.js"></script>
+<script src="esquema.js"></script>
 <script src="plantillas-propias.js"></script>
 <script src="tunel.js"></script>
 <script src="haz.js"></script>
 <script src="nucleo.js"></script>
+<script src="modulos.js"></script>
 <script>
 "use strict";
 const spec = Propias.obtener(new URLSearchParams(location.search).get("plantilla"));
 const rgb = (h) => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
 const tono = ([r, g, b]) => { const mx = Math.max(r, g, b), mn = Math.min(r, g, b); if (mx === mn) return 0; const d = mx - mn; const h = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; return (h * 60 + 360) % 360; };
+let acento = [255, 45, 61];   // se mueve si el acento sale de la carátula
+const raiz = document.documentElement.style;
+// Valor de una opción: el de la plantilla o el predeterminado del esquema
+const val = (p, k) => { const d = (ESQUEMA.tipos[p.tipo].opciones[k] || ESQUEMA.comunes[k]); return p[k] === undefined || p[k] === null ? d.def : p[k]; };
+const fv = (k) => spec.fondo[k] === undefined ? ESQUEMA.fondo[k].def : spec.fondo[k];
+const ev = (k) => spec.estilo[k] === undefined ? ESQUEMA.estilo[k].def : spec.estilo[k];
+
+// ---- Colores de la carátula (para el duotono y el acento automático) ----
+function cargar(src, listo) {
+  if (!src) return listo(null);
+  const i = new Image(); i.crossOrigin = "anonymous";
+  i.onload = () => listo(i); i.onerror = () => { const j = new Image(); j.onload = () => listo(j); j.onerror = () => listo(null); j.src = src; }; i.src = src;
+}
+function coloresDe(img) {
+  try {
+    const c = document.createElement("canvas"); c.width = c.height = 24; const g = c.getContext("2d"); g.drawImage(img, 0, 0, 24, 24);
+    const px = g.getImageData(0, 0, 24, 24).data, l = [];
+    for (let i = 0; i < px.length; i += 4) { const k = [px[i], px[i + 1], px[i + 2]], mx = Math.max(...k), mn = Math.min(...k); l.push({ k, s: (mx - mn) * (mx > 40 ? 1 : 0.1) }); }
+    l.sort((a, b) => b.s - a.s); return [l[0].k, l[Math.floor(l.length * .08)].k, l[Math.floor(l.length * .25)].k];
+  } catch (e) { return null; }
+}
+function ponerAcento(c) { acento = c; raiz.setProperty("--acento", `rgb(${c})`); }
 
 function construir(s) {
   document.title = s.nombre;
-  document.body.dataset.panel = s.estilo.panel;
-  document.documentElement.style.setProperty("--acento", s.estilo.acento);
-  document.documentElement.style.setProperty("--fuente", `"${s.estilo.fuente}"`);
-  const acento = rgb(s.estilo.acento), h0 = tono(acento);
-  fondo(s.fondo, acento, h0);
+  document.body.dataset.panel = ev("panel");
+  ponerAcento(rgb(ev("acento")));
+  raiz.setProperty("--fuente", `"${ev("fuente")}"`);
+  if (ev("deformacion") > 0) { document.getElementById("desplaza").setAttribute("scale", ev("deformacion")); raiz.setProperty("--blur", "blur(3px) url(#liquido) saturate(1.8) brightness(1.08)"); }
+  if (ev("acentoAuto")) R.alCambiar((p) => cargar(p.caratula, (i) => { const c = i && coloresDe(i); if (c) { const [r, g, b] = c[0], m = Math.max(r, g, b), f = m < 150 ? 1.6 : 1; ponerAcento([Math.min(255, r * f), Math.min(255, g * f), Math.min(255, b * f)].map(Math.round)); } }));
+  fondo();
   s.piezas.forEach((p, i) => {
     const e = document.createElement("div");
     e.className = "pz" + (["botones", "barra", "tiempo", "volumen", "lista"].includes(p.tipo) ? " ocultable" : ""); e.dataset.tipo = p.tipo;
-    e.style.cssText = `left:${p.x}%;top:${p.y}%;width:${p.w}%;height:${p.h}%;z-index:${i + 1}`;
+    e.style.cssText = `left:${p.x}%;top:${p.y}%;width:${p.w}%;height:${p.h}%;z-index:${i + 1};opacity:${val(p, "opacidad") / 100}`;
     if (p.tipo === "lista") e.dataset.prop = "lista";   // lo apaga la propiedad "Mostrar la lista"
-    const dentro = pieza(p, acento);
+    const dentro = pieza(p, e);
     if (dentro) e.appendChild(dentro);
     document.body.appendChild(e);
   });
   R.cadaCuadro(() => {
-    document.documentElement.style.setProperty("--p", (R.progreso() * 100).toFixed(2) + "%");
+    raiz.setProperty("--p", (R.progreso() * 100).toFixed(2) + "%");
+    document.body.classList.toggle("sonando", (document.getElementById("bPlay") || {}).textContent === "❚❚");
   });
   const vol = document.getElementById("volumen");
-  if (vol) vol.addEventListener("input", () => document.documentElement.style.setProperty("--v", vol.value + "%"));
+  if (vol) vol.addEventListener("input", () => raiz.setProperty("--v", vol.value + "%"));
 }
 
 // ---- Fondos ----
-function lienzoDe(contenedor) { const c = document.createElement("canvas"); contenedor.appendChild(c); return c; }
 function ajustar(c) { const w = innerWidth, h = innerHeight; if (c.width !== w || c.height !== h) { c.width = w; c.height = h; } return c.getContext("2d"); }
-function fondo(f, acento, h0) {
-  const c = document.getElementById("fondoL");
-  c.style.filter = `brightness(${(f.brillo || 100) / 100})`;
-  if (f.tipo === "color") { const d = document.createElement("div"); d.style.background = f.color; c.appendChild(d); return; }
-  if (f.tipo === "imagen") { const d = document.createElement("div"); d.style.background = `${f.color} ${f.imagen ? `url("${f.imagen}")` : ""} center / cover`; c.appendChild(d); return; }
-  const base = document.createElement("div"); base.style.background = f.color || "#08080a"; c.appendChild(base);
-  const lienzo = lienzoDe(c);
-  if (f.tipo === "haz") {
+function fondo() {
+  const c = document.getElementById("fondoL"), tipo = spec.fondo.tipo;
+  c.style.filter = `brightness(${fv("brillo") / 100})`;
+  const capa = (css) => { const d = document.createElement("div"); d.style.background = css; c.appendChild(d); return d; };
+  if (tipo === "color") return capa(fv("color"));
+  if (tipo === "degradado") return capa(`linear-gradient(${fv("angulo")}deg, ${fv("color")}, ${fv("color2")})`);
+  if (tipo === "imagen") return capa(`${fv("color")} ${fv("imagen") ? `url("${fv("imagen")}")` : ""} center / cover`);
+  if (tipo === "caratula") {
+    capa(fv("color")); const d = capa("none"); d.style.cssText += `;inset:-12%;width:124%;height:124%;filter:blur(${fv("desenfoque")}px) saturate(1.4) brightness(.45)`;
+    R.alCambiar((p) => { d.style.backgroundImage = p.caratula ? `url("${p.caratula}")` : "none"; });
+    R.cadaCuadro(() => { d.style.transform = `scale(${(1 + R.energia(R.espectro(), 1, 8) * 0.08).toFixed(3)})`; }); return;
+  }
+  capa(fv("color"));
+  const lienzo = document.createElement("canvas"); c.appendChild(lienzo);
+  if (tipo === "haz") {
     iniciarHaz(lienzo, () => { const d = R.espectro(); return { bajo: Math.min(1, R.energia(d, 1, 10) * 1.2), medio: R.energia(d, 10, 60), agudo: R.energia(d, 60, 200) }; }, () => acento);
-  } else if (f.tipo === "tunel") {
-    R.cadaCuadro((t) => { const d = R.espectro(); dibujarTunel(lienzo, d, R.energia(d, 1, 8), R.energia(d, 60, 200), t, (i, tt) => h0 + 40 * Math.sin(tt * 0.3 + i * 0.25)); });
-  } else if (f.tipo === "burbujas") {
+  } else if (tipo === "tunel") {
+    R.cadaCuadro((t) => { const d = R.espectro(), h0 = tono(acento); dibujarTunel(lienzo, d, R.energia(d, 1, 8), R.energia(d, 60, 200), t, (i, tt) => h0 + 40 * Math.sin(tt * 0.3 + i * 0.25)); });
+  } else if (tipo === "burbujas") {
     const bs = Array.from({ length: 34 }, () => ({ x: Math.random(), y: Math.random(), r: 8 + Math.random() * 46, v: 0.0004 + Math.random() * 0.0012 }));
     R.cadaCuadro((t) => {
       const g = ajustar(lienzo), w = lienzo.width, h = lienzo.height, bajo = R.energia(R.espectro(), 1, 8);
@@ -122,9 +171,9 @@ function fondo(f, acento, h0) {
         g.fillStyle = "rgba(255,255,255,.3)"; g.beginPath(); g.ellipse(x - r * .35, y - r * .4, r * .28, r * .14, -.6, 0, 7); g.fill();
       }
     });
-  } else if (f.tipo === "luces") {
+  } else if (tipo === "luces") {
     R.cadaCuadro((t) => {
-      const g = ajustar(lienzo), w = lienzo.width, h = lienzo.height, bajo = R.energia(R.espectro(), 1, 8);
+      const g = ajustar(lienzo), w = lienzo.width, h = lienzo.height, bajo = R.energia(R.espectro(), 1, 8), h0 = tono(acento);
       g.clearRect(0, 0, w, h); g.globalCompositeOperation = "lighter";
       [0, 1, 2].forEach(i => {
         const x = w * (.3 + .35 * Math.sin(t * .13 + i * 2.1)), y = h * (.45 + .3 * Math.cos(t * .11 + i * 1.7)), r = Math.max(w, h) * (.3 + bajo * .18);
@@ -133,60 +182,124 @@ function fondo(f, acento, h0) {
       });
       g.globalCompositeOperation = "source-over";
     });
-  } else if (f.tipo === "estrellas") {
+  } else if (tipo === "estrellas") {
     const T = 4, es = Array.from({ length: 220 }, () => [Math.random(), Math.random(), Math.random()]);
     R.cadaCuadro((t) => {
       const g = ajustar(lienzo), w = lienzo.width, h = lienzo.height, bajo = R.energia(R.espectro(), 1, 8);
       g.clearRect(0, 0, w, h); g.fillStyle = `rgb(${acento})`;
-      es.forEach(s => { s[0] -= (.0003 + s[2] * .0012) * (1 + bajo * 6); if (s[0] < 0) s[0] += 1; if ((t * 3 + s[2] * 10) % 4 > .6) g.fillRect(Math.round(s[0] * w / T) * T, Math.round(s[1] * h / T) * T, T, T); });
+      es.forEach(e => { e[0] -= (.0003 + e[2] * .0012) * (1 + bajo * 6); if (e[0] < 0) e[0] += 1; if ((t * 3 + e[2] * 10) % 4 > .6) g.fillRect(Math.round(e[0] * w / T) * T, Math.round(e[1] * h / T) * T, T, T); });
     });
   }
 }
 
 // ---- Visuales ----
-function visual(canvas, tipo, color) {
-  R.cadaCuadro((t) => {
+function visual(canvas, p) {
+  const tipo = val(p, "visual"), esc = val(p, "intensidad") / 100, espejo = val(p, "espejo");
+  R.cadaCuadro(() => {
     const w = canvas.clientWidth, h = canvas.clientHeight; if (!w || !h) return;
     if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
-    const g = canvas.getContext("2d"), d = R.espectro(), col = color;
+    const g = canvas.getContext("2d"), d = R.espectro(), col = val(p, "color") || `rgb(${acento})`, H = espejo && tipo !== "onda" && tipo !== "circulo" ? h / 2 : h;
     g.clearRect(0, 0, w, h); g.fillStyle = g.strokeStyle = col;
-    const banda = (i, n) => R.energia(d, Math.floor(2 * Math.pow(140, i / n)), Math.max(Math.floor(2 * Math.pow(140, (i + 1) / n)), Math.floor(2 * Math.pow(140, i / n)) + 1));
+    const banda = (i, n) => Math.min(1, esc * R.energia(d, Math.floor(2 * Math.pow(140, i / n)), Math.max(Math.floor(2 * Math.pow(140, (i + 1) / n)), Math.floor(2 * Math.pow(140, i / n)) + 1)));
     if (tipo === "barras") {
       const n = 40, a = w / n;
-      for (let i = 0; i < n; i++) { const v = Math.pow(banda(i, n), 1.3), alto = Math.max(3, v * h); g.globalAlpha = .55 + v * .45; g.beginPath(); g.roundRect(i * a + a * .15, h - alto, a * .7, alto, Math.min(6, a * .35)); g.fill(); }
+      for (let i = 0; i < n; i++) { const v = Math.pow(banda(i, n), 1.3), alto = Math.max(3, v * H); g.globalAlpha = .55 + v * .45; g.beginPath(); g.roundRect(i * a + a * .15, H - alto, a * .7, alto, Math.min(6, a * .35)); g.fill(); }
       g.globalAlpha = 1;
     } else if (tipo === "pixel") {
-      const B = Math.max(6, Math.round(h / 16)), n = Math.floor(w / (B + 2)), filas = Math.floor(h / (B + 2));
-      for (let i = 0; i < n; i++) { const m = Math.round(Math.pow(banda(i, n), 1.6) * filas); for (let f = 0; f < m; f++) g.fillRect(i * (B + 2), h - (f + 1) * (B + 2), B, B); }
+      const B = Math.max(6, Math.round(H / 16)), n = Math.floor(w / (B + 2)), filas = Math.floor(H / (B + 2));
+      for (let i = 0; i < n; i++) { const m = Math.round(Math.pow(banda(i, n), 1.6) * filas); for (let f = 0; f < m; f++) g.fillRect(i * (B + 2), H - (f + 1) * (B + 2), B, B); }
     } else if (tipo === "lcd") {
-      const n = 22, SEG = 16, a = w / n, al = h / SEG;
-      for (let i = 0; i < n; i++) { const m = Math.round(Math.pow(banda(i, n), 1.6) * SEG); for (let s = 0; s < SEG; s++) { g.globalAlpha = s < m ? 1 : .1; g.fillRect(i * a + 1, h - (s + 1) * al + 1, a - 2, al - 2); } }
+      const n = 22, SEG = 16, a = w / n, al = H / SEG;
+      for (let i = 0; i < n; i++) { const m = Math.round(Math.pow(banda(i, n), 1.6) * SEG); for (let s = 0; s < SEG; s++) { g.globalAlpha = s < m ? 1 : .1; g.fillRect(i * a + 1, H - (s + 1) * al + 1, a - 2, al - 2); } }
       g.globalAlpha = 1;
     } else if (tipo === "onda") {
       const o = R.ondaAudio(); g.lineWidth = Math.max(2, h / 60); g.shadowColor = col; g.shadowBlur = 12; g.beginPath();
-      for (let i = 0; i < o.length; i += 2) { const x = i / o.length * w, y = h / 2 + (o[i] - 128) / 128 * h * .45; i ? g.lineTo(x, y) : g.moveTo(x, y); }
+      for (let i = 0; i < o.length; i += 2) { const x = i / o.length * w, y = h / 2 + (o[i] - 128) / 128 * h * .45 * esc; i ? g.lineTo(x, y) : g.moveTo(x, y); }
       g.stroke();
     } else if (tipo === "circulo") {
-      const cx = w / 2, cy = h / 2, r0 = Math.min(w, h) * (.2 + R.energia(d, 1, 8) * .08), N = 72; g.lineWidth = Math.max(2, Math.min(w, h) / 90); g.lineCap = "round";
+      const cx = w / 2, cy = h / 2, r0 = Math.min(w, h) * (.2 + R.energia(d, 1, 8) * .08 * esc), N = 72; g.lineWidth = Math.max(2, Math.min(w, h) / 90); g.lineCap = "round";
       for (let i = 0; i < N; i++) { const v = banda(i % (N / 2) * 2, N), a = i / N * Math.PI * 2 - Math.PI / 2, l = Math.min(w, h) * (.04 + v * .26); g.beginPath(); g.moveTo(cx + Math.cos(a) * r0, cy + Math.sin(a) * r0); g.lineTo(cx + Math.cos(a) * (r0 + l), cy + Math.sin(a) * (r0 + l)); g.stroke(); }
     }
+    if (espejo && H !== h) { g.save(); g.translate(0, h); g.scale(1, -1); g.globalAlpha = .35; g.drawImage(canvas, 0, 0, w, H, 0, 0, w, H); g.restore(); }
   });
 }
 
-function pieza(p, acento) {
+// ---- Carátula con efectos ----
+function caratula(p) {
+  const forma = val(p, "forma"), efecto = val(p, "efecto"), d = document.createElement("div");
+  d.className = `cwrap f-${forma}${val(p, "borde") ? " borde" : ""}${efecto === "bn" ? " bn" : ""}`;
+  const rot = val(p, "inclinacion"); if (rot) d.style.transform = `rotate(${rot}deg)`;
+  d.innerHTML = '<img id="caratula" alt="">';
+  const img = d.firstChild; img.onerror = () => { img.style.visibility = "hidden"; }; img.onload = () => { img.style.visibility = "visible"; };
+  if (efecto === "pixelada" || efecto === "duotono") {
+    const c = document.createElement("canvas"); c.width = c.height = 240; d.appendChild(c); img.style.display = "none";
+    R.alCambiar((q) => cargar(q.caratula, (i) => {
+      const g = c.getContext("2d"); g.clearRect(0, 0, 240, 240); if (!i) return;
+      if (efecto === "pixelada") { const s = document.createElement("canvas"); s.width = s.height = 30; s.getContext("2d").drawImage(i, 0, 0, 30, 30); g.imageSmoothingEnabled = false; g.drawImage(s, 0, 0, 240, 240); return; }
+      g.drawImage(i, 0, 0, 240, 240); const col = coloresDe(i); if (!col) return;
+      const data = g.getImageData(0, 0, 240, 240), px = data.data, osc = col[2].map(v => v * .08), cla = col[0].map(v => v + (255 - v) * .38);
+      for (let k = 0; k < px.length; k += 4) { const l = (0.299 * px[k] + 0.587 * px[k + 1] + 0.114 * px[k + 2]) / 255, m = Math.pow(l * l * (3 - 2 * l), 1.15); for (let j = 0; j < 3; j++) px[k + j] = osc[j] + (cla[j] - osc[j]) * m; }
+      g.putImageData(data, 0, 0);
+    }));
+  }
+  return d;
+}
+
+// ---- Barra de avance: línea, onda real del tema o segmentos ----
+function barra(p) {
+  const modo = val(p, "modo"), grosor = val(p, "grosor");
+  if (modo === "linea") { const i = document.createElement("input"); i.id = "barra"; i.type = "range"; i.min = 0; i.max = 1000; i.value = 0; i.title = "Avance"; i.style.setProperty("--grosor", grosor + "px"); return i; }
+  const d = document.createElement("div"); d.className = "barra-c"; d.innerHTML = '<input id="barra" type="range" min="0" max="1000" value="0"><canvas></canvas>';
+  const c = d.querySelector("canvas"); let onda = [];
+  R.alCambiar((q) => { onda = q.onda || []; });
+  d.addEventListener("click", (e) => { const r = d.getBoundingClientRect(); R.saltarA((e.clientX - r.left) / r.width); });
+  R.cadaCuadro(() => {
+    const w = c.clientWidth, h = c.clientHeight; if (!w || !h) return;
+    if (c.width !== w || c.height !== h) { c.width = w; c.height = h; }
+    const g = c.getContext("2d"), prog = R.progreso(); g.clearRect(0, 0, w, h);
+    if (modo === "onda") {
+      const n = onda.length || 120, a = w / n;
+      for (let i = 0; i < n; i++) { const v = Math.max(0.06, onda.length ? onda[i] : 0.3 + 0.25 * Math.sin(i * 0.4)) * h * .95; g.fillStyle = i / n < prog ? `rgb(${acento})` : "rgba(255,255,255,.22)"; g.fillRect(i * a, (h - v) / 2, Math.max(1, a - 1), v); }
+    } else {
+      const n = Math.floor(w / 12), a = w / n; for (let i = 0; i < n; i++) { g.fillStyle = i / n < prog ? `rgb(${acento})` : "rgba(255,255,255,.18)"; g.fillRect(i * a + 1, (h - Math.min(h, grosor * 1.6)) / 2, a - 2, Math.min(h, grosor * 1.6)); }
+    }
+  });
+  return d;
+}
+
+function pieza(p, caja) {
   const el = (html) => { const d = document.createElement("div"); d.style.cssText = "width:100%;height:100%;display:flex;align-items:center"; d.innerHTML = html; return d; };
+  const texto = (e) => {   // título y artista comparten opciones de tamaño, alineación, mayúsculas, letra y color
+    e.style.setProperty("--tam", val(p, "tam") / 100);
+    const x = e.firstChild; x.style.textAlign = { izquierda: "left", centro: "center", derecha: "right" }[val(p, "alineacion")];
+    if (val(p, "mayusculas")) x.style.textTransform = "uppercase";
+    if (val(p, "fuente")) x.style.fontFamily = `"${val(p, "fuente")}", system-ui, sans-serif`;
+    if (val(p, "color")) x.style.color = val(p, "color");
+    return e;
+  };
   switch (p.tipo) {
-    case "visual": { const c = document.createElement("canvas"); visual(c, p.visual || "barras", p.color || `rgb(${acento})`); return c; }
-    case "caratula": { const i = document.createElement("img"); i.id = "caratula"; i.alt = ""; return i; }
-    case "titulo": return el('<div id="titulo" class="tit">—</div>');
-    case "artista": return el('<div id="artista" class="art"></div>');
-    case "botones": return el('<div class="botones"><button class="bt" id="bAnt" title="Anterior">&#x23EE;&#xFE0E;</button><button class="bt mayor" id="bPlay" title="Play / pausa">▶</button><button class="bt" id="bSig" title="Siguiente">&#x23ED;&#xFE0E;</button></div>');
-    case "barra": return el('<input id="barra" type="range" min="0" max="1000" value="0" title="Avance">');
-    case "tiempo": return el('<div id="tiempo" class="tiempo">0:00 / 0:00</div>');
+    case "visual": { const c = document.createElement("canvas"); visual(c, p); return c; }
+    case "caratula": return caratula(p);
+    case "titulo": return texto(el('<div id="titulo" class="tit">—</div>'));
+    case "artista": return texto(el('<div id="artista" class="art"></div>'));
+    case "botones": {
+      const e = el(`<div class="botones${val(p, "redondos") ? " redondos" : ""}"><button class="bt" id="bAnt" title="Anterior">&#x23EE;&#xFE0E;</button><button class="bt mayor" id="bPlay" title="Play / pausa">▶</button><button class="bt" id="bSig" title="Siguiente">&#x23ED;&#xFE0E;</button></div>`);
+      e.firstChild.style.setProperty("--tam", val(p, "tam") / 100); e.firstChild.style.setProperty("--sep", val(p, "separacion")); return e;
+    }
+    case "barra": return barra(p);
+    case "tiempo": { const e = el('<div id="tiempo" class="tiempo">0:00 / 0:00</div>'); e.style.setProperty("--tam", val(p, "tam") / 100); if (val(p, "color")) e.firstChild.style.color = val(p, "color"); return e; }
     case "volumen": return el('<div class="vol"><button id="iconoVol" title="Silenciar">🔊</button><input id="volumen" type="range" min="0" max="100" value="80" title="Volumen"></div>');
-    case "lista": { const c = document.createElement("div"); c.className = "caja"; c.innerHTML = '<div id="lista"></div>'; return c; }
-    case "panel": { const c = document.createElement("div"); c.className = "caja"; return c; }
-    case "imagen": { if (!p.imagen) { const c = document.createElement("div"); c.className = "caja"; c.style.opacity = .4; return c; } const i = document.createElement("img"); i.className = "imagen"; i.src = p.imagen; i.alt = ""; return i; }
+    case "lista": {
+      const c = document.createElement("div"); c.className = "caja" + (val(p, "miniaturas") ? "" : " sin-mini") + (val(p, "numeros") ? "" : " sin-num"); c.innerHTML = '<div id="lista"></div>';
+      c.style.setProperty("--tam", val(p, "tam") / 100); return c;
+    }
+    case "panel": { const c = document.createElement("div"); c.className = "caja" + (val(p, "borde") ? "" : " sinborde"); if (val(p, "color")) c.style.background = val(p, "color"); return c; }
+    case "imagen": {
+      if (!p.imagen) { const c = document.createElement("div"); c.className = "caja"; c.style.opacity = .4; return c; }
+      const i = document.createElement("img"); i.className = "imagen"; i.src = p.imagen; i.alt = ""; i.style.objectFit = val(p, "ajuste") === "cubrir" ? "cover" : "contain"; return i;
+    }
+    case "cabeza": Modulos.cabeza({ cuerpo: val(p, "cuerpo"), color: val(p, "color") }, caja); return null;
+    case "equipo": Modulos.equipo({ skin: val(p, "skin") }, caja); return null;
   }
   return null;
 }

@@ -1,0 +1,75 @@
+/* Módulos de libre.html: la cabeza de Headspace y el equipo de 2000s como piezas. Cada uno tiene un tamaño de
+   diseño fijo (600×760 y 1060 px de ancho) y modulos.js lo escala para que quepa en el recuadro de la pieza. */
+.m-cab, .m-eq { position: absolute; left: 50%; top: 50%; transform-origin: 50% 50%; box-sizing: border-box; }
+.m-cab *, .m-eq * { box-sizing: border-box; }
+
+/* ===== Cabeza (Headspace) ===== */
+.m-cab { width: 600px; height: 760px; --led: #8dff4a; --gel: #9be22a; font-family: "Fredoka", "Trebuchet MS", sans-serif; color: #fff; }
+.m-cab .cb, .m-cab .cb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.m-cab .zona { position: absolute; }
+.m-cab .gel { border: 1px solid color-mix(in srgb, var(--gel) 45%, black); border-radius: 999px; cursor: pointer; font: inherit; font-weight: 600; color: color-mix(in srgb, var(--gel) 22%, black);
+  background: linear-gradient(180deg, rgba(255,255,255,.9) 0%, rgba(255,255,255,.3) 46%, transparent 52%), radial-gradient(ellipse at 50% 125%, color-mix(in srgb, var(--gel) 55%, white), var(--gel) 55%, color-mix(in srgb, var(--gel) 60%, black));
+  box-shadow: inset 0 -3px 6px rgba(0,0,0,.25), 0 2px 5px rgba(0,0,0,.45); transition: transform .1s, filter .15s; }
+.m-cab .gel:hover { filter: brightness(1.12); } .m-cab .gel:active { transform: translateY(1px) scale(.97); }
+.m-cab .m-pantalla { border-radius: 8%; overflow: hidden; container-type: size; background: radial-gradient(ellipse at 50% 40%, #0a0f2a, #03050f); box-shadow: inset 0 0 2cqh rgba(0,0,0,.8); }
+.m-cab .m-pantalla::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(165deg, rgba(255,255,255,.14) 0 22%, transparent 22%), repeating-linear-gradient(0deg, rgba(0,0,0,.18) 0 1px, transparent 1px 3px); }
+.m-cab .visor { position: absolute; inset: 0; width: 100%; height: 100%; }
+.m-cab .cab { position: absolute; left: 6%; right: 6%; top: 8%; display: flex; gap: 4cqw; align-items: center; }
+.m-cab #caratula { width: 26cqh; height: 26cqh; object-fit: cover; border-radius: 3cqh; flex: none; box-shadow: 0 0 0 .6cqh var(--led), 0 0 3cqh color-mix(in srgb, var(--led) 60%, transparent); }
+.m-cab .txt { min-width: 0; overflow: hidden; color: var(--led); text-shadow: 0 0 2cqh color-mix(in srgb, var(--led) 70%, transparent); }
+.m-cab #titulo { font-size: 11cqh; font-weight: 600; line-height: 1.1; white-space: nowrap; display: inline-block; }
+.m-cab #titulo.largo { animation: m-pasar 9s ease-in-out 1.5s infinite alternate; }
+@keyframes m-pasar { to { transform: translateX(var(--mov)); } }
+.m-cab #artista { font-size: 8.5cqh; opacity: .75; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.m-cab #tiempo { position: absolute; right: 6%; top: 40%; font-size: 7.5cqh; color: var(--led); opacity: .8; }
+.m-cab .m-botones { display: flex; justify-content: space-between; align-items: center; padding: 0 3%; }
+.m-cab .m-botones button { width: 28%; height: 78%; font-size: 3cqh; font-family: "Segoe UI Symbol", "Fredoka", sans-serif; }
+.m-cab .m-barra { display: flex; align-items: center; justify-content: center; container-type: size; }
+.m-cab #barra { -webkit-appearance: none; appearance: none; width: 88%; height: 30cqh; margin: 0; border-radius: 999px; cursor: pointer;
+  background: linear-gradient(90deg, var(--led) var(--p), rgba(0,0,0,.6) var(--p)); box-shadow: inset 0 1px 3px rgba(0,0,0,.7), 0 1px 0 rgba(255,255,255,.35); }
+.m-cab #barra::-webkit-slider-thumb { -webkit-appearance: none; width: 60cqh; height: 60cqh; border-radius: 50%; border: 1px solid color-mix(in srgb, var(--gel) 45%, black);
+  background: linear-gradient(180deg, rgba(255,255,255,.95), rgba(255,255,255,.3) 48%, transparent 52%), var(--gel); box-shadow: 0 1px 3px rgba(0,0,0,.5); }
+.m-cab .ojo { border-radius: 50%; mix-blend-mode: screen; opacity: .2; background: radial-gradient(ellipse, #fff 0%, var(--led) 30%, transparent 70%); }
+.m-cab .boca { display: flex; gap: 4%; align-items: center; padding: 0 6%; container-type: size; }
+.m-cab .boca i { flex: 1; height: 55%; border-radius: 3px; background: var(--led); opacity: .12; box-shadow: 0 0 1cqh var(--led); }
+.m-cab .boca i.on { opacity: 1; } .m-cab .boca i.alto.on { background: #fff; }
+.m-cab .anillo { border-radius: 50%; opacity: 0; pointer-events: none; box-shadow: inset 0 0 0 4px var(--led), 0 0 20px var(--led), inset 0 0 20px var(--led); }
+
+/* ===== Equipo (2000s) ===== */
+.m-eq { width: 1060px; --metal: #c3c9d3; --grabado: #3b4250; --lcd: #06131f; --tinta: #7fdcff; --acento: #3fa9ff; --brilloLcd: 0 0 6px var(--tinta); font-family: "Michroma", Tahoma, sans-serif; border-radius: 26px 26px 18px 18px; padding: 10px 20px 16px;
+  background: repeating-linear-gradient(90deg, rgba(255,255,255,.05) 0 1px, transparent 1px 3px), linear-gradient(180deg, color-mix(in srgb, var(--metal) 55%, white), var(--metal) 40%, color-mix(in srgb, var(--metal) 70%, black));
+  box-shadow: inset 0 2px 0 rgba(255,255,255,.55), inset 0 -3px 0 rgba(0,0,0,.35), 0 0 0 1px rgba(0,0,0,.6), 0 20px 50px rgba(0,0,0,.6), 0 0 50px color-mix(in srgb, var(--acento) 22%, transparent); }
+.m-eq .metal { color: var(--grabado); border: 1px solid rgba(0,0,0,.55); cursor: pointer; font: inherit; background: linear-gradient(180deg, color-mix(in srgb, var(--metal) 40%, white), var(--metal) 55%, color-mix(in srgb, var(--metal) 75%, black));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.7), 0 2px 3px rgba(0,0,0,.4); text-shadow: 0 1px 0 rgba(255,255,255,.35); }
+.m-eq .metal:active { box-shadow: inset 0 2px 4px rgba(0,0,0,.45); }
+.m-eq .grabado { color: var(--grabado); font-size: 9px; letter-spacing: .18em; text-shadow: 0 1px 0 rgba(255,255,255,.3); }
+.m-eq .tope { display: flex; align-items: center; margin-bottom: 9px; } .m-eq .marca { font-size: 11px; letter-spacing: .3em; }
+.m-eq .lcd { background: var(--lcd); color: var(--tinta); font-family: "VT323", monospace; text-shadow: var(--brilloLcd); border-radius: 8px; position: relative; box-shadow: inset 0 3px 10px rgba(0,0,0,.6), 0 1px 0 rgba(255,255,255,.45); }
+.m-eq .lcd::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; background: linear-gradient(160deg, rgba(255,255,255,.09) 0 28%, transparent 28%), repeating-linear-gradient(0deg, rgba(0,0,0,.16) 0 1px, transparent 1px 3px); }
+.m-eq .cuerpo-eq { display: grid; grid-template-columns: 1fr auto; gap: 22px; align-items: center; }
+.m-eq #lcd { display: grid; grid-template-columns: 128px 1fr 200px; gap: 16px; padding: 12px 14px; min-width: 0; }
+.m-eq #caratula { width: 128px; height: 128px; display: block; }
+.m-eq .info { min-width: 0; display: flex; flex-direction: column; justify-content: space-between; }
+.m-eq .marquesina { font-size: 30px; line-height: 1; white-space: pre; overflow: hidden; }
+.m-eq .fila-tiempo { display: flex; align-items: center; gap: 16px; }
+.m-eq .reloj { position: relative; font-size: 66px; line-height: .85; } .m-eq .reloj .fantasma { position: absolute; left: 0; top: 0; opacity: .1; text-shadow: none; }
+.m-eq .indicadores { display: flex; flex-direction: column; font-size: 16px; line-height: 1.05; } .m-eq .indicadores span { opacity: .34; text-shadow: none; } .m-eq .indicadores span.on { opacity: 1; text-shadow: var(--brilloLcd); }
+.m-eq #artista { font-size: 21px; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.m-eq .espectro { width: 200px; height: 128px; display: block; }
+.m-eq .controles { display: flex; align-items: center; gap: 22px; }
+.m-eq .transporte { display: flex; align-items: center; gap: 4px; }
+.m-eq .transporte button { width: 50px; height: 36px; font-size: 14px; font-family: "Segoe UI Symbol", system-ui, sans-serif; }
+.m-eq .transporte button:first-child { border-radius: 18px 6px 6px 18px; } .m-eq .transporte button:last-child { border-radius: 6px 18px 18px 6px; }
+.m-eq .transporte button:not(:first-child):not(:last-child) { border-radius: 6px; }
+.m-eq #bPlay { width: 66px; height: 66px; border-radius: 50% !important; font-size: 22px; margin: 0 6px; box-shadow: inset 0 1px 0 rgba(255,255,255,.7), 0 0 0 4px rgba(0,0,0,.3), 0 0 0 6px color-mix(in srgb, var(--acento) 35%, transparent); }
+.m-eq.sonando #bPlay { box-shadow: inset 0 1px 0 rgba(255,255,255,.7), 0 0 0 4px rgba(0,0,0,.3), 0 0 0 6px var(--acento), 0 0 22px var(--acento); }
+.m-eq .vol { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.m-eq .perilla { width: 58px; height: 58px; border-radius: 50%; position: relative; cursor: ns-resize; touch-action: none;
+  background: radial-gradient(circle at 35% 30%, rgba(255,255,255,.65), transparent 45%), conic-gradient(color-mix(in srgb, var(--metal) 50%, white), color-mix(in srgb, var(--metal) 65%, black), color-mix(in srgb, var(--metal) 50%, white), color-mix(in srgb, var(--metal) 65%, black), color-mix(in srgb, var(--metal) 50%, white));
+  box-shadow: 0 0 0 3px rgba(0,0,0,.35), 0 4px 8px rgba(0,0,0,.5), inset 0 -2px 3px rgba(0,0,0,.4); }
+.m-eq .perilla::after { content: ""; position: absolute; left: 50%; top: 6px; width: 3px; height: 14px; margin-left: -1.5px; border-radius: 2px; background: var(--acento); box-shadow: 0 0 6px var(--acento); transform-origin: 50% 23px; transform: rotate(var(--giro, 81deg)); }
+.m-eq .riel { margin-top: 14px; }
+.m-eq #barra { -webkit-appearance: none; appearance: none; width: 100%; height: 8px; margin: 0; border-radius: 4px; cursor: pointer; background: linear-gradient(90deg, var(--acento) var(--p), rgba(0,0,0,.55) var(--p)); box-shadow: inset 0 1px 2px rgba(0,0,0,.6), 0 1px 0 rgba(255,255,255,.45); }
+.m-eq #barra::-webkit-slider-thumb { -webkit-appearance: none; width: 32px; height: 16px; border-radius: 8px; border: 1px solid rgba(0,0,0,.55);
+  background: repeating-linear-gradient(90deg, rgba(0,0,0,.28) 0 1px, transparent 1px 4px) center / 12px 8px no-repeat, linear-gradient(180deg, color-mix(in srgb, var(--metal) 35%, white), color-mix(in srgb, var(--metal) 75%, black)); box-shadow: inset 0 1px 0 rgba(255,255,255,.7), 0 1px 3px rgba(0,0,0,.5); }
+.m-eq #volumen { display: none; }

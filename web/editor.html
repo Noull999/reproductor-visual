@@ -11,12 +11,12 @@
   .capa { position: relative; z-index: 1; height: 100%; display: flex; flex-direction: column; padding: 14px 24px 18px; box-sizing: border-box; gap: 12px; }
   nav { display: flex; align-items: center; gap: 12px; padding: 8px 12px 8px 18px; }
   nav a.atras { color: var(--suave); text-decoration: none; font-size: 14px; } nav a.atras:hover { color: var(--texto); }
-  #nombre { flex: 1; max-width: 360px; padding: 8px 16px; border-radius: 999px; border: .8px solid var(--borde); background: rgba(255,255,255,.06); color: var(--texto); font: 500 16px Geist, system-ui; outline: none; }
+  #nombre { flex: 1; max-width: 340px; padding: 8px 16px; border-radius: 999px; border: .8px solid var(--borde); background: rgba(255,255,255,.06); color: var(--texto); font: 500 16px Geist, system-ui; outline: none; }
   #nombre:focus { border-color: var(--rojo); }
   nav .grande { margin-left: auto; display: flex; gap: 8px; align-items: center; }
   .btn.chico { padding: 8px 16px; font-size: 13px; }
   #estado { color: var(--suave); font-size: 12px; min-width: 90px; text-align: right; }
-  main { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 350px; gap: 14px; }
+  main { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 14px; }
   .izq { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
   #marco { position: relative; width: min(100%, calc((100vh - 150px) * 16 / 9)); aspect-ratio: 16 / 9; border-radius: 12px; overflow: hidden; background: #0a0709; box-shadow: 0 16px 50px rgba(0,0,0,.5), 0 0 0 1px var(--borde); touch-action: none; user-select: none; }
   #vista { position: absolute; left: 0; top: 0; width: 1440px; height: 810px; border: 0; transform-origin: 0 0; pointer-events: none; }
@@ -29,17 +29,23 @@
   .der { padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; scrollbar-width: thin; }
   .sec { display: flex; flex-direction: column; gap: 8px; }
   .sec .mono { color: var(--suave); }
+  .regla { padding: 10px 12px; border-radius: 12px; background: rgba(255,255,255,.07); border: .8px solid var(--borde); font-size: 13px; line-height: 1.45; color: var(--suave); }
+  .regla b { color: var(--texto); font-weight: 600; }
   label.f { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 13px; color: var(--suave); }
+  label.f.off { opacity: .4; pointer-events: none; }
   select, input[type=color] { background: rgba(255,255,255,.07); color: var(--texto); border: .8px solid var(--borde); border-radius: 10px; padding: 6px 10px; font: 13px Geist, system-ui; max-width: 190px; }
-  select option { background: #1a1214; color: #fff; }
+  select option { background: #1a1214; color: #fff; } select option:disabled { color: #777; }
   input[type=color] { width: 44px; height: 30px; padding: 2px; cursor: pointer; }
+  input[type=checkbox] { accent-color: var(--rojo); width: 16px; height: 16px; }
+  .rng { display: flex; flex-direction: column; gap: 2px; font-size: 13px; color: var(--suave); }
+  .rng .fila-h { justify-content: space-between; } .rng b { color: var(--texto); font-weight: 500; font-variant-numeric: tabular-nums; }
   input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 6px; border-radius: 999px; background: rgba(255,255,255,.14); margin: 6px 0; cursor: pointer; }
   input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: 0 0 12px var(--rojo); }
   .pieza { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 12px; border: .8px solid var(--borde); background: rgba(255,255,255,.04); cursor: pointer; font-size: 13px; }
   .pieza.sel { border-color: var(--texto); background: rgba(255,255,255,.12); }
   .pieza i { width: 10px; height: 10px; border-radius: 3px; background: var(--c); flex: none; }
   .pieza span { flex: 1; }
-  .mini { background: none; border: none; color: var(--suave); cursor: pointer; font-size: 15px; padding: 2px 5px; } .mini:hover { color: var(--texto); }
+  .mini { background: none; border: none; color: var(--suave); cursor: pointer; font-size: 15px; padding: 2px 5px; } .mini:hover { color: var(--texto); } .mini[disabled] { opacity: .35; cursor: default; }
   .boton { background: none; border: .8px solid var(--borde); color: var(--texto); border-radius: 999px; padding: 6px 14px; cursor: pointer; font: 13px Geist, system-ui; } .boton:hover { border-color: var(--texto); }
   .detalle { padding: 12px; border-radius: 14px; border: .8px dashed var(--borde); display: flex; flex-direction: column; gap: 8px; }
   .fila-h { display: flex; gap: 8px; align-items: center; }
@@ -71,6 +77,7 @@
   </main>
 </div>
 <script src="haz.js"></script>
+<script src="esquema.js"></script>
 <script src="plantillas-propias.js"></script>
 <script>
 "use strict";
@@ -79,7 +86,8 @@ const $ = (id) => document.getElementById(id);
 const q = new URLSearchParams(location.search);
 let spec = Propias.obtener(q.get("id"));
 if (!spec) { spec = Propias.nueva(q.get("base") || "central"); history.replaceState(null, "", `editor.html?id=${spec.id}`); }
-const COLOR = { visual: "#4da3ff", caratula: "#b36bff", titulo: "#ffd23d", artista: "#ffd23d", botones: "#ff7a45", barra: "#3ddc84", tiempo: "#8fe3ff", volumen: "#3ddc84", lista: "#ff4da6", panel: "#9aa4b8", imagen: "#ff9a2a" };
+const COLOR = { visual: "#4da3ff", caratula: "#b36bff", titulo: "#ffd23d", artista: "#ffd23d", botones: "#ff7a45", barra: "#3ddc84", tiempo: "#8fe3ff", volumen: "#3ddc84", lista: "#ff4da6", panel: "#9aa4b8", imagen: "#ff9a2a", cabeza: "#ff4da6", equipo: "#4da3ff" };
+const T = ESQUEMA.tipos;
 let sel = 0, recarga = 0, aviso = 0;
 const api = () => window.pywebview.api;
 const estado = (t) => { $("estado").textContent = t; clearTimeout(aviso); aviso = setTimeout(() => { $("estado").textContent = ""; }, 2500); };
@@ -97,7 +105,7 @@ function pintarCapa() {
   spec.piezas.forEach((p, i) => {
     const e = document.createElement("div"); e.className = "rz" + (i === sel ? " sel" : ""); e.dataset.i = i; e.style.setProperty("--c", COLOR[p.tipo]);
     e.style.cssText += `;left:${p.x}%;top:${p.y}%;width:${p.w}%;height:${p.h}%;z-index:${i + 1}`;
-    e.innerHTML = `<span>${Propias.ETIQUETAS[p.tipo]}</span><div class="hd"></div>`; capa.appendChild(e);
+    e.innerHTML = `<span>${T[p.tipo].etiqueta}</span><div class="hd"></div>`; capa.appendChild(e);
   });
 }
 const limitar = (n, a, b) => Math.max(a, Math.min(b, n));
@@ -118,67 +126,94 @@ $("capa").addEventListener("pointermove", (e) => {
 });
 $("capa").addEventListener("pointerup", () => { if (arrastre && arrastre.movido) guardar(); arrastre = null; });
 
-// ---- Panel de propiedades ----
+// ---- Controles generados desde el esquema (enum, num, bool, color) ----
 const opciones = (obj, actual) => Object.entries(obj).map(([k, v]) => `<option value="${k}"${k === actual ? " selected" : ""}>${v}</option>`).join("");
+function control(def, valor, alCambiar, apagado) {
+  const d = document.createElement("div");
+  if (def.t === "enum") {
+    d.innerHTML = `<label class="f${apagado ? " off" : ""}">${def.n}<select>${opciones(def.v, valor)}</select></label>`;
+    d.querySelector("select").onchange = (e) => alCambiar(e.target.value);
+  } else if (def.t === "num") {
+    d.className = "rng" + (apagado ? " off" : ""); d.innerHTML = `<div class="fila-h"><span>${def.n}</span><b>${valor}${def.u || ""}</b></div><input type="range" min="${def.min}" max="${def.max}" step="1" value="${valor}">`;
+    const r = d.querySelector("input"); r.oninput = () => { d.querySelector("b").textContent = r.value + (def.u || ""); alCambiar(+r.value, true); };
+  } else if (def.t === "bool") {
+    d.innerHTML = `<label class="f${apagado ? " off" : ""}">${def.n}<input type="checkbox"${valor ? " checked" : ""}></label>`;
+    d.querySelector("input").onchange = (e) => alCambiar(e.target.checked);
+  } else if (def.t === "color") {
+    d.innerHTML = `<label class="f${apagado ? " off" : ""}">${def.n}<span class="fila-h"><input type="color" value="${valor || "#ffffff"}">${def.vacio ? `<button class="boton" type="button">${valor ? "Quitar" : "Acento"}</button>` : ""}</span></label>`;
+    d.querySelector("input").oninput = (e) => alCambiar(e.target.value, true);
+    const b = d.querySelector("button"); if (b) b.onclick = () => alCambiar("");
+  }
+  return d;
+}
+const actual = (obj, k, def) => obj[k] === undefined || obj[k] === null ? def.def : obj[k];
+
 function pintarPanel() {
-  const P = $("panel"), p = spec.piezas[sel];
-  P.innerHTML = `
-    <div class="sec"><div class="mono">Fondo</div>
-      <label class="f">Tipo <select id="fTipo">${opciones(Propias.FONDOS, spec.fondo.tipo)}</select></label>
-      <label class="f">Color de base <input type="color" id="fColor" value="${spec.fondo.color || "#08080a"}"></label>
-      <div class="fila-h" id="fImg" ${spec.fondo.tipo === "imagen" ? "" : "hidden"}><button class="boton" id="fElegir">${spec.fondo.imagen ? "Cambiar imagen…" : "Elegir imagen…"}</button></div>
-      <label class="f">Brillo <span id="fbv">${spec.fondo.brillo}%</span></label><input type="range" id="fBrillo" min="20" max="130" value="${spec.fondo.brillo}"></div>
-    <div class="sec"><div class="mono">Estilo</div>
-      <label class="f">Paneles y botones <select id="eEstilo">${opciones(Propias.PANELES, spec.estilo.panel)}</select></label>
-      <label class="f">Color de acento <input type="color" id="eAcento" value="${spec.estilo.acento}"></label>
-      <label class="f">Letra <select id="eFuente">${opciones(Propias.FUENTES, spec.estilo.fuente)}</select></label></div>
-    <div class="sec"><div class="mono">Piezas (la de arriba va delante)</div><div id="lPiezas" style="display:flex;flex-direction:column;gap:6px"></div>
-      <div class="fila-h"><select id="aTipo"></select><button class="boton" id="aAgregar">Agregar</button></div></div>
-    <div class="sec" id="detalle" ${p ? "" : "hidden"}></div>
-    <div class="sec"><div class="mono">Empezar de nuevo</div>
-      <div class="fila-h"><select id="bBase">${Object.entries(Propias.BASES).map(([k, v]) => `<option value="${k}">${v.nombre}</option>`).join("")}</select><button class="boton" id="bAplicar">Reemplazar piezas</button></div></div>`;
-  // fondo
-  $("fTipo").onchange = (e) => { spec.fondo.tipo = e.target.value; guardar(); pintarPanel(); };
-  $("fColor").oninput = (e) => { spec.fondo.color = e.target.value; guardar(false); refrescar(); };
-  $("fBrillo").oninput = (e) => { spec.fondo.brillo = +e.target.value; $("fbv").textContent = e.target.value + "%"; guardar(false); refrescar(); };
-  $("fElegir").onclick = async () => { const r = await api().imagen_elegir(spec.id, "fondo", false); if (!r.ok) return estado(r.error); if (r.cancelado) return; spec.fondo.imagen = r.url; guardar(); pintarPanel(); };
-  // estilo
-  $("eEstilo").onchange = (e) => { spec.estilo.panel = e.target.value; guardar(); };
-  $("eAcento").oninput = (e) => { spec.estilo.acento = e.target.value; guardar(false); refrescar(); };
-  $("eFuente").onchange = (e) => { spec.estilo.fuente = e.target.value; guardar(); };
-  // lista de piezas
-  const L = $("lPiezas");
+  const P = $("panel"), p = spec.piezas[sel], reglas = Propias.reglas(spec);
+  P.innerHTML = "";
+  const sec = (titulo) => { const s = document.createElement("div"); s.className = "sec"; if (titulo) s.innerHTML = `<div class="mono">${titulo}</div>`; P.appendChild(s); return s; };
+  const nota = (spec.base && reglas) ? `<div class="regla"><b>Basada en ${Propias.INCLUIDAS[spec.base].nombre}.</b> ${reglas.nota}</div>` : '<div class="regla">Plantilla libre: agrega las piezas que quieras. Cada pieza cumple una función (título, botones…) y no puede repetirse.</div>';
+  P.insertAdjacentHTML("beforeend", nota);
+
+  // Fondo
+  const f = sec("Fondo");
+  f.appendChild(Object.assign(document.createElement("div"), { innerHTML: `<label class="f">Tipo<select>${opciones(ESQUEMA.fondos, spec.fondo.tipo)}</select></label>` }));
+  f.querySelector("select").onchange = (e) => { spec.fondo.tipo = e.target.value; guardar(); pintarPanel(); };
+  const t = spec.fondo.tipo, fd = ESQUEMA.fondo;
+  const relevantes = { color: ["color"], degradado: ["color", "color2", "angulo"], imagen: ["color"], caratula: ["color", "desenfoque"], haz: ["color"], tunel: ["color"], burbujas: ["color"], luces: ["color"], estrellas: ["color"] }[t] || [];
+  relevantes.forEach(k => f.appendChild(control(fd[k], actual(spec.fondo, k, fd[k]), (v, vivo) => { spec.fondo[k] = v; guardar(false); refrescar(vivo ? false : true); if (!vivo) pintarPanel(); })));
+  if (t === "imagen") { const b = document.createElement("div"); b.className = "fila-h"; b.innerHTML = `<button class="boton">${spec.fondo.imagen ? "Cambiar imagen…" : "Elegir imagen…"}</button>`; b.firstChild.onclick = async () => { const r = await api().imagen_elegir(spec.id, "fondo", false); if (!r.ok) return estado(r.error); if (r.cancelado) return; spec.fondo.imagen = r.url; guardar(); pintarPanel(); }; f.appendChild(b); }
+  f.appendChild(control(fd.brillo, actual(spec.fondo, "brillo", fd.brillo), (v) => { spec.fondo.brillo = v; guardar(false); refrescar(); }));
+
+  // Estilo
+  const e = sec("Estilo"), ed = ESQUEMA.estilo;
+  Object.keys(ed).forEach(k => e.appendChild(control(ed[k], actual(spec.estilo, k, ed[k]), (v, vivo) => { spec.estilo[k] = v; guardar(false); refrescar(); if (!vivo) pintarPanel(); }, k === "acento" && spec.estilo.acentoAuto)));
+
+  // Piezas
+  const pz = sec("Piezas (la de arriba va delante)"), L = document.createElement("div"); L.style.cssText = "display:flex;flex-direction:column;gap:6px"; pz.appendChild(L);
   [...spec.piezas.keys()].reverse().forEach(i => {
-    const x = spec.piezas[i], f = document.createElement("div"); f.className = "pieza" + (i === sel ? " sel" : ""); f.style.setProperty("--c", COLOR[x.tipo]);
-    f.innerHTML = `<i></i><span>${Propias.ETIQUETAS[x.tipo]}${x.tipo === "visual" ? " · " + Propias.VISUALES[x.visual] : ""}</span>`;
-    const b = (t, tit, fn) => { const m = document.createElement("button"); m.className = "mini"; m.textContent = t; m.title = tit; m.onclick = (e) => { e.stopPropagation(); fn(); }; f.appendChild(m); };
-    b("▲", "Traer adelante", () => mover(i, 1)); b("▼", "Enviar atrás", () => mover(i, -1)); b("✕", "Quitar esta pieza", () => quitar(i));
-    f.onclick = () => { sel = i; pintarCapa(); pintarPanel(); }; L.appendChild(f);
+    const x = spec.piezas[i], row = document.createElement("div"); row.className = "pieza" + (i === sel ? " sel" : ""); row.style.setProperty("--c", COLOR[x.tipo]);
+    const extra = x.tipo === "visual" ? " · " + ESQUEMA.tipos.visual.opciones.visual.v[actual(x, "visual", ESQUEMA.tipos.visual.opciones.visual)] : "";
+    row.innerHTML = `<i></i><span>${T[x.tipo].etiqueta}${extra}</span>`;
+    const b = (txt, tit, fn, off) => { const m = document.createElement("button"); m.className = "mini"; m.textContent = txt; m.title = tit; m.disabled = !!off; m.onclick = (ev) => { ev.stopPropagation(); fn(); }; row.appendChild(m); };
+    b("▲", "Traer adelante", () => mover(i, 1)); b("▼", "Enviar atrás", () => mover(i, -1));
+    const req = Propias.esRequerida(spec, i); b(req ? "🔒" : "✕", req ? "Esta plantilla base la necesita" : "Quitar esta pieza", () => quitar(i), req);
+    row.onclick = () => { sel = i; pintarCapa(); pintarPanel(); }; L.appendChild(row);
   });
-  const usados = spec.piezas.map(x => x.tipo);
-  $("aTipo").innerHTML = Object.entries(Propias.ETIQUETAS).filter(([t]) => Propias.REPETIBLES.includes(t) || !usados.includes(t)).map(([t, n]) => `<option value="${t}">${n}</option>`).join("");
-  $("aAgregar").onclick = () => { const t = $("aTipo").value; spec.piezas.push(Propias.pieza(t, spec.piezas.map(x => x.n))); sel = spec.piezas.length - 1; guardar(); pintarCapa(); pintarPanel(); };
-  // detalle de la pieza elegida
-  const D = $("detalle");
-  if (p && p.tipo === "visual") {
-    D.innerHTML = `<div class="mono">Visual</div><label class="f">Tipo <select id="dVis">${opciones(Propias.VISUALES, p.visual)}</select></label>
-      <label class="f">Color <span class="fila-h"><input type="color" id="dCol" value="${p.color || spec.estilo.acento}"><button class="boton" id="dAc">Acento</button></span></label>`;
-    $("dVis").onchange = (e) => { p.visual = e.target.value; guardar(); pintarPanel(); };
-    $("dCol").oninput = (e) => { p.color = e.target.value; guardar(false); refrescar(); };
-    $("dAc").onclick = () => { p.color = ""; guardar(); pintarPanel(); };
-  } else if (p && p.tipo === "imagen") {
-    D.innerHTML = `<div class="mono">Imagen</div><div class="ayuda">PNG con fondo transparente si quieres que solo se vea la figura.</div><div class="fila-h"><button class="boton" id="dImg">${p.imagen ? "Cambiar imagen…" : "Elegir imagen…"}</button></div>`;
-    $("dImg").onclick = async () => { const r = await api().imagen_elegir(spec.id, p.n, true); if (!r.ok) return estado(r.error); if (r.cancelado) return; p.imagen = r.url; guardar(); pintarPanel(); };
-  } else D.hidden = true;
-  // base
-  let seguro = false;
-  $("bAplicar").onclick = () => {
-    if (!seguro) { seguro = true; $("bAplicar").textContent = "¿Seguro? Pulsa otra vez"; return; }
-    const piezas = []; Propias.BASES[$("bBase").value].piezas.forEach(t => piezas.push(Propias.pieza(t, piezas.map(x => x.n)))); spec.piezas = piezas; sel = 0; guardar(); pintarCapa(); pintarPanel();
-  };
+  const ag = document.createElement("div"); ag.className = "fila-h";
+  ag.innerHTML = `<select id="aTipo">${Object.entries(T).map(([k, d]) => { const ok = Propias.puedeAgregar(spec, k); return `<option value="${k}"${ok ? "" : " disabled"}>${d.etiqueta}${ok ? "" : " — " + Propias.motivoNo(spec, k)}</option>`; }).join("")}</select><button class="boton" id="aAgregar">Agregar</button>`;
+  pz.appendChild(ag);
+  const primero = [...ag.querySelector("select").options].find(o => !o.disabled); if (primero) ag.querySelector("select").value = primero.value;
+  ag.querySelector("button").onclick = () => { const k = ag.querySelector("select").value; if (!Propias.puedeAgregar(spec, k)) return; spec.piezas.push(Propias.pieza(k, spec.piezas.map(z => z.n))); sel = spec.piezas.length - 1; guardar(); pintarCapa(); pintarPanel(); };
+
+  // Detalle de la pieza elegida: todas sus opciones salen del esquema
+  if (p) {
+    const d = sec(`${T[p.tipo].etiqueta}: opciones`); d.className = "sec detalle"; d.insertAdjacentHTML("afterbegin", "");
+    const defs = { ...T[p.tipo].opciones, ...ESQUEMA.comunes };
+    Object.entries(defs).forEach(([k, def]) => {
+      if (def.t === "imagen") {
+        const b = document.createElement("div"); b.className = "fila-h"; b.innerHTML = `<button class="boton">${p.imagen ? "Cambiar imagen…" : "Elegir imagen…"}</button>`;
+        b.firstChild.onclick = async () => { const r = await api().imagen_elegir(spec.id, p.n, true); if (!r.ok) return estado(r.error); if (r.cancelado) return; p.imagen = r.url; guardar(); pintarPanel(); }; d.appendChild(b); return;
+      }
+      d.appendChild(control(def, actual(p, k, def), (v, vivo) => { p[k] = v; guardar(false); refrescar(); if (!vivo) pintarPanel(); }));
+    });
+    if (p.tipo === "cabeza") d.insertAdjacentHTML("beforeend", '<div class="ayuda">El cuerpo «Propio» es el que subes en Biblioteca → Headspace → Cuerpo propio.</div>');
+  }
+
+  // Empezar de nuevo (solo plantillas libres: una base incluida mantiene sus reglas)
+  if (!spec.base) {
+    const b = sec("Empezar de nuevo"), r = document.createElement("div"); r.className = "fila-h";
+    r.innerHTML = `<select>${Object.entries(Propias.BASES).map(([k, v]) => `<option value="${k}">${v.nombre}</option>`).join("")}</select><button class="boton">Reemplazar piezas</button>`; b.appendChild(r);
+    let seguro = false;
+    r.querySelector("button").onclick = (ev) => {
+      if (!seguro) { seguro = true; ev.target.textContent = "¿Seguro? Pulsa otra vez"; return; }
+      const piezas = []; Propias.BASES[r.querySelector("select").value].piezas.forEach(k => piezas.push(Propias.pieza(k, piezas.map(z => z.n)))); spec.piezas = piezas; sel = 0; guardar(); pintarCapa(); pintarPanel();
+    };
+  }
 }
 function mover(i, d) { const j = i + d; if (j < 0 || j >= spec.piezas.length) return; [spec.piezas[i], spec.piezas[j]] = [spec.piezas[j], spec.piezas[i]]; sel = j; guardar(); pintarCapa(); pintarPanel(); }
 async function quitar(i) {
+  if (Propias.esRequerida(spec, i)) return;
   const x = spec.piezas[i]; if (x.tipo === "imagen") await api().imagen_quitar(spec.id, x.n);
   spec.piezas.splice(i, 1); sel = Math.max(0, Math.min(sel, spec.piezas.length - 1)); guardar(); pintarCapa(); pintarPanel();
 }
