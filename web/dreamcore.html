@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dreamcore</title>
+<script src="hls.min.js"></script>
+<style>
+  /* Dreamcore: un sueño grabado en VHS, con programas de Windows 95 abiertos encima */
+  :root { --p: 0%; --v: 80%; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #0c0a1e; font: 12px Tahoma, "MS Sans Serif", sans-serif; color: #111; }
+  #pantalla { position: fixed; inset: 0; width: 100%; height: 100%; }
+  #fondo-propio { display: none !important; }   /* la imagen propia la dibuja el lienzo, con movimiento y VHS */
+  .vhs { position: fixed; font: 26px "Courier New", monospace; color: #fff; letter-spacing: 2px; pointer-events: none;
+    text-shadow: 2px 0 0 rgba(255,0,60,.6), -2px 0 0 rgba(0,200,255,.6), 0 0 6px rgba(255,255,255,.6); }
+  #osd1 { left: 3vw; top: 4vh; } #osd2 { left: 3vw; top: calc(4vh + 34px); font-size: 18px; } #osd3 { right: 30vw; top: 4vh; font-size: 20px; text-align: right; }
+
+  /* ---- ventanas de Windows 95 ---- */
+  .win { position: fixed; background: #c3c3c3; border: 2px solid; border-color: #fff #404040 #404040 #fff; box-shadow: 1px 1px 0 #000, 8px 10px 0 rgba(0,0,0,.35); padding: 2px; }
+  .tb { height: 20px; display: flex; align-items: center; gap: 5px; padding: 0 3px; color: #fff; font-weight: bold; background: linear-gradient(90deg, #08216b, #3a6ea5); user-select: none; }
+  .tb i { margin-left: auto; display: flex; gap: 2px; font-style: normal; }
+  .tb i b, .bt95 { background: #c3c3c3; color: #000; border: 2px solid; border-color: #fff #404040 #404040 #fff; }
+  .tb i b { width: 16px; height: 14px; border-width: 1.5px; font-size: 9px; display: grid; place-items: center; }
+  .bt95 { box-shadow: 1px 1px 0 #000; min-width: 34px; height: 26px; display: grid; place-items: center; font: 13px "Segoe UI Symbol", sans-serif; cursor: pointer; padding: 0 6px; }
+  .bt95:active { border-color: #404040 #fff #fff #404040; box-shadow: none; }
+  .hundido { background: #fff; border: 2px solid; border-color: #404040 #fff #fff #404040; }
+  .menu { display: flex; gap: 12px; padding: 3px 6px; } .menu u { text-decoration: none; } .menu u::first-letter { text-decoration: underline; }
+
+  #rep { left: 3vw; bottom: 4vh; width: min(640px, 52vw); }
+  .monitor { margin: 4px; display: flex; gap: 12px; align-items: center; height: 84px; padding: 8px 12px; background: #000; border: 2px solid; border-color: #404040 #fff #fff #404040;
+    font: 20px "Courier New", monospace; color: #7dff7a; text-shadow: 0 0 6px #3f3, 2px 0 0 rgba(255,0,80,.5); }
+  #caratula { width: 64px; height: 64px; object-fit: cover; image-rendering: pixelated; filter: saturate(1.3) contrast(1.1); border: 1px solid #3f3; }
+  .monitor .txt { min-width: 0; flex: 1; }
+  #titulo { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-transform: uppercase; }
+  #titulo::before { content: "▶ "; }
+  .sub { font-size: 13px; color: #c9ffc9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 4px; }
+  .controles { display: flex; gap: 6px; align-items: center; padding: 6px 4px 4px; }
+  /* barra de avance: bloques azules como la barra de progreso de Windows */
+  #barra { -webkit-appearance: none; appearance: none; flex: 1; min-width: 0; height: 24px; margin: 0; cursor: pointer; border: 2px solid; border-color: #404040 #fff #fff #404040;
+    background: linear-gradient(90deg, transparent var(--p), #fff var(--p)), repeating-linear-gradient(90deg, #08216b 0 12px, #fff 12px 14px); background-clip: padding-box; padding: 2px; }
+  #barra::-webkit-slider-thumb { -webkit-appearance: none; width: 0; height: 0; }
+  .vol { display: flex; align-items: center; gap: 4px; width: 120px; flex: none; }
+  #volumen { min-width: 0; }
+  #iconoVol { min-width: 30px; }
+  #volumen { -webkit-appearance: none; appearance: none; flex: 1; height: 4px; margin: 0; background: #808080; border: 1px solid; border-color: #404040 #fff #fff #404040; cursor: pointer; }
+  #volumen::-webkit-slider-thumb { -webkit-appearance: none; width: 10px; height: 20px; background: #c3c3c3; border: 2px solid; border-color: #fff #404040 #404040 #fff; }
+
+  #notas { right: 2.5vw; top: 6vh; width: min(340px, 26vw); }
+  #lista { margin: 2px; height: min(52vh, 420px); overflow-y: auto; padding: 4px 0; font: 13px "Courier New", monospace; scrollbar-color: #c3c3c3 #e6e6e6; }
+  .fila { display: grid; grid-template-columns: 1fr 44px; padding: 3px 8px; cursor: pointer; }
+  .fila img, .fila .n { display: none; }
+  .fila .nombre { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 6px; }
+  .fila .nombre::before { content: "  "; white-space: pre; }
+  .fila.sonando { background: #08216b; color: #fff; } .fila.sonando .nombre::before { content: "▶ "; }
+  .fila:hover:not(.sonando) { background: #dfe6f5; }
+  .estado { display: flex; gap: 2px; margin: 2px; } .estado span { flex: 1; padding: 2px 4px; border: 1px solid; border-color: #808080 #fff #fff #808080; }
+
+  /* aviso que aparece solo de vez en cuando */
+  #aviso { width: 300px; display: none; transform: rotate(var(--giro, 1deg)); z-index: 10; }
+  #aviso.visible { display: block; }
+  #aviso p { margin: 14px 14px 10px; display: flex; gap: 12px; align-items: center; font-size: 13px; } #aviso p b { font-size: 28px; color: #c00; }
+  #aviso .btns { display: flex; gap: 10px; justify-content: center; padding-bottom: 10px; } #aviso .btns .bt95 { width: 76px; }
+  a.volver { background: #c3c3c3; color: #000; border: 2px solid; border-color: #fff #404040 #404040 #fff; border-radius: 0; font: 12px Tahoma, sans-serif; opacity: 1; }
+</style>
+</head>
+<body>
+<canvas id="pantalla"></canvas>
+<div id="osd1" class="vhs">▶ PLAY</div>
+<div id="osd2" class="vhs">SP 0:00:00</div>
+<div id="osd3" class="vhs">AM 3:33<br>MAR. 14 1997</div>
+<div id="aviso" class="win ocultable"><div class="tb"><span id="avisoTit">no_despiertes.exe</span><i><b data-cerrar>✕</b></i></div>
+  <p><b>⚠</b><span id="avisoTxt"></span></p><div class="btns"><div class="bt95" data-cerrar>Sí</div><div class="bt95" data-cerrar>No</div></div></div>
+<div id="notas" class="win ocultable" data-prop="lista"><div class="tb">recuerdos.txt - Bloc de notas<i><b>_</b><b>□</b><b>✕</b></i></div>
+  <div class="menu"><u>Archivo</u><u>Edición</u><u>Buscar</u><u>Ayuda</u></div>
+  <div id="lista" class="hundido"></div><div class="estado"><span id="cuenta">0 recuerdos</span><span id="total"></span></div></div>
+<div id="rep" class="win ocultable"><div class="tb">sueño.exe — reproduciendo<i><b>_</b><b>□</b><b>✕</b></i></div>
+  <div class="monitor"><img id="caratula" alt=""><div class="txt"><div id="titulo">—</div><div class="sub"><span id="artista"></span> · <span id="tiempo">0:00 / 0:00</span></div></div></div>
+  <div class="controles"><button class="bt95" id="bAnt" title="Anterior">⏮&#xFE0E;</button><button class="bt95" id="bPlay" title="Play / pausa" style="min-width:52px">▶</button>
+    <button class="bt95" id="bSig" title="Siguiente">⏭&#xFE0E;</button><input id="barra" type="range" min="0" max="1000" value="0" title="Avance">
+    <div class="vol"><button class="bt95" id="iconoVol" title="Silenciar">🔊</button><input id="volumen" type="range" min="0" max="100" value="80" title="Volumen"></div></div></div>
+
+<script src="propiedades.js"></script>
+<script src="nucleo.js"></script>
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const raiz = document.documentElement.style;
+const SUCIO = Props.extra("dreamcore", "vhs") / 100;   // cuánto VHS (grano, colores corridos, saltos)
+R.alCambiar(() => {
+  $("cuenta").textContent = `${R.pistas.length} recuerdos`;
+  $("total").textContent = R.fmt(R.pistas.reduce((s, p) => s + (p.duracion || 0), 0));
+});
+
+// ---- Avisos que aparecen solos ----
+const AVISOS = [["no_despiertes.exe", "¿Recuerdas cómo llegaste aquí?"], ["aviso.exe", "¿Quieres despertar?"], ["sistema", "Tu existencia será borrada."],
+  ["recuerdos.exe", "Este lugar te recuerda."], ["error", "No mires atrás."], ["puerta.exe", "La puerta ya estaba abierta."], ["????", "¿Me escuchas?"]];
+function aviso() {
+  const [t, m] = AVISOS[Math.floor(Math.random() * AVISOS.length)], a = $("aviso");
+  $("avisoTit").textContent = t; $("avisoTxt").textContent = m;
+  a.style.left = 20 + Math.random() * 40 + "vw"; a.style.top = 12 + Math.random() * 40 + "vh"; a.style.setProperty("--giro", (Math.random() * 4 - 2).toFixed(1) + "deg");
+  a.classList.add("visible");
+  setTimeout(aviso, 45000 + Math.random() * 45000);
+}
+document.querySelectorAll("[data-cerrar]").forEach(b => b.onclick = () => $("aviso").classList.remove("visible"));
+setTimeout(aviso, 20000);
+
+// ---- Imagen propia (Biblioteca → Fondo propio): se anima en vez de la escena ----
+let propia = null;
+{ const url = Props.leer("dreamcore").fondo; if (url) { const im = new Image(); im.onload = () => { propia = im; }; im.src = url; } }
+
+// ---- Lienzo: se dibuja chico (como un VHS) y se estira ----
+const ANCHO = 640, ALTO = 360, S = ANCHO / 1440;   // la escena está pensada en 1440×810
+const chico = document.createElement("canvas"); chico.width = ANCHO; chico.height = ALTO; const g = chico.getContext("2d", { willReadFrequently: true });
+const cv = $("pantalla"), o = cv.getContext("2d");
+let semilla = 9; const rnd = () => (semilla = (semilla * 16807) % 2147483647) / 2147483647;
+const HOR = 810 * .56;
+
+function ojo(x, y, r, t, fase) {   // ojo realista que parpadea y mira
+  const ciclo = (t + fase) % 4.5, abierto = ciclo < .18 ? Math.abs(Math.cos(ciclo / .18 * Math.PI)) : 1, mira = Math.sin(t * .7 + fase) * r * .22;
+  g.save(); g.translate(x, y); g.scale(1, Math.max(.05, abierto));
+  g.fillStyle = "#f2e4dc"; g.beginPath(); g.ellipse(0, 0, r, r * .6, 0, 0, 7); g.fill();
+  g.save(); g.clip(); const ir = g.createRadialGradient(mira, 0, r * .1, mira, 0, r * .42); ir.addColorStop(0, "#3a2210"); ir.addColorStop(.6, "#6b4a2a"); ir.addColorStop(1, "#1d1008");
+  g.fillStyle = ir; g.beginPath(); g.arc(mira, 0, r * .42, 0, 7); g.fill(); g.fillStyle = "#050302"; g.beginPath(); g.arc(mira, 0, r * .2, 0, 7); g.fill();
+  g.fillStyle = "rgba(255,255,255,.85)"; g.beginPath(); g.arc(mira - r * .12, -r * .14, r * .07, 0, 7); g.fill(); g.restore();
+  g.strokeStyle = "#5a2a20"; g.lineWidth = 3; g.beginPath(); g.ellipse(0, 0, r, r * .6, 0, 0, 7); g.stroke(); g.restore();
+}
+function esfera(x, y, r) {   // esfera de cromo que refleja cielo y pasto
+  g.fillStyle = "rgba(0,0,0,.35)"; g.beginPath(); g.ellipse(x + r * .3, HOR + 60 + (y - 200) * .3, r * .9, r * .22, 0, 0, 7); g.fill();
+  g.save(); g.beginPath(); g.arc(x, y, r, 0, 7); g.clip();
+  const q = g.createLinearGradient(0, y - r, 0, y + r); q.addColorStop(0, "#1a1d55"); q.addColorStop(.45, "#8a90e0"); q.addColorStop(.5, "#c9d8ff"); q.addColorStop(.53, "#3f9a2a"); q.addColorStop(1, "#0f3a10");
+  g.fillStyle = q; g.fillRect(x - r, y - r, r * 2, r * 2);
+  const b = g.createRadialGradient(x - r * .4, y - r * .45, 0, x - r * .4, y - r * .45, r * .5); b.addColorStop(0, "rgba(255,255,255,.9)"); b.addColorStop(1, "rgba(255,255,255,0)"); g.fillStyle = b; g.fillRect(x - r, y - r, r * 2, r * 2);
+  g.restore();
+}
+const DESTELLOS = Array.from({ length: 4 }, (_, i) => ({ x0: [980, 900, 1100, 200][i], c: ["rgba(170,70,255,.55)", "rgba(255,120,40,.4)", "rgba(90,255,90,.5)", "rgba(70,200,255,.35)"][i], w: [70, 40, 80, 50][i], f: i * 1.7 }));
+
+function escena(t, bajo) {
+  g.save(); g.scale(S, S);
+  const cielo = g.createLinearGradient(0, 0, 0, HOR); cielo.addColorStop(0, "#0a0b2e"); cielo.addColorStop(.7, "#2a2a7a"); cielo.addColorStop(1, "#5b5fb8");
+  g.fillStyle = cielo; g.fillRect(0, 0, 1440, HOR);
+  // haces de luz de colores que barren el cielo
+  g.globalCompositeOperation = "lighter";
+  for (const d of DESTELLOS) { const a = Math.sin(t * .25 + d.f) * .35; g.save(); g.translate(d.x0, -40); g.rotate(.6 + a); g.fillStyle = d.c; g.globalAlpha = .55 + bajo * .45; g.fillRect(-d.w / 2, 0, d.w, 900); g.restore(); }
+  g.globalCompositeOperation = "source-over"; g.globalAlpha = 1;
+  // suelo de damero que avanza hacia ti
+  const Y = (z) => HOR + (810 - HOR) / z, X = (c, z) => 1440 * .42 + c * 150 / z, corre = (t * .5) % .8;
+  for (let i = 40; i >= 0; i--) { const z0 = Math.max(1, 1 + i * .4 - corre), z1 = z0 + .4; if (z1 <= 1) continue;
+    for (let c = -26; c < 26; c++) { g.fillStyle = (c + i) % 2 ? "#9be23a" : "#2f8f2a"; g.beginPath(); g.moveTo(X(c, z0), Y(z0)); g.lineTo(X(c + 1, z0), Y(z0)); g.lineTo(X(c + 1, z1), Y(z1)); g.lineTo(X(c, z1), Y(z1)); g.fill(); } }
+  const bruma = g.createLinearGradient(0, HOR - 10, 0, HOR + 80); bruma.addColorStop(0, "rgba(91,95,184,1)"); bruma.addColorStop(1, "rgba(91,95,184,0)"); g.fillStyle = bruma; g.fillRect(0, HOR - 10, 1440, 90);
+  // esferas que flotan
+  [[330, 300, 46, 0], [430, 230, 30, 1.3], [250, 210, 22, 2.1], [900, 380, 38, 3.4]].forEach(([x, y, r, f]) => esfera(x + Math.sin(t * .3 + f) * 20, y + Math.sin(t * .8 + f) * 14, r * (1 + bajo * .06)));
+  // hongo con ojo
+  { const x = 640, y = 560, b = Math.sin(t * .9) * .03; g.save(); g.translate(x, y + 100); g.rotate(b); g.translate(-x, -y - 100);
+    g.fillStyle = "rgba(0,0,0,.35)"; g.beginPath(); g.ellipse(x + 10, y + 100, 90, 14, 0, 0, 7); g.fill();
+    const pie = g.createLinearGradient(x - 20, 0, x + 20, 0); pie.addColorStop(0, "#cfc6b0"); pie.addColorStop(1, "#8a7f68"); g.fillStyle = pie; g.fillRect(x - 18, y - 10, 36, 110);
+    const som = g.createRadialGradient(x - 30, y - 70, 10, x, y - 30, 130); som.addColorStop(0, "#ff5a3a"); som.addColorStop(1, "#8a1208"); g.fillStyle = som;
+    g.beginPath(); g.moveTo(x - 120, y); g.bezierCurveTo(x - 120, y - 120, x + 120, y - 120, x + 120, y); g.quadraticCurveTo(x, y + 18, x - 120, y); g.fill();
+    g.fillStyle = "#f5efe4"; [[-80, -30], [-55, -70], [-20, -88], [30, -86], [70, -62], [92, -25], [-95, -8], [55, -18]].forEach(([dx, dy]) => { g.beginPath(); g.ellipse(x + dx, y + dy, 8, 5, 0, 0, 7); g.fill(); });
+    ojo(x, y - 45, 46, t, 0); g.restore(); }
+  // girasol con ojo que se mece
+  { const x = 1010, y = 510, b = Math.sin(t * .7 + 1) * .08;
+    g.strokeStyle = "#2f6a1a"; g.lineWidth = 8; g.beginPath(); g.moveTo(x - 10, y + 200); g.quadraticCurveTo(x + 20, y + 120, x, y); g.stroke();
+    g.save(); g.translate(x, y); g.rotate(b);
+    for (let i = 0; i < 18; i++) { g.save(); g.rotate(i / 18 * Math.PI * 2); const p = g.createLinearGradient(0, 0, 0, -70); p.addColorStop(0, "#d89a10"); p.addColorStop(1, "#ffd84a");
+      g.fillStyle = p; g.beginPath(); g.ellipse(0, -50, 13, 30, 0, 0, 7); g.fill(); g.restore(); }
+    g.fillStyle = "#3a2410"; g.beginPath(); g.arc(0, 0, 34, 0, 7); g.fill(); ojo(0, 0, 30, t, 2.2); g.restore(); }
+  // texto rojo que va y viene
+  if (Math.sin(t * .4) > -.3) { g.font = "bold 26px 'Courier New', monospace"; g.fillStyle = `rgba(255,40,40,${.6 + Math.random() * .3})`;
+    for (let i = 0; i < 4; i++) g.fillText("¿me escuchas? ¿me escuchas? ¿me escu...".slice(0, 18 + ((t * 6 + i * 7) % 22)), 36, 140 + i * 32); }
+  g.restore();
+}
+function imagenPropia(t, bajo) {   // la imagen elegida, flotando: acercamiento lento, ondulación de sueño y pulso con el bajo
+  const z = 1.08 + Math.sin(t * .05) * .04 + bajo * .03, iw = propia.width, ih = propia.height, k = Math.max(ANCHO / iw, ALTO / ih) * z;
+  const w = iw * k, h = ih * k, x0 = (ANCHO - w) / 2 + Math.sin(t * .07) * ANCHO * .02, y0 = (ALTO - h) / 2 + Math.cos(t * .05) * ALTO * .02;
+  for (let y = 0; y < ALTO; y += 3) {   // franjas que ondulan
+    const dx = Math.sin(y * .03 + t * 1.3) * (1.5 + bajo * 3);
+    g.drawImage(propia, 0, (y - y0) / k, iw, 3 / k, x0 + dx, y, w, 3);
+  }
+}
+
+// ---- Pasada VHS sobre el cuadro chico: colores corridos, grano, líneas y la franja de tracking ----
+let golpe = 0;
+function vhs(t, bajo) {
+  const img = g.getImageData(0, 0, ANCHO, ALTO), d = img.data, out = new Uint8ClampedArray(d.length);
+  const corr = Math.round((1 + bajo * 3) * SUCIO * 2), banda = (t * 40) % (ALTO + 60) - 30, ruido = 40 * SUCIO;
+  for (let y = 0; y < ALTO; y++) {
+    const enBanda = y > banda && y < banda + 14, salto = enBanda ? Math.round((Math.random() - .5) * 24 * SUCIO) : (golpe > 0 && (y >> 4) % 3 === 0 ? Math.round(golpe * 30) : 0);
+    const oscuro = y % 2 ? .9 : 1;
+    for (let x = 0; x < ANCHO; x++) {
+      const i = (y * ANCHO + x) * 4, xr = Math.min(ANCHO - 1, Math.max(0, x + corr + salto)), xg = Math.min(ANCHO - 1, Math.max(0, x + salto)), xb = Math.min(ANCHO - 1, Math.max(0, x - corr + salto));
+      const n = (Math.random() - .5) * (enBanda ? ruido * 4 : ruido);
+      out[i] = (d[(y * ANCHO + xr) * 4] + n) * oscuro; out[i + 1] = (d[(y * ANCHO + xg) * 4 + 1] + n) * oscuro; out[i + 2] = (d[(y * ANCHO + xb) * 4 + 2] + n) * oscuro; out[i + 3] = 255;
+    }
+  }
+  img.data.set(out); g.putImageData(img, 0, 0);
+}
+
+let suave = 0;
+R.cadaCuadro((t) => {
+  const bajo = R.energia(R.espectro(), 1, 8); suave += (bajo - suave) * .25;
+  if (bajo > .85 && golpe <= 0 && Math.random() < .3) golpe = 1;   // a veces, con un golpe fuerte, la imagen salta
+  golpe = Math.max(0, golpe - .12);
+  raiz.setProperty("--p", (R.progreso() * 100).toFixed(2) + "%");
+  const s = Math.floor(R.tiempoActual()); $("osd2").textContent = `SP ${Math.floor(s / 3600)}:${String(Math.floor(s / 60) % 60).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+  if (propia) imagenPropia(t, suave); else escena(t, suave);
+  if (SUCIO > 0) vhs(t, suave);
+  if (cv.width !== innerWidth || cv.height !== innerHeight) { cv.width = innerWidth; cv.height = innerHeight; }
+  o.imageSmoothingEnabled = true; o.drawImage(chico, 0, 0, cv.width, cv.height);
+  const vin = o.createRadialGradient(cv.width / 2, cv.height / 2, cv.height * .3, cv.width / 2, cv.height / 2, cv.height); vin.addColorStop(0, "rgba(0,0,0,0)"); vin.addColorStop(1, "rgba(0,0,0,.6)");
+  o.fillStyle = vin; o.fillRect(0, 0, cv.width, cv.height);
+});
+</script>
+</body>
+</html>

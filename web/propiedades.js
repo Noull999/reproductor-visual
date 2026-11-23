@@ -17,6 +17,7 @@ const Props = (() => {
     dosmil: [{ id: "tunel", nombre: "Brillo de la visualización de fondo", min: 20, max: 130, def: 70, unidad: " %" },
       { id: "cambio", nombre: "Cambiar de visualización", min: 0, max: 3, def: 1, etiquetas: ["cada 20 s", "cada 45 s", "cada 90 s", "solo al cambiar de canción"] }],
     ambiente: [{ id: "desenfoque", nombre: "Desenfoque del fondo", min: 10, max: 140, def: 70, unidad: " px" }],
+    dreamcore: [{ id: "vhs", nombre: "Efecto VHS (grano, colores corridos, saltos)", min: 0, max: 100, def: 60, unidad: " %" }],
     pixel: [{ id: "pixel", nombre: "Tamaño de los píxeles", min: 3, max: 9, def: 5, unidad: " px" }],
   };
   const api = {

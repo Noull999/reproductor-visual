@@ -21,7 +21,7 @@ Escuchas lo de siempre (Spotify, SoundCloud, tus carpetas, o cualquier cosa que 
 - **Otra app**: lo que suene en el PC (navegador, etc.): título, carátula y botones de Windows.
 
 **Plantillas** (5 incluidas, con 31 variantes de color)
-Líquido · Headspace · 2000s · Ambiente · Neo Y2K · Anime PS2 · Psicodélico · Pixel. Todas tienen lista de temas, ajustes de intensidad y velocidad, y un modo "solo visual" (los controles se esconden tras 3 s sin mover el mouse; la tecla **H** lo activa o desactiva).
+Líquido · Headspace · 2000s · Ambiente · Neo Y2K · Dreamcore · Anime PS2 · Psicodélico · Pixel. Todas tienen lista de temas, ajustes de intensidad y velocidad, y un modo "solo visual" (los controles se esconden tras 3 s sin mover el mouse; la tecla **H** lo activa o desactiva).
 
 **Biblioteca** (estilo Wallpaper Engine)
 Cuadrícula de plantillas con **vista previa en vivo**: la plantilla real corriendo con música inventada. Ahí cambias colores, intensidad, velocidad, mostrar u ocultar la lista, y pones tus propias imágenes (fondo; y en Headspace, un **cuerpo propio** con un editor de zonas).
