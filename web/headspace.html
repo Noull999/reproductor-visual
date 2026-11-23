@@ -265,7 +265,9 @@ const segBoca = $("boca").children;
 R.cadaCuadro((t) => {
   const d = R.espectro();
   const bajo = R.energia(d, 1, 8), medio = R.energia(d, 8, 60), agudo = R.energia(d, 60, 200);
-  visu.dibujar(t, d, R.ondaAudio(), bajo, medio, agudo, tonoDe(color.led));
+  const rc = $("cabeza").getBoundingClientRect();   // la visualización gira justo detrás de la cabeza (se corre cuando se abre la lista)
+  visu.centro((rc.left + rc.width / 2) / innerWidth, (rc.top + rc.height * .42) / innerHeight);
+  visu.dibujar(t, d, R.ondaAudio(), bajo, medio, agudo, tonoDe(color.gel));   // el tono del cuerpo (el LED es más amarillento)
   dibujarPantalla(d);
   raiz.setProperty("--p", (R.progreso() * 100).toFixed(2) + "%");
   ojos.forEach(o => { o.style.opacity = (0.12 + medio * 1.3).toFixed(2); });

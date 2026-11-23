@@ -2,12 +2,13 @@
 // y opción "Visualización 2000" de las plantillas propias. Se dibujan en vivo con la música a baja resolución y se estiran
 // (se ven suaves y brillantes, como entonces). La "retroalimentación" (cada cuadro redibuja el anterior un poco más
 // grande, girado y desvanecido) hace los túneles y las estelas. Entre un efecto y otro hay un fundido de 2 s.
-// crearVisu2000(canvas) → { grupo([efectos]), intervalo(seg, 0 = solo al cambiar de canción), velocidad(0.1-1.5), siguiente(),
+// crearVisu2000(canvas) → { grupo([efectos]), intervalo(seg, 0 = solo al cambiar de canción), velocidad(0.1-1.5), centro(x, y en 0-1), siguiente(),
 //                           dibujar(t, espectro, onda, bajo, medio, agudo, tono) }
 "use strict";
 const VISU2000 = ["estrellas", "anillos", "barras", "bateria", "llamas", "remolino", "rayos", "onda", "agua", "caleido", "lava"];
 function crearVisu2000(canvas) {
-  const W = 480, H = 270, CX = W / 2, CY = H / 2, FUNDIDO = 2;
+  const W = 480, H = 270, FUNDIDO = 2;
+  let CX = W / 2, CY = H / 2;   // el centro de los efectos (la plantilla lo puede poner detrás de su reproductor)
   const lienzo = () => { const c = document.createElement("canvas"); c.width = W; c.height = H; return c; };
   canvas.width = W; canvas.height = H;
   const o = canvas.getContext("2d"), trabajo = lienzo(), g = trabajo.getContext("2d"), copia = lienzo(), c2 = copia.getContext("2d"), viejo = lienzo();
@@ -137,7 +138,7 @@ function crearVisu2000(canvas) {
       });
     },
     onda(t, x) {
-      eco(1.02 + x.bajo * .02, -.02, .95, "blur(.6px) hue-rotate(4deg)");
+      eco(1.02 + x.bajo * .02, -.02, .95, "blur(.6px)");   // sin correr el tono: el color se queda en el del skin o la variante
       sumar(() => {
         for (let rep = 0; rep < 2; rep++) {   // la onda real en cruz; la retroalimentación la vuelve remolino
           g.save(); g.translate(CX, CY); g.rotate(t * .5 + rep * Math.PI / 2);
@@ -171,13 +172,13 @@ function crearVisu2000(canvas) {
       });
     },
     caleido(t, x) {
-      eco(1.012, .012, .9, "hue-rotate(2deg)");
+      eco(1.012, .012, .9);
       const N = 8, R = W * .62;
       sumar(() => {
         g.lineWidth = 1.4;
         for (let k = 0; k < N; k++) for (const lado of [1, -1]) {   // un trozo de la onda repetido en espejo alrededor del centro
           g.save(); g.translate(CX, CY); g.rotate(k / N * Math.PI * 2 + t * .2); g.scale(1, lado);
-          g.strokeStyle = col(x.tono + k * 6, 52, .45); g.beginPath();
+          g.strokeStyle = col(x.tono + (k % 3) * 6 - 6, 52, .45); g.beginPath();
           for (let i = 0; i < 64; i++) { const v = (x.onda[i * 8] - 128) / 128; i ? g.lineTo(i / 64 * R, 8 + v * R * .35 * (1 + x.bajo)) : g.moveTo(0, 8); }
           g.stroke(); g.restore();
         }
@@ -194,6 +195,7 @@ function crearVisu2000(canvas) {
     grupo(l) { const nueva = (l || VISU2000).filter(e => EFECTOS[e]); if (nueva.join() !== lista.join()) { lista = nueva.length ? nueva : VISU2000.slice(); modo = -1; cambiar(); } },
     intervalo(s) { cada = s; },
     velocidad(v) { V = Math.max(.1, Math.min(1.5, v)); },
+    centro(fx, fy) { CX = W * Math.max(0, Math.min(1, fx)); CY = H * Math.max(0, Math.min(1, fy)); },
     siguiente: cambiar,
     dibujar(t, d, onda, bajo, medio, agudo, tono) {
       // se adapta a la música: el bajo se mide contra su pico reciente (con bajo potente no queda todo al máximo)
