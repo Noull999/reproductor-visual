@@ -5,7 +5,7 @@
 // crearVisu2000(canvas) → { grupo([efectos]), intervalo(seg, 0 = solo al cambiar de canción), velocidad(0.1-1.5), siguiente(),
 //                           dibujar(t, espectro, onda, bajo, medio, agudo, tono) }
 "use strict";
-const VISU2000 = ["estrellas", "anillos", "barras", "bateria", "llamas", "remolino", "rayos", "onda", "agua", "caleido"];
+const VISU2000 = ["estrellas", "anillos", "barras", "bateria", "llamas", "remolino", "rayos", "onda", "agua", "caleido", "lava"];
 function crearVisu2000(canvas) {
   const W = 480, H = 270, CX = W / 2, CY = H / 2, FUNDIDO = 2;
   const lienzo = () => { const c = document.createElement("canvas"); c.width = W; c.height = H; return c; };
@@ -144,6 +144,18 @@ function crearVisu2000(canvas) {
           g.strokeStyle = col(x.tono + rep * 50, 55, .6); g.lineWidth = 1.6; g.beginPath();
           for (let i = 0; i < x.onda.length; i += 4) { const px = (i / x.onda.length - .5) * W * 1.1, py = (x.onda[i] - 128) / 128 * H * .4 * (1 + x.bajo); i ? g.lineTo(px, py) : g.moveTo(px, py); }
           g.stroke(); g.restore();
+        }
+      });
+    },
+    // Headspace (Y2K): lámpara de lava, gotas de gel que suben, se juntan y laten con el bajo
+    lava(t, x) {
+      eco(1, 0, .8, "blur(2px)");
+      sumar(() => {
+        for (let k = 0; k < 7; k++) {
+          const px = W * (.18 + .64 * (.5 + .5 * Math.sin(t * (.13 + k * .021) + k * 2.1))), py = H * (.5 + .46 * Math.sin(t * (.19 + k * .027) + k * 1.3));
+          const s = 26 + 16 * Math.sin(t * .5 + k) + x.bajo * 34 + golpe * 14, m = g.createRadialGradient(px, py, 0, px, py, s);
+          m.addColorStop(0, col(x.tono + k * 7 - 20, 58, .42)); m.addColorStop(.55, col(x.tono + k * 7 - 20, 45, .18)); m.addColorStop(1, col(x.tono, 30, 0));
+          g.fillStyle = m; g.fillRect(px - s, py - s, s * 2, s * 2);
         }
       });
     },

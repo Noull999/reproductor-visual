@@ -12,7 +12,8 @@ const Props = (() => {
   // Controles numéricos propios de cada plantilla
   const EXTRAS = {
     liquido: [{ id: "deformacion", nombre: "Fuerza de la deformación del vidrio", min: 0, max: 140, def: 70, unidad: "" }],
-    headspace: [{ id: "burbujas", nombre: "Cantidad de burbujas", min: 0, max: 80, def: 34, unidad: "" }],
+    headspace: [{ id: "brillo", nombre: "Brillo del fondo", min: 20, max: 130, def: 80, unidad: " %" },
+      { id: "cambio", nombre: "Cambiar de visualización", min: 0, max: 3, def: 1, etiquetas: ["cada 20 s", "cada 45 s", "cada 90 s", "solo al cambiar de canción"] }],
     dosmil: [{ id: "tunel", nombre: "Brillo de la visualización de fondo", min: 20, max: 130, def: 70, unidad: " %" },
       { id: "cambio", nombre: "Cambiar de visualización", min: 0, max: 3, def: 1, etiquetas: ["cada 20 s", "cada 45 s", "cada 90 s", "solo al cambiar de canción"] }],
     ambiente: [{ id: "desenfoque", nombre: "Desenfoque del fondo", min: 10, max: 140, def: 70, unidad: " px" }],

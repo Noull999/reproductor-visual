@@ -140,6 +140,7 @@
 
 <script src="propiedades.js"></script>
 <script src="nucleo.js"></script>
+<script src="visu2000.js"></script>
 <script>
 "use strict";
 const $ = (id) => document.getElementById(id);
@@ -224,42 +225,15 @@ usarColor(COLORES[leer("color-headspace")] ? leer("color-headspace") : "Lima");
 const elegido = leer("cuerpo-headspace");
 usarCuerpo(CUERPOS[elegido] ? elegido : "Y2K");
 
-// ---- Fondo: burbujas que suben con el bajo y destellos con los agudos ----
-const fondo = $("fondo"), fg = fondo.getContext("2d");
-const burbujas = Array.from({ length: Props.extra("headspace", "burbujas") }, () => ({ x: Math.random(), y: Math.random(), r: 8 + Math.random() * 46, v: 0.0004 + Math.random() * 0.0012 }));
-const destellos = Array.from({ length: 26 }, () => ({ x: Math.random(), y: Math.random(), f: Math.random() * 6, s: 6 + Math.random() * 14 }));
-function estrella(x, y, s) {
-  fg.beginPath(); fg.moveTo(x, y - s);
-  fg.quadraticCurveTo(x, y, x + s, y); fg.quadraticCurveTo(x, y, x, y + s);
-  fg.quadraticCurveTo(x, y, x - s, y); fg.quadraticCurveTo(x, y, x, y - s); fg.fill();
-}
-function dibujarFondo(bajo, agudo, t) {
-  if (fondo.width !== innerWidth || fondo.height !== innerHeight) { fondo.width = innerWidth; fondo.height = innerHeight; }
-  const w = fondo.width, h = fondo.height;
-  if (!w || !h) return;
-  const g = fg.createRadialGradient(w / 2, h * 0.45, 0, w / 2, h * 0.45, Math.max(w, h) * 0.7);
-  g.addColorStop(0, color.fondo); g.addColorStop(1, "#000");
-  fg.fillStyle = g; fg.fillRect(0, 0, w, h);
-  const halo = fg.createRadialGradient(w / 2, h * 0.45, 0, w / 2, h * 0.45, h * (0.35 + bajo * 0.25));
-  halo.addColorStop(0, color.led + "55"); halo.addColorStop(1, color.led + "00");
-  fg.globalAlpha = 0.25 + bajo * 0.75; fg.fillStyle = halo; fg.fillRect(0, 0, w, h); fg.globalAlpha = 1;
-  for (const b of burbujas) {
-    b.y -= b.v * (1 + bajo * 5);
-    if (b.y < -0.1) { b.y = 1.1; b.x = Math.random(); }
-    const x = b.x * w + Math.sin(t * 0.6 + b.r) * 12, y = b.y * h, r = b.r * (1 + bajo * 0.25);
-    fg.fillStyle = color.led + "14"; fg.strokeStyle = "rgba(255,255,255,.22)"; fg.lineWidth = 1.2;
-    fg.beginPath(); fg.arc(x, y, r, 0, 7); fg.fill(); fg.stroke();
-    fg.fillStyle = "rgba(255,255,255,.35)";
-    fg.beginPath(); fg.ellipse(x - r * 0.35, y - r * 0.4, r * 0.28, r * 0.14, -0.6, 0, 7); fg.fill();
-  }
-  fg.fillStyle = "#fff";
-  for (const d of destellos) {
-    const a = Math.max(0, Math.sin(t * 2.2 + d.f)) * (0.15 + agudo * 2.2);
-    if (a < 0.03) continue;
-    fg.globalAlpha = Math.min(1, a); estrella(d.x * w, d.y * h, d.s * (0.6 + a * 0.6));
-  }
-  fg.globalAlpha = 1;
-}
+// ---- Fondo: visualizaciones líquidas del color de la variante (lava, agua, remolino, caleidoscopio) ----
+const fondo = $("fondo"), visu = crearVisu2000(fondo);
+// al sonar el primer tema pasa al siguiente: así se abre con la lámpara de lava
+visu.grupo(["caleido", "lava", "agua", "remolino"]); visu.velocidad(.7);
+visu.intervalo([20, 45, 90, 0][Props.extra("headspace", "cambio")] ?? 45);
+fondo.style.filter = `brightness(${Props.extra("headspace", "brillo") / 100})`;
+fondo.onclick = () => visu.siguiente(); R.alCambiar(() => visu.siguiente());
+const tonoDe = (hex) => { const [r, g, b] = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16) / 255), mx = Math.max(r, g, b), d = mx - Math.min(r, g, b);
+  return !d ? 210 : mx === r ? 60 * (((g - b) / d) % 6) : mx === g ? 60 * ((b - r) / d + 2) : 60 * ((r - g) / d + 4); };
 
 // ---- Pantalla: barras LED con picos ----
 const visor = $("visor"), vg = visor.getContext("2d"), picos = new Array(30).fill(0);
@@ -291,7 +265,7 @@ const segBoca = $("boca").children;
 R.cadaCuadro((t) => {
   const d = R.espectro();
   const bajo = R.energia(d, 1, 8), medio = R.energia(d, 8, 60), agudo = R.energia(d, 60, 200);
-  dibujarFondo(bajo, agudo, t);
+  visu.dibujar(t, d, R.ondaAudio(), bajo, medio, agudo, tonoDe(color.led));
   dibujarPantalla(d);
   raiz.setProperty("--p", (R.progreso() * 100).toFixed(2) + "%");
   ojos.forEach(o => { o.style.opacity = (0.12 + medio * 1.3).toFixed(2); });

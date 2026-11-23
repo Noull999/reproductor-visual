@@ -48,7 +48,7 @@ const Propias = (() => {
         ["titulo", [4, 62, 29, 9], { tam: 115 }], ["artista", [4, 73, 29, 5]], ["lista", [37, 4, 60, 80]], ["botones", [28, 88.5, 22, 8.5]], ["barra", [53, 91.6, 26, 2.4]],
         ["tiempo", [80, 89.5, 8, 6]], ["volumen", [89, 90, 8, 5]]]) },
     headspace: { nombre: "Headspace", reglas: { requeridas: ["cabeza"], nota: "La cabeza es el reproductor: se puede mover, agrandar y cambiar de cuerpo y color. Trae título, carátula, botones y barra adentro, así que no se agregan sueltos." },
-      fondo: { tipo: "burbujas", color: "#123a00", brillo: 100 }, estilo: { panel: "gel", acento: "#9be22a", fuente: "Fredoka" },
+      fondo: { tipo: "visu2000", color: "#000000", brillo: 80, velocidad: 70 }, estilo: { panel: "gel", acento: "#9be22a", fuente: "Fredoka" },
       piezas: () => armar([["cabeza", [24, 2, 42, 95]], ["lista", [70, 5, 27, 82]], ["volumen", [34, 95, 24, 3.5]]]) },
     dosmil: { nombre: "2000s", reglas: { requeridas: ["equipo"], nota: "El equipo de metal es el reproductor: se puede mover, agrandar y cambiar de skin. Trae pantalla LCD, botones, perilla y barra, así que no se agregan sueltos." },
       fondo: { tipo: "visu2000", color: "#000000", brillo: 100 }, estilo: { panel: "metal", acento: "#3fa9ff", fuente: "Michroma" },

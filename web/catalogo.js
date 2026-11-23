@@ -9,7 +9,7 @@ const PLANTILLAS = [
     guardar: (x) => ({ "tema-liquido": x.nombre }),
     grupos: [{ titulo: "Color", items: [v("Rojo", "#ff2d3d", "liquido-rojo"), v("Hielo", "#3db8ff", "liquido-hielo"), v("Violeta", "#a855ff", "liquido-violeta"), v("Ácido", "#b6ff2d", "liquido-acido"), v("Oro", "#ffb02d", "liquido-oro")] }] },
   { id: "headspace", nombre: "Headspace", pagina: "headspace.html", predeterminada: "Y2K · Lima",
-    desc: "Cabeza de plástico Y2K con el reproductor adentro, burbujas y una lista que sale del costado.",
+    desc: "Cabeza de plástico Y2K con el reproductor adentro, sobre visualizaciones líquidas de su color (lámpara de lava, agua, plasma) y una lista que sale del costado.",
     guardar: (x) => ({ "cuerpo-headspace": x.cuerpo, "color-headspace": x.color2 }),
     grupos: ["Y2K", "Gel"].map(c => ({ titulo: `Cuerpo ${c}`, items: [["Lima", "#9be22a"], ["Chicle", "#ff7ad9"], ["Cielo", "#6cc8ff"], ["Mandarina", "#ff9a2a"], ["Cromo", "#c9d3dc"]]
       .map(([n, col]) => v(`${c} · ${n}`, col, `headspace-${c.toLowerCase()}-${n.toLowerCase()}`, { cuerpo: c, color2: n })) })) },
