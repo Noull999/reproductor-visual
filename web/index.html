@@ -158,7 +158,7 @@ const PLANTILLAS = [
     desc: "La carátula manda: sus colores tiñen todo, en duotono y con su onda real.",
     guardar: (x) => ({ "tema-ambiente": x.nombre }),
     grupos: [{ titulo: "Colores", items: [v("Carátula", "#9aa4b8", "ambiente-caratula"), v("Noche", "#7896ff", "ambiente-noche"), v("Atardecer", "#ff8c5a", "ambiente-atardecer"), v("Bosque", "#8ce696", "ambiente-bosque"), v("Mono", "#ebebeb", "ambiente-mono")] }] },
-  { id: "anime", nombre: "Anime PS2", pagina: "libre.html?plantilla=anime", predeterminada: "Cian",
+  { id: "anime", nombre: "Anime PS2", pagina: "libre.html?plantilla=anime", predeterminada: "Audífonos",
     desc: "Carátula de juego de PS2: una chica distinta por variante, con su color, sobre columnas de luz de consola, líneas de velocidad y paneles que toman su color.",
     guardar: (x) => ({ "variante-anime": x.clave }),
     grupos: [{ titulo: "Personaje", items: [["Cian", "Audífonos", "#19c8ff"], ["Rosa", "Androide", "#ff7ac8"], ["Gotica", "Gótica", "#e0233c"], ["Violeta", "Colegiala", "#9b6bff"]].map(([k, n, col]) => v(n, col, `anime-${k.toLowerCase()}`, { clave: k })) }] },
