@@ -103,12 +103,20 @@
 const $ = (id) => document.getElementById(id);
 const raiz = document.documentElement.style;
 
-// ---- Variantes de color: [verde, azul] ----
-const TEMAS = { "Ácido": ["#8cff2a", "#1f6bff"], "Chicle": ["#ff5fd8", "#6a2cff"], "Hielo": ["#7ff6ff", "#2a3cff"], "Fuego": ["#ffd23a", "#ff2a4a"] };
+// ---- Variantes: cada una con su color [acento, fondo], su figura de cromo, sus partículas y su japonés ----
+// Ácido = estrella y estelas · Chicle = corazón, mariposas y barrido holográfico · Hielo = diamante y escarcha · Fuego = sigilo tribal y brasas
+const TEMAS = { "Ácido": ["#8cff2a", "#1f6bff"], "Chicle": ["#ff5fd8", "#6a2cff"], "Hielo": ["#9ff8ff", "#1d3fd0"], "Fuego": ["#ffd23a", "#ff2a4a"] };
+const ESTILO = {
+  "Ácido": { forma: "estrella", jp: "感染した音楽", jp2: "再生中 ・ 二〇一六" },
+  "Chicle": { forma: "corazon", jp: "恋するビート", jp2: "かわいい ・ 二〇一七" },
+  "Hielo": { forma: null, jp: "氷の心臓", jp2: "アイスアウト ・ 二〇一八" },
+  "Fuego": { forma: "alambre", jp: "炎上中の音楽", jp2: "燃えろ ・ 二〇一九" },
+};
 let tema = "Ácido";
 function usarTema(n) {
   tema = n in TEMAS ? n : "Ácido";
   raiz.setProperty("--verde", TEMAS[tema][0]); raiz.setProperty("--azul", TEMAS[tema][1]);
+  $("jp").textContent = ESTILO[tema].jp; $("jp2").textContent = ESTILO[tema].jp2; document.body.dataset.tema = tema;
   document.querySelectorAll("#temas button").forEach(b => b.classList.toggle("elegido", b.dataset.t === tema));
   try { localStorage.setItem("tema-neoy2k", tema); } catch (e) {}
 }
@@ -145,6 +153,29 @@ const ESTELAS = Array.from({ length: 20 }, () => ({ y: rnd(), v: 300 + rnd() * 9
 const CHISPAS = Array.from({ length: 14 }, () => ({ x: rnd(), y: rnd(), f: rnd() * 6, r: 6 + rnd() * 12 }));
 const rgba = (hex, a) => { const n = parseInt(hex.slice(1), 16); return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${a})`; };
 const chispa = (x, y, r, a) => { g.fillStyle = `rgba(255,255,255,${a})`; g.beginPath(); g.moveTo(x, y - r); g.quadraticCurveTo(x, y, x + r, y); g.quadraticCurveTo(x, y, x, y + r); g.quadraticCurveTo(x, y, x - r, y); g.quadraticCurveTo(x, y, x, y - r); g.fill(); };
+// Figuras de cromo (centradas en 0,0, tamaño e)
+function figura(forma, e) {
+  g.beginPath();
+  if (forma === "estrella") { for (let i = 0; i < 8; i++) { const rr = i % 2 ? e * .22 : e, a = i / 8 * Math.PI * 2 - Math.PI / 2; g.lineTo(Math.cos(a) * rr, Math.sin(a) * rr * .9); } g.closePath(); }
+  else if (forma === "corazon") { g.moveTo(0, e * .75); g.bezierCurveTo(-e * 1.25, -e * .1, -e * .55, -e * .95, 0, -e * .38); g.bezierCurveTo(e * .55, -e * .95, e * 1.25, -e * .1, 0, e * .75); }
+  else if (forma === "alambre") {   // corona de alambre de púas
+    g.ellipse(0, 0, e, e * .55, -.3, 0, Math.PI * 2);
+    for (let i = 0; i < 14; i++) { const a = i / 14 * Math.PI * 2, c = Math.cos(-.3), sn = Math.sin(-.3), px = Math.cos(a) * e, py = Math.sin(a) * e * .55, x = px * c - py * sn, y = px * sn + py * c, k = e * .07;
+      g.moveTo(x - k, y - k); g.lineTo(x + k, y + k); g.moveTo(x + k, y - k); g.lineTo(x - k, y + k); }
+  }
+}
+// Partículas propias de cada variante
+const MARIPOSAS = Array.from({ length: 6 }, (_, i) => ({ x: rnd(), y: rnd(), v: .02 + rnd() * .03, f: rnd() * 6, t: .6 + rnd() * .7 }));
+const COPOS = Array.from({ length: 70 }, () => ({ x: rnd(), y: rnd(), v: .01 + rnd() * .03, r: .8 + rnd() * 2.4, f: rnd() * 6 }));
+const BRASAS = Array.from({ length: 80 }, () => ({ x: rnd(), y: rnd(), v: .05 + rnd() * .12, r: 1 + rnd() * 2.5, f: rnd() * 6 }));
+function mariposa(x, y, s, aleteo, col) {
+  g.save(); g.translate(x, y); g.scale(s, s);
+  const q = g.createLinearGradient(-30, -30, 30, 30); q.addColorStop(0, "#fff"); q.addColorStop(.45, "#9aa2c8"); q.addColorStop(.55, "#f4f0ff"); q.addColorStop(1, col);
+  g.fillStyle = q; g.shadowColor = col; g.shadowBlur = 14;
+  for (const lado of [-1, 1]) { g.save(); g.scale(lado * aleteo, 1); g.beginPath(); g.moveTo(0, 0); g.bezierCurveTo(10, -40, 44, -34, 34, -6); g.bezierCurveTo(30, 6, 12, 4, 0, 0);
+    g.bezierCurveTo(14, 8, 30, 22, 18, 34); g.bezierCurveTo(8, 38, 2, 16, 0, 0); g.fill(); g.restore(); }
+  g.fillStyle = "#2a0848"; g.fillRect(-1.5, -14, 3, 34); g.restore();
+}
 let suave = 0;
 R.cadaCuadro((t) => {
   if (cv.width !== innerWidth || cv.height !== innerHeight) { cv.width = innerWidth; cv.height = innerHeight; }
@@ -159,32 +190,113 @@ R.cadaCuadro((t) => {
   const v = g.createLinearGradient(0, 0, W, 0); v.addColorStop(0, "rgba(4,16,58,.55)"); v.addColorStop(.5, "rgba(4,16,58,.1)"); v.addColorStop(1, "rgba(4,16,58,.72)"); g.fillStyle = v; g.fillRect(0, 0, W, H);
   // estelas de movimiento y destellos de lente
   g.globalCompositeOperation = "lighter";
-  for (const e of ESTELAS) { const x = ((e.x0 + t * e.v) % (W + e.l)) - e.l, q = g.createLinearGradient(x, 0, x + e.l, 0);
-    q.addColorStop(0, rgba(verde, 0)); q.addColorStop(.6, e.blanca ? `rgba(255,255,255,${.22 + suave * .25})` : rgba(verde, .2 + suave * .25)); q.addColorStop(1, rgba(verde, 0));
-    g.fillStyle = q; g.fillRect(x, e.y * H, e.l, e.gr); }
+  const est = ESTILO[tema];
+  if (tema === "Fuego") {   // llamaradas que suben en vez de estelas que cruzan
+    for (const e of ESTELAS) { const y = H - ((e.x0 + t * e.v * .7) % (H + e.l)), x = e.y * W, q = g.createLinearGradient(0, y, 0, y + e.l);
+      q.addColorStop(0, rgba(verde, 0)); q.addColorStop(.4, e.blanca ? `rgba(255,240,200,${.2 + suave * .3})` : rgba(azul, .22 + suave * .3)); q.addColorStop(1, rgba(verde, 0));
+      g.fillStyle = q; g.fillRect(x, y, e.gr * .8, e.l); }
+    for (const b of BRASAS) { const y = H - ((b.y * H + t * b.v * H) % H), x = b.x * W + Math.sin(t * 2 + b.f) * 14, a = .5 + .5 * Math.sin(t * 9 + b.f);
+      g.fillStyle = `rgba(255,${150 + a * 80},60,${.35 + a * .5})`; g.beginPath(); g.arc(x, y, b.r * (1 + suave * .6), 0, 7); g.fill(); }
+  } else {
+    const n = tema === "Ácido" ? ESTELAS.length : 9;   // las otras variantes llevan menos estelas: el protagonismo es de sus partículas
+    for (const e of ESTELAS.slice(0, n)) { const x = ((e.x0 + t * e.v * (tema === "Hielo" ? .35 : 1)) % (W + e.l)) - e.l, q = g.createLinearGradient(x, 0, x + e.l, 0);
+      q.addColorStop(0, rgba(verde, 0)); q.addColorStop(.6, e.blanca || tema === "Hielo" ? `rgba(255,255,255,${.2 + suave * .25})` : rgba(verde, .2 + suave * .25)); q.addColorStop(1, rgba(verde, 0));
+      g.fillStyle = q; g.fillRect(x, e.y * H, e.l, e.gr); }
+  }
+  if (tema === "Hielo") for (const c of COPOS) {   // escarcha que sube lento y titila
+    const y = H - ((c.y * H + t * c.v * H) % H), x = c.x * W + Math.sin(t * .8 + c.f) * 10, a = Math.max(0, Math.sin(t * 2 + c.f)) ** 2;
+    g.fillStyle = `rgba(230,250,255,${.25 + a * .6})`; g.beginPath(); g.arc(x, y, c.r, 0, 7); g.fill();
+    if (a > .85) chispa(x, y, c.r * 5, (a - .85) * 5);
+  }
   const r = $("portada").getBoundingClientRect();
   const flare = (x, y, rr) => { const q = g.createRadialGradient(x, y, 0, x, y, rr); q.addColorStop(0, "rgba(255,255,255,.9)"); q.addColorStop(.15, "rgba(190,225,255,.45)"); q.addColorStop(1, rgba(azul, 0));
     g.fillStyle = q; g.fillRect(x - rr, y - rr, rr * 2, rr * 2); g.fillStyle = "rgba(255,255,255,.7)"; g.fillRect(x - rr * 1.6, y - 1, rr * 3.2, 2); g.fillRect(x - 1, y - rr * .8, 2, rr * 1.6); };
   flare(r.right, r.top, 80 + suave * 60); flare(W * .7, H * .74, 36 + suave * 26);
   g.globalCompositeOperation = "source-over";
-  // estrella de cromo que gira, detrás de la esquina de la carátula
-  const er = r.width * .58; g.save(); g.translate(r.left - r.width * .2, r.bottom - r.width * .1); g.rotate(-.25 + t * .15); g.beginPath();
-  for (let i = 0; i < 8; i++) { const rr = i % 2 ? er * .22 : er, a = i / 8 * Math.PI * 2 - Math.PI / 2; g.lineTo(Math.cos(a) * rr, Math.sin(a) * rr * .9); }
-  g.closePath(); const cs = g.createLinearGradient(0, -er, 0, er); cs.addColorStop(0, "#fff"); cs.addColorStop(.45, "#5e6f9a"); cs.addColorStop(.55, "#f4f8ff"); cs.addColorStop(1, "#9fb2d8");
-  g.strokeStyle = cs; g.lineWidth = Math.max(5, er * .045); g.shadowColor = rgba(azul, .9); g.shadowBlur = 20; g.stroke(); g.restore();
+  // figura de cromo detrás de la esquina de la carátula (Hielo no lleva: su protagonista es la carátula congelada)
+  const forma = est.forma;
+  if (forma) {
+    const er = r.width * .58, gira = forma === "estrella" ? -.25 + t * .15 : Math.sin(t * .6) * .18;
+    g.save(); g.translate(r.left - r.width * .2, r.bottom - r.width * .1); g.rotate(gira); g.scale(1 + suave * .05, 1 + suave * .05); figura(forma, er);
+    const cs = g.createLinearGradient(0, -er, 0, er); cs.addColorStop(0, "#fff"); cs.addColorStop(.45, "#5e6f9a"); cs.addColorStop(.55, "#f4f8ff"); cs.addColorStop(1, "#9fb2d8");
+    g.strokeStyle = cs; g.lineWidth = Math.max(5, er * .045); g.lineCap = g.lineJoin = "round"; g.shadowColor = rgba(azul, .9); g.shadowBlur = 20; g.stroke(); g.restore();
+  }
+  if (tema === "Chicle") for (const m of MARIPOSAS) {   // mariposas de cromo que cruzan aleteando
+    const x = ((m.x + t * m.v) % 1.2 - .1) * W, y = m.y * H * .85 + Math.sin(t * .9 + m.f) * 30;
+    mariposa(x, y, m.t * (H / 810), .35 + .65 * Math.abs(Math.sin(t * 5 + m.f)), azul);
+  }
   // la carátula: brillo que late con el bajo, barrido diagonal cada 3 s y destellos que se prenden y apagan
   const { left: X, top: Y, width: S } = r;
   g.save(); g.shadowColor = rgba(azul, .6 + suave * .4); g.shadowBlur = 40 + suave * 50; g.fillStyle = "#000"; g.fillRect(X, Y, S, S); g.restore();
   if (caratula) g.drawImage(caratula, X, Y, S, S); else { g.fillStyle = azul; g.fillRect(X, Y, S, S); }
   g.save(); g.beginPath(); g.rect(X, Y, S, S); g.clip(); g.globalCompositeOperation = "lighter";
   const bx = X - S * .75 + ((t % 3) / 3) * S * 2.5, sw = g.createLinearGradient(-S * .22, 0, S * .22, 0);
-  sw.addColorStop(0, "rgba(255,255,255,0)"); sw.addColorStop(.42, rgba(verde, .3)); sw.addColorStop(.5, "rgba(255,255,255,.7)"); sw.addColorStop(.58, rgba(azul, .3)); sw.addColorStop(1, "rgba(255,255,255,0)");
+  if (tema === "Chicle") ["rgba(255,255,255,0)", "rgba(255,120,220,.35)", "rgba(170,140,255,.4)", "rgba(110,240,255,.5)", "rgba(200,255,140,.4)", "rgba(255,240,160,.35)", "rgba(255,255,255,0)"].forEach((c, i, a) => sw.addColorStop(i / (a.length - 1), c));   // holográfico
+  else { sw.addColorStop(0, "rgba(255,255,255,0)"); sw.addColorStop(.42, rgba(verde, .3)); sw.addColorStop(.5, "rgba(255,255,255,.7)"); sw.addColorStop(.58, rgba(azul, .3)); sw.addColorStop(1, "rgba(255,255,255,0)"); }
   g.fillStyle = sw; g.translate(bx, Y + S / 2); g.rotate(.5); g.fillRect(-S * .22, -S, S * .44, S * 2); g.restore();
   g.save(); g.globalCompositeOperation = "lighter";
   for (const c of CHISPAS) { const a = Math.max(0, Math.sin(t * 3 + c.f)) ** 4; if (a > .02) chispa(X + c.x * S, Y + c.y * S, c.r * (.6 + a * .6) * S / 400, a * .95); }
   g.restore();
+  if (tema === "Hielo") congelar(t, X, Y, S);
   g.strokeStyle = "rgba(255,255,255,.7)"; g.lineWidth = 2; g.strokeRect(X, Y, S, S);
 });
+
+// ---- Hielo: escarcha que avanza desde los bordes, carámbanos de cromo arriba y grietas cuando pega el bajo ----
+const ESCARCHA = (() => {   // ramitas de hielo que crecen desde los 4 bordes hacia adentro (se dibuja una vez)
+  const c = document.createElement("canvas"); c.width = c.height = 512; const x = c.getContext("2d");
+  const borde = x.createRadialGradient(256, 256, 150, 256, 256, 380); borde.addColorStop(0, "rgba(235,250,255,0)"); borde.addColorStop(.6, "rgba(235,250,255,.3)"); borde.addColorStop(1, "rgba(245,252,255,.95)");
+  x.fillStyle = borde; x.fillRect(0, 0, 512, 512);
+  x.strokeStyle = "rgba(245,252,255,.75)"; x.lineCap = "round";
+  const rama = (px, py, ang, largo, grosor, nivel) => {
+    if (nivel > 4 || largo < 4) return;
+    const nx = px + Math.cos(ang) * largo, ny = py + Math.sin(ang) * largo;
+    x.lineWidth = grosor; x.beginPath(); x.moveTo(px, py); x.lineTo(nx, ny); x.stroke();
+    for (let k = 1; k <= 3; k++) { const f = k / 4, bx = px + (nx - px) * f, by = py + (ny - py) * f;
+      rama(bx, by, ang + (k % 2 ? 1 : -1) * Math.PI / 3, largo * (.3 + rnd() * .15), grosor * .6, nivel + 1); }   // 60°: como cristal de hielo, no como rama de árbol
+    rama(nx, ny, ang, largo * .5, grosor * .75, nivel + 1);
+  };
+  for (let i = 0; i < 80; i++) {
+    const lado = i % 4, p = rnd() * 512, largo = 18 + rnd() * 48;
+    const [px, py, ang] = lado === 0 ? [p, 0, Math.PI / 2] : lado === 1 ? [p, 512, -Math.PI / 2] : lado === 2 ? [0, p, 0] : [512, p, Math.PI];
+    rama(px, py, ang + (rnd() - .5) * .5, largo, 1.8, 0);
+  }
+  return c;
+})();
+const CARAMBANOS = Array.from({ length: 11 }, (_, i) => ({ x: (i + .3 + rnd() * .4) / 11, l: .05 + rnd() * .12, w: .025 + rnd() * .02, f: rnd() * 6 }));
+let grieta = null, ultimaGrieta = -9;
+function congelar(t, X, Y, S) {
+  // la escarcha "respira": entra más con el bajo y retrocede lento
+  const cubre = 1.16 - suave * .14 + Math.sin(t * .35) * .03;
+  g.save(); g.beginPath(); g.rect(X, Y, S, S); g.clip(); g.globalAlpha = .9;
+  g.drawImage(ESCARCHA, X + S / 2 - S * cubre / 2, Y + S / 2 - S * cubre / 2, S * cubre, S * cubre); g.globalAlpha = 1;
+  // grieta: aparece con un golpe fuerte, con destello, y se desvanece
+  const bajo = suave;
+  if (!grieta && bajo > .72 && t - ultimaGrieta > 2.5) {
+    ultimaGrieta = t; const cx = .25 + rnd() * .5, cy = .25 + rnd() * .5;
+    grieta = { t, cx, cy, rayos: Array.from({ length: 9 }, (_, i) => { const a = i / 9 * Math.PI * 2 + rnd() * .4; let px = 0, py = 0; const pts = [[0, 0]];
+      for (let k = 0; k < 6; k++) { const d = .05 + rnd() * .06, aa = a + (rnd() - .5) * .5; px += Math.cos(aa) * d; py += Math.sin(aa) * d; pts.push([px, py]); } return pts; }) };
+  }
+  if (grieta) {
+    const vida = (t - grieta.t) / 1.6;
+    if (vida >= 1) grieta = null;
+    else {
+      const a = 1 - vida, ox = X + grieta.cx * S, oy = Y + grieta.cy * S;
+      g.fillStyle = `rgba(230,250,255,${.35 * Math.max(0, 1 - vida * 5)})`; g.fillRect(X, Y, S, S);   // destello del golpe
+      g.strokeStyle = `rgba(255,255,255,${.9 * a})`; g.shadowColor = "rgba(160,240,255,.9)"; g.shadowBlur = 8; g.lineWidth = 1.6;
+      for (const rayo of grieta.rayos) { g.beginPath(); rayo.forEach(([px, py], k) => k ? g.lineTo(ox + px * S, oy + py * S) : g.moveTo(ox, oy)); g.stroke(); }
+      g.lineWidth = 1; g.beginPath(); for (const rr of [.06, .13]) { for (let k = 0; k <= 9; k++) { const p = grieta.rayos[k % 9][Math.round(rr * 30)] || [0, 0]; k ? g.lineTo(ox + p[0] * S, oy + p[1] * S) : g.moveTo(ox + p[0] * S, oy + p[1] * S); } } g.stroke();
+      g.shadowBlur = 0;
+    }
+  }
+  g.restore();
+  // carámbanos de cromo colgando del borde de arriba, con una gota que cae de vez en cuando
+  for (const c of CARAMBANOS) {
+    const x = X + c.x * S, w = c.w * S, l = c.l * S * (1 + Math.sin(t * .5 + c.f) * .04);
+    const q = g.createLinearGradient(x - w / 2, 0, x + w / 2, 0); q.addColorStop(0, "#9fb2d8"); q.addColorStop(.35, "#ffffff"); q.addColorStop(.5, "#5e6f9a"); q.addColorStop(.65, "#eef6ff"); q.addColorStop(1, "#8fa6d0");
+    g.fillStyle = q; g.shadowColor = "rgba(160,240,255,.8)"; g.shadowBlur = 10; g.beginPath(); g.moveTo(x - w / 2, Y); g.quadraticCurveTo(x - w * .1, Y + l * .6, x, Y + l); g.quadraticCurveTo(x + w * .1, Y + l * .6, x + w / 2, Y); g.fill(); g.shadowBlur = 0;
+    const ciclo = (t * .4 + c.f) % 3; if (ciclo < 1) { g.fillStyle = `rgba(220,250,255,${1 - ciclo})`; g.beginPath(); g.arc(x, Y + l + ciclo * S * .5, 2.2, 0, 7); g.fill(); }
+  }
+}
 </script>
 </body>
 </html>
