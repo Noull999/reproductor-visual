@@ -5,7 +5,7 @@
 // crearVisu2000(canvas) → { grupo([efectos]), intervalo(seg, 0 = solo al cambiar de canción), siguiente(),
 //                           dibujar(t, espectro, onda, bajo, medio, agudo, tono) }
 "use strict";
-const VISU2000 = ["estrellas", "anillos", "barras", "bateria", "chispas", "remolino", "rayos", "onda", "agua", "caleido"];
+const VISU2000 = ["estrellas", "anillos", "barras", "bateria", "llamas", "remolino", "rayos", "onda", "agua", "caleido"];
 function crearVisu2000(canvas) {
   const W = 480, H = 270, CX = W / 2, CY = H / 2, FUNDIDO = 2;
   const lienzo = () => { const c = document.createElement("canvas"); c.width = W; c.height = H; return c; };
@@ -13,8 +13,10 @@ function crearVisu2000(canvas) {
   const o = canvas.getContext("2d"), trabajo = lienzo(), g = trabajo.getContext("2d"), copia = lienzo(), c2 = copia.getContext("2d"), viejo = lienzo();
   const negro = (ctx) => { ctx.fillStyle = "#000"; ctx.fillRect(0, 0, W, H); };
   negro(g); negro(o);
-  let lista = VISU2000.slice(), modo = 0, cada = 45, desde = 0, ahora = 0, cambio = -99, prom = 0, golpe = 0, giro = 0;
-  let estrellas = [], anillos = [], chispas = [], gotas = [], ultimoAnillo = 0;
+  let pico = .3, lista = VISU2000.slice(), modo = 0, cada = 45, desde = 0, ahora = 0, cambio = -99, prom = 0, golpe = 0, giro = 0;
+  let estrellas = [], anillos = [], gotas = [], ultimoAnillo = 0;
+  const FW = 120, FH = 68, calor = new Float32Array(FW * (FH + 2)), fuego = document.createElement("canvas"); fuego.width = FW; fuego.height = FH;
+  const fg = fuego.getContext("2d"), fimg = fg.createImageData(FW, FH);
 
   // redibuja el cuadro anterior transformado: zoom > 1 = túnel hacia afuera; filtro = humo o cambio de color
   function eco(zoom, rot, alfa, filtro) {
@@ -25,6 +27,11 @@ function crearVisu2000(canvas) {
   }
   const col = (h, l, a) => `hsla(${h},100%,${l}%,${a})`;
   const banda = (d, i, n) => { const a = Math.floor(2 * Math.pow(90, i / n)), b = Math.max(a + 1, Math.floor(2 * Math.pow(90, (i + 1) / n))); let s = 0; for (let k = a; k < b; k++) s += d[k] || 0; return Math.min(1, s / (b - a) / 200); };
+  const hsl = (h, s, l) => {   // de HSL a RGB (0-255) para pintar el fuego pixel a pixel
+    h = ((h % 1) + 1) % 1; const q = l < .5 ? l * (1 + s) : l + s - l * s, p = 2 * l - q;
+    const c = (t) => { t = ((t % 1) + 1) % 1; return 255 * (t < 1 / 6 ? p + (q - p) * 6 * t : t < .5 ? q : t < 2 / 3 ? p + (q - p) * (2 / 3 - t) * 6 : p); };
+    return [c(h + 1 / 3), c(h), c(h - 1 / 3)];
+  };
   const sumar = (f) => { g.globalCompositeOperation = "lighter"; f(); g.globalCompositeOperation = "source-over"; };
 
   const EFECTOS = {
@@ -69,7 +76,7 @@ function crearVisu2000(canvas) {
         g.stroke();
       });
     },
-    // Grafito: batería, fuente de chispas, remolino de plasma
+    // Grafito: batería, llamas, remolino de plasma
     bateria(t, x) {
       giro += .004 + x.bajo * .02;
       eco(1.035 + x.bajo * .05, .015 + x.bajo * .03, .945);
@@ -83,24 +90,25 @@ function crearVisu2000(canvas) {
       });
       g.fillStyle = "#000"; g.beginPath(); g.arc(CX, CY, 5 + x.bajo * 8, 0, 7); g.fill();   // el "ojo" negro del túnel
     },
-    chispas(t, x) {
-      eco(1, 0, .8, "blur(.5px)");
-      for (let k = 0, n = 2 + Math.round(x.bajo * 6 + golpe * 22); k < n; k++)
-        chispas.push({ x: CX + (Math.random() - .5) * 20, y: H * .95, vx: (Math.random() - .5) * 3, vy: -(2.5 + Math.random() * 3.5) * (1 + x.bajo), v: 1 });
-      sumar(() => {
-        for (let i = chispas.length - 1; i >= 0; i--) {
-          const c = chispas[i]; c.x += c.vx; c.y += c.vy; c.vy += .09; c.v -= .008;
-          if (c.v <= 0 || c.y > H) { chispas.splice(i, 1); continue; }
-          g.fillStyle = col(x.tono + (1 - c.v) * 40, 45 + c.v * 15, c.v * .8); g.fillRect(c.x, c.y, 2, 2);
-        }
-      });
-      if (chispas.length > 1500) chispas.splice(0, chispas.length - 1500);
+    llamas(t, x) {   // el fuego clásico de los 2000: calor que nace abajo y sube enfriándose
+      for (let i = 0; i < FW; i++) calor[(FH + 1) * FW + i] = calor[FH * FW + i] = Math.random() < .42 + x.bajo * .25 ? 1.1 + x.bajo * .3 + golpe * .5 : 0;
+      const enfr = .006 - x.bajo * .002;
+      for (let y = 0; y < FH; y++) for (let i = 0; i < FW; i++) {
+        const k = (y + 1) * FW, v = (calor[k + (i + FW - 1) % FW] + calor[k + i] + calor[k + (i + 1) % FW] + calor[k + FW + i]) / 4.02 - enfr - Math.random() * .011;   // enfriamiento irregular = lenguas de fuego
+        calor[y * FW + i] = v > 0 ? v : 0;
+      }
+      const px = fimg.data;
+      for (let y = 0; y < FH; y++) for (let i = 0; i < FW; i++) {
+        const v = Math.min(1, calor[y * FW + i] * 1.25), j = (y * FW + i) * 4, h = (x.tono - 25 + v * 40) / 360;
+        const [rr, gg, bb] = hsl(h, 1, Math.min(.6, v * .7)); px[j] = rr; px[j + 1] = gg; px[j + 2] = bb; px[j + 3] = 255;
+      }
+      fg.putImageData(fimg, 0, 0); g.imageSmoothingEnabled = true; g.drawImage(fuego, 0, 0, W, H);
     },
     remolino(t, x) {
       eco(1.008, .03 + x.bajo * .03, .96, "blur(1px)");
       sumar(() => {
         for (let k = 0; k < 5; k++) {
-          const a = t * (.6 + k * .15) + k * 1.26, r = 20 + x.medio * 70 + 15 * Math.sin(t + k), px = CX + Math.cos(a) * r, py = CY + Math.sin(a) * r * .7, s = 14 + x.bajo * 26;
+          const a = t * (.6 + k * .15) + k * 1.26, r = 45 + x.medio * 110 + 25 * Math.sin(t + k), px = CX + Math.cos(a) * r, py = CY + Math.sin(a) * r * .6, s = 30 + x.bajo * 40;
           const m = g.createRadialGradient(px, py, 0, px, py, s); m.addColorStop(0, col(x.tono + k * 12 - 25, 50, .22)); m.addColorStop(1, col(x.tono, 30, 0));
           g.fillStyle = m; g.fillRect(px - s, py - s, s * 2, s * 2);
         }
@@ -110,7 +118,7 @@ function crearVisu2000(canvas) {
     rayos(t, x) {
       eco(1.012, .004, .9, "blur(1.4px)");
       sumar(() => {
-        const r = 40 + x.bajo * 70, nube = g.createRadialGradient(CX, CY, 0, CX, CY, r);
+        const r = 70 + x.bajo * 110, nube = g.createRadialGradient(CX, CY, 0, CX, CY, r);
         nube.addColorStop(0, col(x.tono, 62, .28 + x.bajo * .25)); nube.addColorStop(.4, col(x.tono, 48, .16)); nube.addColorStop(1, col(x.tono, 30, 0));
         g.fillStyle = nube; g.fillRect(0, 0, W, H);
         for (let k = 0; k < 6; k++) {   // humo que se arremolina alrededor del centro
@@ -121,7 +129,7 @@ function crearVisu2000(canvas) {
         g.strokeStyle = col(x.tono + 10, 64, .7); g.shadowColor = col(x.tono, 50, .9); g.shadowBlur = 6; g.lineWidth = 1.2;
         for (let k = 0, n = 1 + Math.round(golpe * 4 + x.agudo * 2); k < n; k++) {   // relámpagos del centro hacia afuera
           let a = Math.random() * Math.PI * 2, px = CX, py = CY; g.beginPath(); g.moveTo(px, py);
-          for (let s = 0; s < 14; s++) { a += (Math.random() - .5) * .9; px += Math.cos(a) * 14; py += Math.sin(a) * 14; g.lineTo(px, py); }
+          for (let s = 0; s < 22; s++) { a += (Math.random() - .5) * .9; px += Math.cos(a) * 14; py += Math.sin(a) * 14; g.lineTo(px, py); }
           g.stroke();
         }
         g.shadowBlur = 0;
@@ -133,7 +141,7 @@ function crearVisu2000(canvas) {
         for (let rep = 0; rep < 2; rep++) {   // la onda real en cruz; la retroalimentación la vuelve remolino
           g.save(); g.translate(CX, CY); g.rotate(t * .5 + rep * Math.PI / 2);
           g.strokeStyle = col(x.tono + rep * 50, 55, .6); g.lineWidth = 1.6; g.beginPath();
-          for (let i = 0; i < x.onda.length; i += 4) { const px = (i / x.onda.length - .5) * W * .7, py = (x.onda[i] - 128) / 128 * H * .35 * (1 + x.bajo); i ? g.lineTo(px, py) : g.moveTo(px, py); }
+          for (let i = 0; i < x.onda.length; i += 4) { const px = (i / x.onda.length - .5) * W * 1.1, py = (x.onda[i] - 128) / 128 * H * .4 * (1 + x.bajo); i ? g.lineTo(px, py) : g.moveTo(px, py); }
           g.stroke(); g.restore();
         }
       });
@@ -151,7 +159,7 @@ function crearVisu2000(canvas) {
     },
     caleido(t, x) {
       eco(1.012, .012, .9, "hue-rotate(2deg)");
-      const N = 8, R = H * .55;
+      const N = 8, R = W * .62;
       sumar(() => {
         g.lineWidth = 1.4;
         for (let k = 0; k < N; k++) for (const lado of [1, -1]) {   // un trozo de la onda repetido en espejo alrededor del centro
@@ -166,7 +174,7 @@ function crearVisu2000(canvas) {
 
   function cambiar() {
     const v = viejo.getContext("2d"); v.clearRect(0, 0, W, H); v.drawImage(canvas, 0, 0);   // el efecto anterior se funde
-    negro(g); estrellas = []; anillos = []; chispas = []; gotas = [];
+    negro(g); estrellas = []; anillos = []; gotas = []; calor.fill(0);
     modo = (modo + 1) % lista.length; desde = ahora; cambio = ahora;
   }
   return {
@@ -174,11 +182,16 @@ function crearVisu2000(canvas) {
     intervalo(s) { cada = s; },
     siguiente: cambiar,
     dibujar(t, d, onda, bajo, medio, agudo, tono) {
+      // se adapta a la música: el bajo se mide contra su pico reciente (con bajo potente no queda todo al máximo)
+      pico = Math.max(bajo, pico * .997, .15); bajo = Math.min(1, bajo / pico * .5);
       ahora = t; if (!desde) desde = t;
       prom = prom * .94 + bajo * .06; if (bajo > prom * 1.22 + .07) golpe = 1; golpe *= .86;
       if (cada > 0 && t - desde > cada) cambiar();
       EFECTOS[lista[modo]](t, { d, onda, bajo, medio, agudo, tono });
-      o.globalAlpha = 1; o.drawImage(trabajo, 0, 0);
+      const base = o.createRadialGradient(CX, CY, 0, CX, CY, W * .62);
+      base.addColorStop(0, col(tono, 35, .1 + bajo * .08)); base.addColorStop(1, col(tono + 20, 22, .16 + bajo * .06));
+      o.globalAlpha = 1; o.fillStyle = "#000"; o.fillRect(0, 0, W, H); o.fillStyle = base; o.fillRect(0, 0, W, H);
+      o.globalCompositeOperation = "lighter"; o.drawImage(trabajo, 0, 0); o.globalCompositeOperation = "source-over";
       const f = 1 - (t - cambio) / FUNDIDO; if (f > 0 && f <= 1) { o.globalAlpha = f; o.drawImage(viejo, 0, 0); o.globalAlpha = 1; }
     },
   };
