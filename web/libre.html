@@ -94,6 +94,7 @@
 <script src="haz.js"></script>
 <script src="nucleo.js"></script>
 <script src="modulos.js"></script>
+<script src="winamp.js"></script>
 <script>
 "use strict";
 const spec = Propias.obtener(new URLSearchParams(location.search).get("plantilla"));
@@ -146,27 +147,22 @@ function construir(s) {
     raiz.setProperty("--p", (R.progreso() * 100).toFixed(2) + "%");
     document.body.classList.toggle("sonando", (document.getElementById("bPlay") || {}).textContent === "❚❚");
   });
-  if (s.id === "anime") variantesAnime();   // la incluida (no las copias del editor) cambia de personaje desde adentro
+  if (s.piezas.some(p => p.tipo === "winamp")) puntosSkins();   // un punto por cada skin importado
   const vol = document.getElementById("volumen");
   if (vol) vol.addEventListener("input", () => raiz.setProperty("--v", vol.value + "%"));
 }
 
-// ---- Anime PS2: cambiar de personaje y color sin recargar (no corta la música) ----
-function variantesAnime() {
-  const V = Propias.INCLUIDAS.anime.VARIANTES, d = document.createElement("div"); d.id = "variantes"; d.className = "ocultable";
-  const usar = (k) => {
-    try { localStorage.setItem("variante-anime", k); } catch (e) {}
-    ponerAcento(rgb(V[k][1]));
-    const i = document.querySelector("img.imagen"); if (i) i.src = `img/anime/${V[k][0]}.webp`;
-    d.querySelectorAll("button").forEach(b => b.classList.toggle("elegido", b.dataset.k === k));
-  };
-  for (const [k, [, color, nombre]] of Object.entries(V)) {
-    const b = document.createElement("button"); b.dataset.k = k; b.title = nombre; b.setAttribute("aria-label", nombre);
-    b.style.setProperty("--c", color); b.onclick = () => usar(k); d.appendChild(b);
-  }
-  document.body.appendChild(d);
-  let k = ""; try { k = localStorage.getItem("variante-anime") || ""; } catch (e) {}
-  d.querySelectorAll("button").forEach(b => b.classList.toggle("elegido", b.dataset.k === (V[k] ? k : "Cian")));
+// ---- Skins de Winamp: un punto por skin, con su color; cambia sin recargar (no corta la música) ----
+function puntosSkins() {
+  const d = document.createElement("div"); d.id = "variantes"; d.className = "ocultable"; document.body.appendChild(d);
+  document.addEventListener("skin-winamp", (e) => {
+    const lista = Winamp.lista(), act = e.detail; d.innerHTML = ""; d.hidden = lista.length < 2;
+    lista.forEach(s => {
+      const b = document.createElement("button"); b.title = s.nombre; b.setAttribute("aria-label", s.nombre);
+      b.style.setProperty("--c", (s.pledit && s.pledit.current) || "#5ef0ff"); b.classList.toggle("elegido", !!act && act.id === s.id);
+      b.onclick = () => window.reproductorWinamp.usar(s.id); d.appendChild(b);
+    });
+  });
 }
 
 // ---- Fondos ----
@@ -388,6 +384,7 @@ function pieza(p, caja) {
       return i;
     }
     case "efecto": { const c = document.createElement("canvas"); efecto(c, p); return c; }
+    case "winamp": { window.reproductorWinamp = Winamp.montar(caja, { ambiente: val(p, "ambiente") }); return null; }
     case "cabeza": Modulos.cabeza({ cuerpo: val(p, "cuerpo"), color: val(p, "color") }, caja); return null;
     case "equipo": Modulos.equipo({ skin: val(p, "skin") }, caja); return null;
   }

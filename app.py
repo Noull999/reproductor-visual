@@ -19,6 +19,7 @@ import webview
 import config
 import plantillas
 import servidor
+import skins
 from fuentes import musica, pc, soundcloud_acceso, vista_previa
 from fuentes.soundcloud import SoundCloud
 from fuentes import spotify
@@ -285,6 +286,36 @@ class Api:
             return {"ok": False, "error": str(e)}
         except OSError as e:
             return {"ok": False, "error": f"No se pudo guardar el archivo: {e.strerror or e}"}
+
+    # ---- Skins de Winamp (quedan solo en este equipo) ----
+    def skins_listar(self) -> list:
+        return skins.listar()
+
+    def skin_importar_url(self, url: str) -> dict:
+        try:
+            return {"ok": True, "skin": skins.desde_url(url)}
+        except skins.SkinInvalido as e:
+            return {"ok": False, "error": str(e)}
+        except Exception as e:
+            logger.exception("Skin desde link")
+            return {"ok": False, "error": f"No se pudo descargar el skin: {str(e)[:100]}"}
+
+    def skin_importar_archivo(self) -> dict:
+        ventana = webview.windows[0] if webview.windows else None
+        elegido = ventana.create_file_dialog(webview.OPEN_DIALOG, file_types=("Skin de Winamp (*.wsz;*.zip)",)) if ventana else None
+        if not elegido:
+            return {"ok": True, "cancelado": True}
+        try:
+            ruta = Path(elegido[0])
+            if ruta.stat().st_size > skins.MAX_ZIP:
+                raise skins.SkinInvalido("El skin es demasiado grande.")
+            return {"ok": True, "skin": skins.importar(ruta.read_bytes(), ruta.stem.replace("_", " "))}
+        except skins.SkinInvalido as e:
+            return {"ok": False, "error": str(e)}
+
+    def skin_borrar(self, sid: str) -> dict:
+        skins.borrar(sid)
+        return {"ok": True}
 
     def plantilla_importar(self) -> dict:
         """Elige un .plantilla, lo valida entero y devuelve la plantilla nueva (con id propio) para guardarla."""

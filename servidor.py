@@ -10,6 +10,7 @@ import os
 import threading
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+import re
 from urllib.parse import parse_qs, urlparse
 
 WEB = Path(__file__).resolve().parent / "web"
@@ -57,6 +58,8 @@ class Manejador(SimpleHTTPRequestHandler):
         url = urlparse(self.path)
         if url.path == "/musica":
             return self._musica(parse_qs(url.query).get("r", [""])[0])
+        if url.path == "/skin":
+            return self._skin(parse_qs(url.query).get("n", [""])[0])
         if url.path == "/imagen":
             return self._imagen(parse_qs(url.query).get("n", [""])[0])
         if url.path == "/caratula":
@@ -97,6 +100,20 @@ class Manejador(SimpleHTTPRequestHandler):
                     restante -= len(bloque)
             except (BrokenPipeError, ConnectionResetError):
                 pass   # el reproductor cortó (cambió de tema o adelantó)
+
+    def _skin(self, ruta):
+        """Pieza de un skin de Winamp importado: /skin?n=<id>/<pieza>.png (nada de rutas libres)."""
+        import skins
+        m = re.fullmatch(r"([0-9a-f]{16})/([a-z_]+)\.png", ruta or "")
+        p = skins.CARPETA / m.group(1) / (m.group(2) + ".png") if m else None
+        if not p or m.group(2) not in skins.PIEZAS or not p.is_file():
+            return self.send_error(404)
+        datos = p.read_bytes()
+        self.send_response(200)
+        self.send_header("Content-Type", "image/png")
+        self.send_header("Content-Length", str(len(datos)))
+        self.end_headers()
+        self.wfile.write(datos)
 
     def _imagen(self, nombre):
         """Imagen propia de la carpeta ~/.visualizador/imagenes (solo nombres simples, nada de rutas)."""

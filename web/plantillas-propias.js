@@ -64,15 +64,10 @@ const Propias = (() => {
         ["titulo", [3, 49, 40, 5], { tam: 90 }], ["artista", [3, 54, 40, 3]], ["lista", [72, 4, 26, 82]], ["botones", [3, 91, 20, 8]], ["barra", [26, 94.2, 46, 2.4]],
         ["tiempo", [75, 91.5, 10, 6]], ["volumen", [86, 92, 11, 5]]]) },
   };
-  // Anime PS2: cada variante es otro personaje con su propio color de acento
-  const ANIME = { Cian: ["cian", "#19c8ff", "Audífonos"], Rosa: ["rosa", "#ff7ac8", "Androide"], Gotica: ["gotica", "#e0233c", "Gótica"], Violeta: ["violeta", "#9b6bff", "Colegiala"] };
-  const animeActual = () => { let v = ""; try { v = localStorage.getItem("variante-anime") || ""; } catch (e) {} return ANIME[v] || ANIME.Cian; };
-  INCLUIDAS.anime = { nombre: "Anime PS2", reglas: { requeridas: ["titulo", "botones", "barra"], nota: COMUN }, VARIANTES: ANIME,
-      fondo: { tipo: "columnas", color: "#02071c", color2: "#0b2f7a", brillo: 100 },
-      get estilo() { return { panel: "ps2", acento: animeActual()[1], fuente: "Michroma" }; },
-      piezas: () => armar([["efecto", [22, 0, 56, 92], { efecto: "lineas" }], ["imagen", [27, 3, 46, 96], { imagen: `img/anime/${animeActual()[0]}.webp`, reaccion: "golpe", aura: true, aberracion: true }],
-        ["efecto", [0, 0, 100, 100], { efecto: "destellos", sensibilidad: 80 }], ["panel", [2.5, 60, 27, 26]], ["titulo", [4, 63, 24, 7], { tam: 90, mayusculas: true }], ["artista", [4, 72, 24, 4], { tam: 80 }],
-        ["caratula", [4, 5, 21, 30], { forma: "cuadrada", borde: true }], ["lista", [72, 5, 26, 78]], ["panel", [0, 88, 100, 12]], ["botones", [30, 89.5, 22, 9]], ["barra", [54, 93, 28, 2.4]], ["tiempo", [84, 91, 12, 5]]]) };
+  // Anime PS2: un reproductor de Winamp con los skins que importa la persona (quedan solo en su equipo)
+  INCLUIDAS.anime = { nombre: "Anime PS2", reglas: { requeridas: ["winamp"], nota: "El reproductor de Winamp lo es todo: trae pantalla, botones, barra, ecualizador y lista. Los skins se importan en la Biblioteca (link de skins.webamp.org o archivo .wsz)." },
+      fondo: { tipo: "visu2000", color: "#000000", brillo: 55 }, estilo: { panel: "liso", acento: "#5ef0ff", fuente: "Geist" },
+      piezas: () => armar([["winamp", [33, 2, 34, 96], { ambiente: true }]]) };
   function desdeBase(id) {
     const b = INCLUIDAS[id]; if (!b) return null;
     const spec = { id: nuevoId(), nombre: `${b.nombre} (mi versión)`, base: id, fondo: JSON.parse(JSON.stringify(b.fondo)), estilo: JSON.parse(JSON.stringify(b.estilo)), piezas: b.piezas() };

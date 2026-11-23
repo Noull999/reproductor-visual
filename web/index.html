@@ -71,6 +71,14 @@
   input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: 0 0 12px var(--rojo); }
   .interruptor { display: flex; align-items: center; gap: 10px; font-size: 14px; cursor: pointer; }
   .interruptor input { accent-color: var(--rojo); width: 16px; height: 16px; }
+  .skins-winamp { display: grid; gap: 8px; margin-top: 6px; }
+  .skins-winamp .ayuda { font-size: 12.5px; color: var(--suave, #a8a8b3); margin: 0; line-height: 1.45; }
+  .fila-skin { display: flex; gap: 8px; }
+  .fila-skin input { flex: 1; min-width: 0; padding: 8px 10px; border-radius: 10px; border: .8px solid var(--borde); background: rgba(255,255,255,.05); color: inherit; font: inherit; font-size: 13px; }
+  .lista-skins { display: grid; gap: 6px; }
+  .skin { display: flex; align-items: center; gap: 10px; padding: 6px 10px; border-radius: 12px; border: .8px solid var(--borde); background: rgba(255,255,255,.04); font-size: 13.5px; }
+  .skin i { width: 12px; height: 12px; border-radius: 50%; flex: none; }
+  .skin span { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .ranura { display: flex; align-items: center; gap: 12px; padding: 8px 10px; border-radius: 14px; border: .8px solid var(--borde); background: rgba(255,255,255,.04); }
   .ranura .mini { width: 64px; height: 36px; border-radius: 8px; background: rgba(255,255,255,.08) center / cover; flex: none; }
   .ranura .nombre { flex: 1; font-size: 14px; } .ranura .nombre small { display: block; color: var(--suave); font-size: 12px; }
@@ -158,14 +166,10 @@ const PLANTILLAS = [
     desc: "La carátula manda: sus colores tiñen todo, en duotono y con su onda real.",
     guardar: (x) => ({ "tema-ambiente": x.nombre }),
     grupos: [{ titulo: "Colores", items: [v("Carátula", "#9aa4b8", "ambiente-caratula"), v("Noche", "#7896ff", "ambiente-noche"), v("Atardecer", "#ff8c5a", "ambiente-atardecer"), v("Bosque", "#8ce696", "ambiente-bosque"), v("Mono", "#ebebeb", "ambiente-mono")] }] },
-  { id: "anime", nombre: "Anime PS2", pagina: "libre.html?plantilla=anime", predeterminada: "Audífonos",
-    desc: "Carátula de juego de PS2: una chica distinta por variante, con su color, sobre columnas de luz de consola, líneas de velocidad y paneles que toman su color.",
-    guardar: (x) => ({ "variante-anime": x.clave }),
-    grupos: [{ titulo: "Personaje", items: [["Cian", "Audífonos", "#19c8ff"], ["Rosa", "Androide", "#ff7ac8"], ["Gotica", "Gótica", "#e0233c"], ["Violeta", "Colegiala", "#9b6bff"]].map(([k, n, col]) => v(n, col, `anime-${k.toLowerCase()}`, { clave: k })) }] },
-  { id: "pixel", nombre: "Pixel", pagina: "pixel.html", predeterminada: "Sangre",
-    desc: "8 bits: espectro en bloques y carátula pixelada, con paletas de color a elegir.",
-    guardar: (x) => ({ "paleta-pixel": x.nombre }),
-    grupos: [{ titulo: "Paleta", items: [v("Sangre", "#e8452c", "pixel-sangre"), v("Game Boy", "#9bbc0f", "pixel-game-boy"), v("NES", "#e40058", "pixel-nes"), v("Vaporwave", "#ff71ce", "pixel-vaporwave"), v("Matrix", "#39ff6a", "pixel-matrix"), v("Hielo", "#8fe3ff", "pixel-hielo"), v("Ámbar", "#ffb000", "pixel-ambar")] }] },
+  { id: "anime", nombre: "Anime PS2", pagina: "libre.html?plantilla=anime", predeterminada: "Winamp",
+    desc: "Un Winamp de los 2000 con los skins que tú elijas (anime, juegos…): ventana, ecualizador que baila y lista, sobre visualizaciones de la época. Los skins se importan abajo y quedan solo en tu PC.",
+    guardar: () => ({}),
+    grupos: [{ titulo: "Skins", items: [v("Winamp", "#5ef0ff", "anime-winamp")] }] },
 ];
 // Headspace suma un grupo "Cuerpo propio" cuando la persona subió uno
 const gruposDe = (p) => {
@@ -240,6 +244,31 @@ function fila(titulo, valor, texto, onInput, ctl) {
   const r = document.createElement("input"); r.type = "range"; Object.assign(r, { min: ctl.min, max: ctl.max, step: 1, value: valor });
   r.oninput = () => onInput(+r.value, r); d.appendChild(r); return d;
 }
+// ---- Skins de Winamp (Anime PS2): se importan desde un link de skins.webamp.org o un .wsz; quedan solo en este PC ----
+async function seccionSkins() {
+  const caja = $("extras"), d = document.createElement("div"); d.className = "skins-winamp"; caja.appendChild(d);
+  const api = window.pywebview && pywebview.api;
+  d.innerHTML = `<div class="mono">Skins de Winamp</div>
+    <p class="ayuda">Busca uno en <b>skins.webamp.org</b>, copia el link de la página del skin y pégalo aquí. También sirve un archivo .wsz. Quedan solo en tu PC.</p>
+    <div class="fila-skin"><input type="text" placeholder="https://skins.webamp.org/skin/…" aria-label="Link del skin"><button class="suave">Agregar</button></div>
+    <button class="suave" data-a="archivo">Elegir archivo .wsz…</button><div class="lista-skins"></div>`;
+  const campo = d.querySelector("input"), lista = d.querySelector(".lista-skins");
+  async function pintarLista() {
+    const l = api ? await api.skins_listar() : [];
+    lista.innerHTML = l.length ? "" : '<p class="ayuda">Todavía no tienes skins: se usa el clásico.</p>';
+    l.forEach(s => {
+      const f = document.createElement("div"); f.className = "skin";
+      f.innerHTML = `<i style="background:${(s.pledit && s.pledit.current) || "#5ef0ff"}"></i><span></span><button class="suave">Quitar</button>`;
+      f.querySelector("span").textContent = s.nombre;
+      f.querySelector("button").onclick = async () => { await api.skin_borrar(s.id); pintarLista(); refrescar(true); };
+      lista.appendChild(f);
+    });
+  }
+  const resultado = (r) => { if (r && r.ok && r.skin) { try { localStorage.setItem("skin-winamp", r.skin.id); } catch (e) {} mensaje(`Skin «${r.skin.nombre}» agregado.`); campo.value = ""; pintarLista(); refrescar(true); } else if (r && !r.ok) mensaje(r.error); };
+  d.querySelector(".fila-skin button").onclick = async () => { if (!api) return; mensaje("Descargando el skin…"); resultado(await api.skin_importar_url(campo.value)); };
+  d.querySelector('[data-a="archivo"]').onclick = async () => { if (api) resultado(await api.skin_importar_archivo()); };
+  pintarLista();
+}
 function pintarProps() {
   props = Props.leer(actual.id);
   const caja = $("extras"); caja.innerHTML = "";
@@ -254,6 +283,7 @@ function pintarProps() {
     const l = document.createElement("label"); l.className = "interruptor"; l.innerHTML = `<input type="checkbox"> ${texto}`;
     const c = l.querySelector("input"); c.checked = props[campo]; c.onchange = () => cambiar(campo, c.checked, true); caja.appendChild(l);
   });
+  if (actual.id === "anime") seccionSkins();
   const r = $("ranuras"); r.innerHTML = actual.propio ? "" : '<div class="mono">Imágenes propias</div>';
   if (actual.propio) return;   // sus imágenes se cambian en el Editor
   [...(RANURAS[actual.id] || []), FONDO].forEach(x => {

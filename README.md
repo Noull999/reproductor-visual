@@ -7,7 +7,7 @@ Escuchas lo de siempre (Spotify, SoundCloud, tus carpetas, o cualquier cosa que 
 | | |
 |---|---|
 | ![Líquido](docs/img/liquido-rojo.png) **Líquido**: vidrio líquido sobre un haz de luz | ![Headspace](docs/img/headspace-y2k-lima.png) **Headspace**: cabeza Y2K con lista que sale del costado |
-| ![2000s](docs/img/dosmil-plata.png) **2000s**: metal, pantalla LCD y túnel psicodélico | ![Ambiente](docs/img/ambiente-noche.png) **Ambiente**: la carátula manda, en duotono |
+| ![2000s](docs/img/dosmil-plata.png) **2000s**: metal, pantalla LCD y visualizaciones estilo Windows Media Player | ![Ambiente](docs/img/ambiente-noche.png) **Ambiente**: la carátula manda, en duotono |
 | ![Pixel](docs/img/pixel-game-boy.png) **Pixel**: 8 bits con paletas (aquí, Game Boy) | |
 
 *(Las carátulas de las capturas están pixeladas a propósito.)*
@@ -21,13 +21,14 @@ Escuchas lo de siempre (Spotify, SoundCloud, tus carpetas, o cualquier cosa que 
 - **Otra app**: lo que suene en el PC (navegador, etc.): título, carátula y botones de Windows.
 
 **Plantillas** (5 incluidas, con 31 variantes de color)
-Líquido · Headspace · 2000s · Ambiente · Pixel. Todas tienen lista de temas, ajustes de intensidad y velocidad, y un modo "solo visual" (los controles se esconden tras 3 s sin mover el mouse; la tecla **H** lo activa o desactiva).
+Líquido · Headspace · 2000s · Ambiente · Anime PS2 · Pixel. Todas tienen lista de temas, ajustes de intensidad y velocidad, y un modo "solo visual" (los controles se esconden tras 3 s sin mover el mouse; la tecla **H** lo activa o desactiva).
 
 **Biblioteca** (estilo Wallpaper Engine)
 Cuadrícula de plantillas con **vista previa en vivo**: la plantilla real corriendo con música inventada. Ahí cambias colores, intensidad, velocidad, mostrar u ocultar la lista, y pones tus propias imágenes (fondo; y en Headspace, un **cuerpo propio** con un editor de zonas).
 
 **Editor y plantillas propias**
 Cada plantilla se puede hacer de **piezas** que se arrastran y se estiran sobre una vista previa en vivo.
+- **Skins de Winamp (Anime PS2):** el reproductor dibuja skins clásicos de Winamp 2 (.wsz): ventana, ecualizador y lista. Se importan en la Biblioteca pegando el link de un skin de [skins.webamp.org](https://skins.webamp.org) o eligiendo un archivo .wsz. Los skins son arte de sus autores: quedan **solo en tu PC** (`~/.visualizador/skins`) y nunca se suben ni se reparten con la app. Sin skins se usa uno clásico propio.
 - **Editar una de las 5 incluidas:** "Editar esta plantilla" crea tu versión hecha de piezas (Líquido, Headspace, 2000s, Ambiente y Pixel). Cada una trae sus **reglas**: por ejemplo, Headspace exige su cabeza (que ya trae título, botones y barra adentro) y las demás exigen título, botones y barra de avance. Lo que no está bloqueado se puede mover, cambiar o quitar, y una pieza no puede cumplir la misma función que otra.
 - **Crear una libre:** parte de una base (en blanco, reproductor central, con lista) y agrega lo que quieras.
 - **Personalización:** fondo (haz, túnel, burbujas, luces, estrellas de píxel, carátula desenfocada, degradado, color o imagen), visuales (barras, bloques de píxel, segmentos LCD, onda, círculo, con opción de reflejo e intensidad), estilo de paneles (vidrio, metal, gel, píxel, liso) con deformación del vidrio opcional, acento fijo o tomado de la carátula, y 6 letras. Cada pieza tiene sus opciones: carátula (cuadrada, redondeada, círculo, vinilo que gira; efecto normal, duotono, pixelada o blanco y negro; inclinación), título y artista (tamaño, alineación, mayúsculas, letra y color propios), barra (línea, onda real del tema o segmentos), botones, lista (con o sin carátulas y números) y opacidad.
