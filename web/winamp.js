@@ -26,19 +26,19 @@ const Winamp = (() => {
     new ResizeObserver(ajustar).observe(caja); requestAnimationFrame(ajustar);
     const g = c.getContext("2d"); g.scale(S, S); g.imageSmoothingEnabled = false;
     const vol = oculto.querySelector("#volumen"), bPlay = oculto.querySelector("#bPlay"), tit = oculto.querySelector("#titulo"), art = oculto.querySelector("#artista");
-    let img = {}, vis = VIS_WINAMP, pl = {}, region = [], scroll = 0, apretado = "", arrastre = "", paso = 0, ultimoPaso = 0, picos = new Array(19).fill(0);
+    let hover = "", poco = null, colorAcento = "94,240,255", img = {}, vis = VIS_WINAMP, pl = {}, region = [], scroll = 0, apretado = "", arrastre = "", paso = 0, ultimoPaso = 0, picos = new Array(19).fill(0);
 
     async function usar(id) {
       if (!skins.length) skins = await leerSkins();
       actual = skins.find(s => s.id === id) || skins.find(s => s.id === guardada()) || skins[0] || null;
-      img = {}; vis = VIS_WINAMP; pl = {}; region = [];
+      img = {}; vis = VIS_WINAMP; pl = {}; region = []; poco = null;
       if (actual) {
         try { localStorage.setItem("skin-winamp", actual.id); } catch (e) {}
         actual.piezas.forEach(p => { const i = new Image(); i.src = `/skin?n=${actual.id}/${p}.png`; img[p] = i; });
         if (actual.vis && actual.vis.length >= 18) vis = actual.vis.concat(VIS_WINAMP.slice(actual.vis.length));
         pl = actual.pledit || {}; region = actual.region || [];
       }
-      const hex = (pl.current || "#5ef0ff").slice(1), rgb = [0, 2, 4].map(k => parseInt(hex.slice(k, k + 2), 16));
+      const hex = (pl.current || "#5ef0ff").slice(1), rgb = [0, 2, 4].map(k => parseInt(hex.slice(k, k + 2), 16)); colorAcento = rgb.join(",");
       if (typeof ponerAcento === "function") ponerAcento(rgb);   // el color del skin tiñe el fondo y lo demás de la plantilla
       if (op.ambiente && fondoAmb) fondoAmb.style.backgroundImage = actual ? `url(/skin?n=${actual.id}/main.png)` : "none";
       document.dispatchEvent(new CustomEvent("skin-winamp", { detail: actual }));
@@ -150,7 +150,44 @@ const Winamp = (() => {
       g.restore(); g.restore();
     }
 
-    R.cadaCuadro((t) => { const d = R.espectro(); g.clearRect(0, 0, ANCHO, ALTO); ventanaPrincipal(t, d); ventanaEcualizador(d); ventanaLista(); });
+    // ---- ayuda encima del skin: íconos donde el botón casi no se ve, y resalte + nombre al pasar el mouse ----
+    const ZONAS = { ant: [16, 88, 23, 18, "Anterior"], play: [39, 88, 23, 18, "Play"], pausa: [62, 88, 23, 18, "Pausa"], stop: [85, 88, 23, 18, "Detener"], sig: [108, 88, 22, 18, "Siguiente"],
+      pos: [16, 72, 248, 10, "Avance (arrastra para adelantar)"], vol: [107, 57, 68, 13, "Volumen"] };
+    const ICONOS = { ant: "⏮", play: "▶", pausa: "⏸", stop: "■", sig: "⏭" };
+    function medirContraste() {   // botón del skin vs. el dibujo que tiene detrás: si se parecen mucho, el botón no se entiende
+      if (!listo("main")) return null;
+      const m = document.createElement("canvas"); m.width = AN; m.height = MAIN; const mg = m.getContext("2d"); mg.drawImage(img.main, 0, 0);
+      const b = listo("cbuttons") ? (() => { const k = document.createElement("canvas"); k.width = img.cbuttons.naturalWidth; k.height = img.cbuttons.naturalHeight; const kg = k.getContext("2d"); kg.drawImage(img.cbuttons, 0, 0); return kg; })() : null;
+      const res = {};
+      for (const [k, [x, y, w, h]] of Object.entries(ZONAS)) {
+        if (!ICONOS[k]) continue;
+        if (!b) { res[k] = false; continue; }   // sin botones propios se dibujan los clásicos, que sí se ven
+        const sx = { ant: 0, play: 23, pausa: 46, stop: 69, sig: 92 }[k];
+        try {
+          const fondo = mg.getImageData(x, y, w, h).data, boton = b.getImageData(sx, 0, w, h).data; let dif = 0, lum = [];
+          for (let i = 0; i < fondo.length; i += 4) { dif += Math.abs(fondo[i] - boton[i]) + Math.abs(fondo[i + 1] - boton[i + 1]) + Math.abs(fondo[i + 2] - boton[i + 2]); lum.push(boton[i] + boton[i + 1] + boton[i + 2]); }
+          lum.sort((a, c) => a - c); const rango = (lum[Math.floor(lum.length * .95)] - lum[Math.floor(lum.length * .05)]) / 3;
+          res[k] = dif / (fondo.length / 4) / 3 < 28 || rango < 45;   // casi igual al fondo, o un botón sin dibujo marcado
+        } catch (e) { res[k] = false; }
+      }
+      return res;
+    }
+    function ayuda() {
+      if (!poco && listo("main") && (!actual || !actual.piezas.includes("cbuttons") || listo("cbuttons"))) poco = medirContraste();
+      g.save(); g.textAlign = "center"; g.textBaseline = "middle";
+      for (const [k, [x, y, w, h]] of Object.entries(ZONAS)) {
+        if (hover === k || arrastre === k) { g.fillStyle = `rgba(${colorAcento},.22)`; g.fillRect(x, y, w, h); g.strokeStyle = `rgba(${colorAcento},.95)`; g.lineWidth = 1; g.strokeRect(x + .5, y + .5, w - 1, h - 1); }
+        if (poco && poco[k]) {
+          g.font = "bold 10px Arial"; g.fillStyle = "rgba(0,0,0,.65)"; g.fillText(ICONOS[k] + "︎", x + w / 2 + .6, y + h / 2 + 1.1);
+          g.fillStyle = hover === k ? `rgb(${colorAcento})` : "rgba(255,255,255,.92)"; g.fillText(ICONOS[k] + "︎", x + w / 2, y + h / 2 + .5);
+        }
+      }
+      g.restore();
+    }
+    const zona = (x, y) => { if (x >= AN) return y >= 20 && y < PL - 38 ? "lista" : ""; for (const [k, [zx, zy, w, h]] of Object.entries(ZONAS)) if (x >= zx && x < zx + w && y >= zy && y < zy + h) return k; return ""; };
+    const NOMBRES = { lista: "Clic en un tema para reproducirlo · rueda para moverte" };
+
+    R.cadaCuadro((t) => { const d = R.espectro(); g.clearRect(0, 0, ANCHO, ALTO); ventanaPrincipal(t, d); ayuda(); ventanaEcualizador(d); ventanaLista(); });
 
     // ---- ratón: botones, barras y lista ----
     const punto = (e) => { const r = c.getBoundingClientRect(); return [(e.clientX - r.left) / r.width * ANCHO, (e.clientY - r.top) / r.height * ALTO]; };
@@ -166,7 +203,12 @@ const Winamp = (() => {
         const k = scroll + Math.floor((y - 20) / 13); if (k < R.pistas.length) R.cargar(k);
       }
     });
-    c.addEventListener("pointermove", (e) => { const [x] = punto(e); if (arrastre === "vol") ponerVol(x); else if (arrastre === "pos") R.saltarA(Math.max(0, Math.min(1, (x - 30) / 219))); });
+    c.addEventListener("pointerleave", () => { hover = ""; c.style.cursor = "default"; });
+    c.addEventListener("pointermove", (e) => {
+      const [x, y] = punto(e), z = zona(x, y);
+      if (z !== hover) { hover = z; c.title = (ZONAS[z] && ZONAS[z][4]) || NOMBRES[z] || ""; c.style.cursor = z ? "pointer" : "default"; }
+      if (arrastre === "vol") ponerVol(x); else if (arrastre === "pos") R.saltarA(Math.max(0, Math.min(1, (x - 30) / 219)));
+    });
     c.addEventListener("pointerup", (e) => {
       const [x, y] = punto(e), b = x < AN ? boton(x, y) : "";
       if (b && b === apretado) {
