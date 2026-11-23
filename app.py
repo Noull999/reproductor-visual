@@ -369,7 +369,7 @@ def main():
         logger.warning("Por ahora la app está pensada para Windows.")
     api = Api()
     puerto = servidor.iniciar(api.cfg.get("carpetas") or [])
-    webview.create_window("Reproductor", f"http://127.0.0.1:{puerto}/inicio.html", js_api=api,
+    webview.create_window("Reproductor", f"http://127.0.0.1:{puerto}/index.html", js_api=api,
                           width=1280, height=800, min_size=(900, 600), background_color="#070405")
     # Sin modo privado: así el navegador interno recuerda la plantilla elegida, Personalizar y las plantillas propias
     webview.start(debug="--debug" in sys.argv, private_mode=False, storage_path=str(Path.home() / ".visualizador" / "navegador"))

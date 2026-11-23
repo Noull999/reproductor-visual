@@ -1,4 +1,4 @@
-// Catálogo de plantillas incluidas: lo usan la Biblioteca (index.html) y el Inicio (inicio.html).
+// Catálogo de plantillas incluidas: lo usa la Biblioteca (index.html), que también es el inicio de la app.
 // Necesita propiedades.js (Props) cargado antes.
 "use strict";
 // Cada plantilla: su página, qué se guarda al elegir una variante (la propia plantilla lo lee al abrir) y sus vistas previas.

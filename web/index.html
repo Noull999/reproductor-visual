@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Biblioteca</title>
+<title>Reproductor</title>
 <link rel="stylesheet" href="vidrio-liquido.css">
 <style>
   body { overflow: hidden; }
@@ -14,7 +14,7 @@
   nav .tabs { display: flex; gap: 6px; }
   nav .tabs a, nav .tabs span { padding: 7px 16px; border-radius: 999px; font-size: 14px; text-decoration: none; color: var(--suave); }
   nav .tabs a:hover { color: var(--texto); }
-  nav .tabs .actual { background: rgba(255,255,255,.1); color: var(--texto); }
+  nav .tabs .actual { background: rgba(0,0,0,.06); color: var(--texto); }
   nav .tabs .pronto { opacity: .45; }
   .barra-fuente { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; color: var(--suave); }
   #carpetas { display: none; flex-wrap: wrap; gap: 8px; }
@@ -22,15 +22,39 @@
   #carpetas button.elegida { box-shadow: 0 0 0 1px var(--rojo), 0 0 22px rgba(255,45,61,.35); }
   #nota { color: var(--suave); }
 
-  main { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(340px, 480px); gap: 16px; }
+  main { flex: 1; min-height: 0; display: grid; grid-template-columns: 66px minmax(0, 1fr) minmax(340px, 460px); gap: 16px; transition: grid-template-columns .35s cubic-bezier(.2,.8,.2,1); }
+  /* Eligiendo fuente: el panel de fuentes abierto y el de la Biblioteca cerrado */
+  main.eligiendo { grid-template-columns: 270px minmax(0, 1fr) 0; }
+  main.eligiendo .der { display: none; }
+  #fuentes { display: flex; flex-direction: column; gap: 8px; min-height: 0; overflow: hidden; }
+  #fuentes .titulo-lado { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--suave); margin: 4px 6px 2px; white-space: nowrap; }
+  .fuente { all: unset; cursor: pointer; padding: 13px 14px; border-radius: 16px; background: #fff; border: 1px solid var(--borde); display: flex; align-items: center; gap: 12px; font-size: 15px; font-weight: 500; white-space: nowrap; overflow: hidden;
+    transition: background .18s, border-color .18s, transform .18s; }
+  .fuente:hover { border-color: #cfccc4; }
+  .fuente:focus-visible { outline: 2px solid #2f6bff; outline-offset: 2px; }
+  .fuente .ic { font-size: 21px; width: 24px; text-align: center; flex: none; }
+  .fuente small { display: block; font-weight: 400; color: var(--suave); font-size: 12px; margin-top: 2px; }
+  .fuente.sel { background: #141414; color: #fff; border-color: #141414; } .fuente.sel small { color: #a9a7a0; }
+  .fuente.ocupada { opacity: .6; pointer-events: none; }
+  /* Cerrado: solo los íconos (un clic lo vuelve a abrir) */
+  main:not(.eligiendo) #fuentes .titulo-lado, main:not(.eligiendo) .fuente div { display: none; }
+  main:not(.eligiendo) .fuente { justify-content: center; padding: 13px 0; }
+  main:not(.eligiendo) .fuente:not(.sel) { opacity: .55; } main:not(.eligiendo) .fuente:not(.sel):hover { opacity: 1; }
+  /* Estilo claro y neutro: el color lo ponen las plantillas */
+  :root { --fondo: #f3f2ef; --texto: #141414; --suave: #8a877f; --borde: #e4e2dc; }
+  #haz { display: none; }
+  .vidrio { background: #fff; -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: none; border: 1px solid var(--borde); }
+  .btn-principal { color: #fff; background: #141414; box-shadow: none; } .btn-principal:hover { box-shadow: 0 8px 24px rgba(0,0,0,.18); }
+  .punto { box-shadow: none; }
   main.bloqueada { opacity: .35; pointer-events: none; }
   .izq { overflow-y: auto; padding: 4px 6px 4px 2px; display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; align-content: start; scrollbar-width: thin; }
-  .card { border-radius: 18px; overflow: hidden; cursor: pointer; border: .8px solid var(--borde); background: rgba(255,255,255,.04); transition: transform .2s, box-shadow .2s; text-align: left; padding: 0; color: inherit; font: inherit; }
+  .card { border-radius: 18px; overflow: hidden; cursor: pointer; border: 1px solid var(--borde); background: #fff; transition: transform .2s, box-shadow .2s; text-align: left; padding: 0; color: inherit; font: inherit; }
   .card:hover { transform: translateY(-3px); }
-  .card.elegida { box-shadow: 0 0 0 1.5px var(--rojo), 0 10px 40px rgba(255,45,61,.25); }
+  .card.elegida { box-shadow: 0 0 0 2px #141414, 0 12px 30px rgba(0,0,0,.12); }
+  .card:hover { box-shadow: 0 12px 30px rgba(0,0,0,.1); }
   .card img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; display: block; background: #120a0c; }
   .card .mia { width: 100%; aspect-ratio: 16 / 9; display: flex; align-items: flex-end; padding: 8px 10px; box-sizing: border-box; font: 11px "Geist Mono", monospace; color: rgba(255,255,255,.7); }
-  .card.nueva .mia { background: rgba(255,255,255,.05); align-items: center; justify-content: center; }
+  .card.nueva .mia { background: #ecebe7; align-items: center; justify-content: center; }
   .card.nueva .mia b { font-size: 34px; font-weight: 300; color: var(--suave); }
   .card .info { padding: 9px 12px 11px; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
   .card b { font-weight: 600; font-size: 15px; }
@@ -38,7 +62,7 @@
   .der { padding: 18px; display: flex; flex-direction: column; gap: 14px; min-height: 0; overflow-y: auto; }
   /* Vista previa en vivo: la plantilla real (música inventada) a 1440x810 reducida al ancho del marco */
   #marco { width: min(100%, calc(27vh * 16 / 9)); aspect-ratio: 16 / 9; align-self: center; border-radius: 14px; overflow: hidden; position: relative; background: #120a0c;
-    box-shadow: 0 16px 50px rgba(0,0,0,.5), 0 0 0 1px var(--borde); flex: none; }
+    box-shadow: 0 12px 34px rgba(0,0,0,.18); flex: none; }
   #vistaViva { position: absolute; left: 0; top: 0; width: 1440px; height: 810px; border: 0; transform-origin: 0 0; pointer-events: none; }
   #cargandoVista { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--suave); font-size: 13px; pointer-events: none; transition: opacity .3s; }
   .enlace { color: var(--suave); font-size: 13px; text-decoration: none; } .enlace:hover { color: var(--texto); }
@@ -61,26 +85,26 @@
   .grupo .mono { color: var(--suave); }
   .colores { display: flex; flex-wrap: wrap; gap: 8px; }
   .color { display: flex; align-items: center; gap: 8px; padding: 6px 12px 6px 8px; border-radius: 999px; cursor: pointer; font: 13px Geist, system-ui; color: var(--texto);
-    border: .8px solid var(--borde); background: rgba(255,255,255,.05); }
+    border: 1px solid var(--borde); background: #fff; }
   .color i { width: 16px; height: 16px; border-radius: 50%; display: inline-block; background: var(--c); box-shadow: 0 0 8px var(--c); }
-  .color.elegida { border-color: var(--texto); background: rgba(255,255,255,.14); }
+  .color.elegida { border-color: var(--texto); background: #ecebe7; }
   .ctl { display: flex; flex-direction: column; gap: 4px; }
   .ctl .fila { display: flex; justify-content: space-between; font-size: 13px; color: var(--suave); }
   .ctl .fila b { color: var(--texto); font-weight: 500; font-variant-numeric: tabular-nums; }
-  input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 6px; border-radius: 999px; margin: 6px 0; cursor: pointer; background: rgba(255,255,255,.14); }
-  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: 0 0 12px var(--rojo); }
+  input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 6px; border-radius: 999px; margin: 6px 0; cursor: pointer; background: rgba(0,0,0,.1); }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: #141414; box-shadow: none; }
   .interruptor { display: flex; align-items: center; gap: 10px; font-size: 14px; cursor: pointer; }
   .interruptor input { accent-color: var(--rojo); width: 16px; height: 16px; }
   .skins-winamp { display: grid; gap: 8px; margin-top: 6px; }
   .skins-winamp .ayuda { font-size: 12.5px; color: var(--suave, #a8a8b3); margin: 0; line-height: 1.45; }
   .fila-skin { display: flex; gap: 8px; }
-  .fila-skin input { flex: 1; min-width: 0; padding: 8px 10px; border-radius: 10px; border: .8px solid var(--borde); background: rgba(255,255,255,.05); color: inherit; font: inherit; font-size: 13px; }
+  .fila-skin input { flex: 1; min-width: 0; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--borde); background: #fff; color: inherit; font: inherit; font-size: 13px; }
   .lista-skins { display: grid; gap: 6px; }
-  .skin { display: flex; align-items: center; gap: 10px; padding: 6px 10px; border-radius: 12px; border: .8px solid var(--borde); background: rgba(255,255,255,.04); font-size: 13.5px; }
+  .skin { display: flex; align-items: center; gap: 10px; padding: 6px 10px; border-radius: 12px; border: 1px solid var(--borde); background: #faf9f7; font-size: 13.5px; }
   .skin i { width: 12px; height: 12px; border-radius: 50%; flex: none; }
   .skin span { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .ranura { display: flex; align-items: center; gap: 12px; padding: 8px 10px; border-radius: 14px; border: .8px solid var(--borde); background: rgba(255,255,255,.04); }
-  .ranura .mini { width: 64px; height: 36px; border-radius: 8px; background: rgba(255,255,255,.08) center / cover; flex: none; }
+  .ranura { display: flex; align-items: center; gap: 12px; padding: 8px 10px; border-radius: 14px; border: 1px solid var(--borde); background: #faf9f7; }
+  .ranura .mini { width: 64px; height: 36px; border-radius: 8px; background: #e4e2dc center / cover; flex: none; }
   .ranura .nombre { flex: 1; font-size: 14px; } .ranura .nombre small { display: block; color: var(--suave); font-size: 12px; }
   .ranura button, .acciones .suave { background: none; border: .8px solid var(--borde); color: var(--texto); border-radius: 999px; padding: 6px 14px; cursor: pointer; font: 13px Geist, system-ui; }
   .ranura button:hover, .acciones .suave:hover { border-color: var(--texto); }
@@ -100,12 +124,19 @@
 <div class="capa">
   <nav class="vidrio pastilla">
     <b><span class="punto"></span>Reproductor</b>
-    <span class="tabs"><a href="inicio.html">Inicio</a><span class="actual">Biblioteca</span><span class="pronto" title="Próximamente">Editor</span><span class="pronto" title="Próximamente">Comunidad</span></span>
+    <span class="tabs"><span class="actual">Biblioteca</span><span class="pronto" title="Próximamente">Editor</span><span class="pronto" title="Próximamente">Comunidad</span></span>
     <a class="btn vidrio pastilla" href="ajustes.html" style="padding:8px 16px">Ajustes</a>
   </nav>
   <div class="barra-fuente mono"><span>Fuente: <b id="nombreFuente"></b></span><div id="carpetas"></div>
     <span style="margin-left:auto;display:flex;gap:12px;align-items:center"><span id="avisoGeneral"></span><button class="btn vidrio pastilla" id="importar" style="padding:7px 16px;font-size:13px">Importar plantilla…</button></span></div>
   <main id="principal">
+    <aside id="fuentes" aria-label="De dónde suena">
+      <div class="titulo-lado">Escuchar desde</div>
+      <button class="fuente" data-f="spotify" title="Spotify"><span class="ic">🟢</span><div>Spotify<small data-e="spotify">Tus me gusta y playlists</small></div></button>
+      <button class="fuente" data-f="soundcloud" title="SoundCloud"><span class="ic">☁️</span><div>SoundCloud<small data-e="soundcloud">Tus likes</small></div></button>
+      <button class="fuente" data-f="musica" title="Mi música"><span class="ic">💽</span><div>Mi música<small data-e="musica">Tus carpetas</small></div></button>
+      <button class="fuente" data-f="pc" title="Lo que suena en el PC"><span class="ic">🔊</span><div>Lo que suena en el PC<small>Cualquier app</small></div></button>
+    </aside>
     <div class="izq" id="grilla"></div>
     <section class="der vidrio tarjeta">
       <div id="marco"><iframe id="vistaViva" title="Vista previa en vivo" tabindex="-1"></iframe><div id="cargandoVista">Cargando vista previa…</div></div>
@@ -143,9 +174,12 @@
 iniciarHaz(document.getElementById("haz"));
 const $ = (id) => document.getElementById(id);
 const q = new URLSearchParams(location.search);
-const fuente = q.get("fuente") || sessionStorage.getItem("fuente") || "soundcloud";
-sessionStorage.setItem("fuente", fuente);
-$("nombreFuente").textContent = { spotify: "Spotify", soundcloud: "SoundCloud", musica: "Mi música", pc: "Lo que suena en el PC" }[fuente];
+// La fuente: al abrir la app se elige a la izquierda; al volver de una plantilla ya viene elegida (misma sesión)
+const NOMBRES_FUENTE = { spotify: "Spotify", soundcloud: "SoundCloud", musica: "Mi música", pc: "Lo que suena en el PC" };
+const yaElegida = q.get("fuente") || sessionStorage.getItem("fuente");
+let fuente = yaElegida || guardado("fuente-inicio", "soundcloud"), estadoFuente = {};
+$("nombreFuente").textContent = NOMBRES_FUENTE[fuente];
+if (!yaElegida) $("principal").classList.add("eligiendo");
 
 // Las plantillas propias (hechas en el Editor) se suman a la cuadrícula; se dibujan con libre.html
 const propias = () => Propias.leer().map(s => ({ id: "libre-" + s.id, idPropia: s.id, propio: true, nombre: s.nombre, desc: `Plantilla tuya · ${s.piezas.length} piezas · ${Propias.PANELES[s.estilo.panel]}`, grupos: [], guardar: () => ({}), spec: s }));
@@ -160,9 +194,9 @@ function pintar() {
     b.className = "card" + (p === actual ? " elegida" : "");
     b.innerHTML = p.propio
       ? `<div class="mia" style="background:linear-gradient(135deg, ${p.spec.fondo.color || "#0b0708"}, color-mix(in srgb, ${p.spec.estilo.acento} 55%, #000))"><span>${p.spec.piezas.length} piezas</span></div><div class="info"><b></b><span>Tuya</span></div>`
-      : `<img alt="" loading="lazy" src="${elegida[p.id].previa}"><div class="info"><b>${p.nombre}</b><span>${todas(p).length} variantes</span></div>`;
+      : `<img alt="" loading="lazy" src="${elegida[p.id].previa}"><div class="info"><b>${p.nombre}</b><span>${p.id === "anime" ? "tus skins" : `${todas(p).length} ${todas(p).length === 1 ? "variante" : "variantes"}`}</span></div>`;
     if (p.propio) b.querySelector("b").textContent = p.nombre;
-    b.onclick = () => { actual = p; try { localStorage.setItem("biblioteca-plantilla", p.id); } catch (e) {} pintar(); refrescar(true); };
+    b.onclick = () => { actual = p; try { localStorage.setItem("biblioteca-plantilla", p.id); } catch (e) {} if ($("principal").classList.contains("eligiendo")) usarFuente(fuente); pintar(); refrescar(true); };
     g.appendChild(b);
   });
   const nueva = document.createElement("button"); nueva.className = "card nueva";
@@ -194,6 +228,7 @@ let props = Props.leer(actual.id), aviso = 0, recarga = 0;
 function mensaje(t) { $("msgProps").textContent = t; clearTimeout(aviso); aviso = setTimeout(() => { $("msgProps").textContent = ""; }, 4000); }
 function refrescar(rapido) {   // la plantilla lee sus propiedades al abrir: se vuelve a cargar (con calma si se está arrastrando un control)
   clearTimeout(recarga);
+  if ($("principal").classList.contains("eligiendo")) return;   // panel cerrado: no se carga nada escondido
   recarga = setTimeout(() => { $("cargandoVista").style.opacity = 1; $("vistaViva").src = `${urlDe(actual, "demo")}&r=${Date.now()}`; }, rapido ? 0 : 350);
 }
 $("vistaViva").addEventListener("load", () => { $("cargandoVista").style.opacity = 0; });
@@ -371,10 +406,40 @@ async function listas() {
     chips(l, 'No hay carpetas con música. <a href="ajustes.html" style="color:inherit">Agregar una en Ajustes</a>', sessionStorage.getItem("carpeta"), true);
   }
 }
-pintar(); refrescar(true);
-if (fuente === "spotify" || fuente === "musica") {
-  if (window.pywebview && window.pywebview.api) listas(); else window.addEventListener("pywebviewready", listas);
+// ---- Panel de fuentes: al elegir una se cierra (quedan los íconos) y se abre el panel de la Biblioteca ----
+function marcarFuente() { document.querySelectorAll(".fuente").forEach(b => { b.classList.toggle("sel", b.dataset.f === fuente); b.setAttribute("aria-pressed", b.dataset.f === fuente); }); }
+function usarFuente(f) {
+  fuente = f; sessionStorage.setItem("fuente", f); try { localStorage.setItem("fuente-inicio", f); } catch (e) {}
+  sessionStorage.removeItem("carpeta");   // la lista elegida de una fuente no vale para otra
+  $("nombreFuente").textContent = NOMBRES_FUENTE[f]; marcarFuente();
+  $("carpetas").innerHTML = ""; $("carpetas").style.display = "none"; $("principal").classList.remove("bloqueada");
+  if ((f === "spotify" || f === "musica") && window.pywebview && window.pywebview.api) listas();
+  $("principal").classList.remove("eligiendo"); refrescar(true);
 }
+document.querySelectorAll(".fuente").forEach(b => b.addEventListener("click", async () => {
+  const f = b.dataset.f, abierto = $("principal").classList.contains("eligiendo");
+  if (!abierto) { $("principal").classList.add("eligiendo"); return; }   // desde los íconos: se vuelve a abrir para elegir
+  if (estadoFuente[f] === "ajustes") { location.href = "ajustes.html"; return; }   // falta configurarla
+  if (f === "spotify" && estadoFuente.spotify === "conectar") {                    // la primera vez se acepta el acceso en el navegador
+    b.classList.add("ocupada"); const e = b.querySelector("small"); e.textContent = "Acepta el acceso en el navegador…";
+    const r = await window.pywebview.api.spotify_conectar(); b.classList.remove("ocupada");
+    if (!r.ok) { e.textContent = (r.error || "No se pudo conectar") + " · Reintentar"; return; }
+    estadoFuente.spotify = ""; e.textContent = "Conectado";
+  }
+  usarFuente(f);
+}));
+async function revisarFuentes() {
+  const a = await window.pywebview.api.ajustes(), txt = (f, t) => { document.querySelector(`[data-e="${f}"]`).textContent = t; };
+  if (!a.spotify.configurado) { estadoFuente.spotify = "ajustes"; txt("spotify", "Configurar en Ajustes"); }
+  else if (!a.spotify.conectado) { estadoFuente.spotify = "conectar"; txt("spotify", "Conectar"); }
+  else txt("spotify", "Conectado");
+  if (!a.soundcloud.conectado) { estadoFuente.soundcloud = "ajustes"; txt("soundcloud", "Conectar en Ajustes"); } else txt("soundcloud", "Conectado");
+  if (!a.carpetas.length) { estadoFuente.musica = "ajustes"; txt("musica", "Agregar una carpeta en Ajustes"); }
+  else txt("musica", `${a.carpetas.length} ${a.carpetas.length === 1 ? "carpeta" : "carpetas"}`);
+}
+marcarFuente(); pintar(); refrescar(true);
+const alListo = () => { revisarFuentes(); if (yaElegida && (fuente === "spotify" || fuente === "musica")) listas(); };
+if (window.pywebview && window.pywebview.api) alListo(); else window.addEventListener("pywebviewready", alListo);
 </script>
 </body>
 </html>
