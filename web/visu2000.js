@@ -5,7 +5,7 @@
 // crearVisu2000(canvas) → { grupo([efectos]), intervalo(seg, 0 = solo al cambiar de canción), velocidad(0.1-1.5), centro(x, y en 0-1), siguiente(),
 //                           dibujar(t, espectro, onda, bajo, medio, agudo, tono) }
 "use strict";
-const VISU_NUEVOS = ["espejo", "espiral", "fractal"];   // en prueba: solo los usa la plantilla Laboratorio
+const VISU_NUEVOS = ["espejo", "espiral", "fractal"];   // los usa la plantilla Psicodélico
 const VISU2000 = ["estrellas", "anillos", "barras", "bateria", "llamas", "remolino", "rayos", "onda", "agua", "caleido", "lava"];
 function crearVisu2000(canvas) {
   const W = 480, H = 270, FUNDIDO = 2;
@@ -220,7 +220,7 @@ function crearVisu2000(canvas) {
       });
     },
 
-    // ---- Nuevos (en prueba, plantilla Laboratorio) ----
+    // ---- Psicodélico ----
     // espejo: un "material" lleno de cosas que se mueven, reflejado en 12 gajos (caleidoscopio de verdad)
     espejo(t, x) {
       const N = 12, GAJO = Math.PI * 2 / N, R = W * .75, m = mg, T = x.tono;
