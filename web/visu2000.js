@@ -5,7 +5,7 @@
 // crearVisu2000(canvas) → { grupo([efectos]), intervalo(seg, 0 = solo al cambiar de canción), velocidad(0.1-1.5), centro(x, y en 0-1), siguiente(),
 //                           dibujar(t, espectro, onda, bajo, medio, agudo, tono) }
 "use strict";
-const VISU_NUEVOS = ["espejo", "espiral", "fractal", "ojo"];   // en prueba: solo los usa la plantilla Laboratorio
+const VISU_NUEVOS = ["espejo", "espiral", "fractal"];   // en prueba: solo los usa la plantilla Laboratorio
 const VISU2000 = ["estrellas", "anillos", "barras", "bateria", "llamas", "remolino", "rayos", "onda", "agua", "caleido", "lava"];
 function crearVisu2000(canvas) {
   const W = 480, H = 270, FUNDIDO = 2;
@@ -43,6 +43,34 @@ function crearVisu2000(canvas) {
   };
   const sumar = (f) => { g.globalCompositeOperation = "lighter"; f(); g.globalCompositeOperation = "source-over"; };
 
+  // ojo pixel art con trama: la pupila se abre con el bajo, mira a los lados y parpadea cada 5 s.
+  // esc = tamaño (1 = casi toda la pantalla); suelto = sin fondo (va encima de otro efecto, con un borde oscuro para que se lea)
+  function pintarOjo(t, x, esc, suelto) {
+    const p = px(120, 68), d = p.img.data, A = x.tono / 360, tt = t * V, ciclo = tt % 5, abierto = 1 - (ciclo < .25 ? Math.abs(Math.sin(ciclo / .25 * Math.PI)) : 0);
+    const mx = (Math.sin(tt * .7) * 9 + Math.sin(tt * 2.3) * 2) * esc, my = Math.sin(tt * .5) * 3 * esc;
+    const ex = CX / 4, ey = CY / 4, ew = 44 * esc, eh = 22 * esc * abierto, ir = 15 * esc, pr = (4.5 + x.bajo * 5.5) * esc;
+    for (let y = 0; y < 68; y++) for (let i = 0; i < 120; i++) {
+      const b = BAYER[(y % 4) * 4 + (i % 4)] * .18, o = (y * 120 + i) * 4, u = (i - ex) / ew, borde = eh * (1 - u * u), dy = y - ey;
+      let c, alfa = 255;
+      if (Math.abs(u) < 1 && Math.abs(dy) < borde) {
+        const ddx = i - ex - mx, ddy = y - ey - my, r = Math.hypot(ddx, ddy), sombra = Math.max(0, 1 - (borde - Math.abs(dy)) / (5 * esc));   // el párpado hace sombra
+        if (r < pr) c = PUPILA;
+        else if (r < ir) { const rayas = .5 + .5 * Math.sin(Math.atan2(ddy, ddx) * 14 + r * .6 / esc), k = (r - pr) / (ir - pr);
+          c = hsl(A + rayas * .04, .9, Math.max(.06, .18 + .32 * (1 - k) * (.6 + .4 * rayas) - (k > .85 ? .15 : 0) + b - sombra * .2)); }
+        else c = hsl(A + .05, .25, Math.max(.1, .66 - Math.abs(u) * .25 - sombra * .5 + b));
+        if (Math.hypot(ddx + 5 * esc, ddy + 5 * esc) < 2.2 * Math.max(.6, esc)) c = BRILLO;
+      } else {
+        const fuera = Math.abs(u) < 1.08 ? Math.abs(Math.abs(dy) - borde) : 99;
+        const pestana = dy < -borde - 1 && dy > -borde - 5 && Math.abs(u) < .95 && i % 4 === 0 && dy < -borde - 1 - (1 - u * u) * 3;
+        if (fuera < 1.6 || pestana) c = LINEA;   // línea del párpado y pestañas
+        else if (suelto) { c = NEGRO; alfa = Math.abs(u) < 1.15 && fuera < 4 ? 170 : 0; }   // halo oscuro alrededor
+        else { const r = Math.hypot((i - ex) / 60, (y - ey) / 34); c = hsl(A + .5, .5, Math.max(0, .1 - r * .06 + b * .4 + x.bajo * .03)); }
+      }
+      d[o] = c[0]; d[o + 1] = c[1]; d[o + 2] = c[2]; d[o + 3] = alfa;
+    }
+    return p;
+  }
+  let conOjo = [];   // efectos que llevan el ojo encima, al medio
   const EFECTOS = {
     // Plata: estrellas warp, túnel de anillos, barras y ondas
     estrellas(t, x) {
@@ -196,12 +224,12 @@ function crearVisu2000(canvas) {
     // espejo: un "material" lleno de cosas que se mueven, reflejado en 12 gajos (caleidoscopio de verdad)
     espejo(t, x) {
       const N = 12, GAJO = Math.PI * 2 / N, R = W * .75, m = mg, T = x.tono;
-      m.globalCompositeOperation = "source-over"; m.fillStyle = "rgba(0,0,0,.22)"; m.fillRect(0, 0, W, H);   // estela del material
+      m.globalCompositeOperation = "source-over"; m.fillStyle = "rgba(0,0,0,.3)"; m.fillRect(0, 0, W, H);   // estela del material
       m.globalCompositeOperation = "lighter";
       const P = (r, a) => [CX + Math.cos(a) * r, CY + Math.sin(a) * r], va = (k) => GAJO * (.5 + .5 * Math.sin(t * (.3 + k * .07) * V + k * 2.1));
       for (let k = 0; k < 6; k++) {   // manchas de luz que van y vienen
         const r = R * (.5 + .5 * Math.sin(t * (.21 + k * .05) * V + k)), [px, py] = P(r, va(k)), rad = 8 + k * 3 + x.bajo * 12;
-        const gr = m.createRadialGradient(px, py, 0, px, py, rad); gr.addColorStop(0, col(T + [0, 30, -25, 90, 15, -40][k], 45, .32)); gr.addColorStop(1, col(T, 30, 0));
+        const gr = m.createRadialGradient(px, py, 0, px, py, rad); gr.addColorStop(0, col(T + [0, 30, -25, 90, 15, -40][k], 40, .22)); gr.addColorStop(1, col(T, 30, 0));
         m.fillStyle = gr; m.beginPath(); m.arc(px, py, rad, 0, 7); m.fill();
       }
       for (let k = 0; k < 7; k++) {   // hojas y rombos que giran mientras viajan
@@ -209,13 +237,13 @@ function crearVisu2000(canvas) {
         m.save(); m.translate(px, py); m.rotate(t * (k % 2 ? 1.3 : -.9) * V + k); m.beginPath();
         if (k % 2) { m.moveTo(-l, 0); m.quadraticCurveTo(0, -l * .5, l, 0); m.quadraticCurveTo(0, l * .5, -l, 0); }
         else { m.moveTo(0, -l * .7); m.lineTo(l * .45, 0); m.lineTo(0, l * .7); m.lineTo(-l * .45, 0); m.closePath(); }
-        m.fillStyle = col(T + (k % 3) * 25 - 25, 26, .32); m.fill(); m.strokeStyle = col(T + (k % 2) * 80, 52, .6); m.lineWidth = 1.3; m.stroke(); m.restore();
+        m.fillStyle = col(T + (k % 3) * 25 - 25, 24, .22); m.fill(); m.strokeStyle = col(T + (k % 2) * 80, 48, .42); m.lineWidth = 1.3; m.stroke(); m.restore();
       }
-      m.strokeStyle = col(T + 60, 52, .55); m.lineWidth = 1.5; m.beginPath();   // la onda serpenteando por el gajo
+      m.strokeStyle = col(T + 60, 48, .4); m.lineWidth = 1.5; m.beginPath();   // la onda serpenteando por el gajo
       for (let i = 0; i < 64; i++) { const v = (x.onda[i * 8] - 128) / 128, [px, py] = P(i / 64 * R, GAJO * (.5 + v * .45)); i ? m.lineTo(px, py) : m.moveTo(px, py); }
       m.stroke();
-      for (let k = 0; k < 3; k++) { const r = ((t * 60 * V + k * R / 3) % R); m.strokeStyle = col(T - 20 + k * 30, 45, .35 * (1 - r / R) + x.bajo * .2); m.lineWidth = 2; m.beginPath(); m.arc(CX, CY, r, 0, GAJO); m.stroke(); }
-      eco(1.012, .004, .66);
+      for (let k = 0; k < 3; k++) { const r = ((t * 60 * V + k * R / 3) % R); m.strokeStyle = col(T - 20 + k * 30, 45, .25 * (1 - r / R) + x.bajo * .12); m.lineWidth = 2; m.beginPath(); m.arc(CX, CY, r, 0, GAJO); m.stroke(); }
+      eco(1.012, .004, .5);
       sumar(() => {
         for (let k = 0; k < N; k++) {
           g.save(); g.translate(CX, CY); g.rotate(k * GAJO + t * .08 * V); if (k % 2) { g.rotate(GAJO); g.scale(1, -1); }
@@ -250,30 +278,8 @@ function crearVisu2000(canvas) {
       }
       estirar(p);
     },
-    // ojo: pixel art con trama; la pupila se abre con el bajo, mira a los lados y parpadea cada 5 s
-    ojo(t, x) {
-      const p = px(120, 68), d = p.img.data, A = x.tono / 360, tt = t * V, ciclo = tt % 5, abierto = 1 - (ciclo < .25 ? Math.abs(Math.sin(ciclo / .25 * Math.PI)) : 0);
-      const mx = Math.sin(tt * .7) * 9 + Math.sin(tt * 2.3) * 2, my = Math.sin(tt * .5) * 3;
-      const ex = CX / 4, ey = CY / 4, ew = 44, eh = 22 * abierto, ir = 15, pr = 4.5 + x.bajo * 5.5;
-      for (let y = 0; y < 68; y++) for (let i = 0; i < 120; i++) {
-        const b = BAYER[(y % 4) * 4 + (i % 4)] * .18, o = (y * 120 + i) * 4, u = (i - ex) / ew, borde = eh * (1 - u * u), dy = y - ey;
-        let c;
-        if (Math.abs(u) < 1 && Math.abs(dy) < borde) {
-          const ddx = i - ex - mx, ddy = y - ey - my, r = Math.hypot(ddx, ddy), sombra = Math.max(0, 1 - (borde - Math.abs(dy)) / 5);   // el párpado hace sombra
-          if (r < pr) c = PUPILA;
-          else if (r < ir) { const rayas = .5 + .5 * Math.sin(Math.atan2(ddy, ddx) * 14 + r * .6), k = (r - pr) / (ir - pr);
-            c = hsl(A + rayas * .04, .9, Math.max(.06, .18 + .32 * (1 - k) * (.6 + .4 * rayas) - (k > .85 ? .15 : 0) + b - sombra * .2)); }
-          else c = hsl(A + .05, .25, Math.max(.1, .66 - Math.abs(u) * .25 - sombra * .5 + b));
-          if (Math.hypot(ddx + 5, ddy + 5) < 2.2) c = BRILLO;
-        } else {
-          if (Math.abs(u) < 1.08 && Math.abs(Math.abs(dy) - borde) < 1.6) c = LINEA;   // línea del párpado
-          else { const r = Math.hypot((i - ex) / 60, (y - ey) / 34); c = hsl(A + .5, .5, Math.max(0, .1 - r * .06 + b * .4 + x.bajo * .03)); }
-          if (dy < -borde - 1 && dy > -borde - 5 && Math.abs(u) < .95 && i % 4 === 0 && dy < -borde - 1 - (1 - u * u) * 3) c = LINEA;   // pestañas
-        }
-        d[o] = c[0]; d[o + 1] = c[1]; d[o + 2] = c[2]; d[o + 3] = 255;
-      }
-      estirar(p);
-    },
+    // ojo: pixel art grande sobre fondo oscuro
+    ojo(t, x) { estirar(pintarOjo(t, x, 1, false)); },
   };
 
   function cambiar() {
@@ -286,6 +292,7 @@ function crearVisu2000(canvas) {
     intervalo(s) { cada = s; },
     velocidad(v) { V = Math.max(.1, Math.min(1.5, v)); },
     centro(fx, fy) { CX = W * Math.max(0, Math.min(1, fx)); CY = H * Math.max(0, Math.min(1, fy)); },
+    ojoEn(l) { conOjo = l || []; },
     siguiente: cambiar,
     dibujar(t, d, onda, bajo, medio, agudo, tono) {
       // se adapta a la música: el bajo se mide contra su pico reciente (con bajo potente no queda todo al máximo)
@@ -299,6 +306,10 @@ function crearVisu2000(canvas) {
       o.globalAlpha = 1; o.fillStyle = "#000"; o.fillRect(0, 0, W, H); o.fillStyle = base; o.fillRect(0, 0, W, H);
       o.globalCompositeOperation = "lighter"; o.drawImage(trabajo, 0, 0); o.globalCompositeOperation = "source-over";
       const f = 1 - (t - cambio) / FUNDIDO; if (f > 0 && f <= 1) { o.globalAlpha = f; o.drawImage(viejo, 0, 0); o.globalAlpha = 1; }
+      if (conOjo.includes(lista[modo])) {   // va en la salida y no en "trabajo": así el eco no lo arrastra
+        const e = pintarOjo(t, { bajo, tono }, .55, true); e.x.putImageData(e.img, 0, 0);
+        o.imageSmoothingEnabled = false; o.drawImage(e.c, 0, 0, W, H); o.imageSmoothingEnabled = true;
+      }
     },
   };
 }

@@ -26,7 +26,7 @@ const PLANTILLAS = [
     guardar: () => ({}),
     grupos: [{ titulo: "Skins", items: [v("Winamp", "#5ef0ff", "anime-winamp")] }] },
   { id: "laboratorio", nombre: "Laboratorio", pagina: "libre.html?plantilla=laboratorio", predeterminada: "Pruebas",
-    desc: "Visualizaciones nuevas en prueba: caleidoscopio, túnel en espiral, fractal y un ojo pixel art. Cambian cada 25 s o con un clic en el fondo.",
+    desc: "Visualizaciones nuevas en prueba: caleidoscopio y túnel en espiral con un ojo pixel art al medio, y un fractal. Cambian cada 25 s o con un clic en el fondo.",
     guardar: () => ({}),
     grupos: [{ titulo: "Pruebas", items: [v("Pruebas", "#b04bff", "laboratorio")] }] },
   { id: "pixel", nombre: "Pixel", pagina: "pixel.html", predeterminada: "Sangre",
