@@ -28,6 +28,26 @@
   body[data-panel=ps2] { --bg: linear-gradient(180deg,color-mix(in srgb, var(--acento) 45%, transparent),color-mix(in srgb, var(--acento) 22%, rgba(6,8,30,.85)) 55%,rgba(6,8,30,.88)); --borde: 1.5px solid color-mix(in srgb, var(--acento) 70%, #fff); --rad: 3px; --radp: 3px; --pt: #e8f6ff; --sombra: inset 0 1px 0 rgba(255,255,255,.55), 0 0 18px color-mix(in srgb, var(--acento) 40%, transparent); }
   body[data-panel=ps2] .caja, body[data-panel=ps2] .bt { clip-path: polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px); }
   body[data-panel=liso] { --bg: rgba(14,14,18,.86); --borde: 1px solid #2c2c36; --rad: 8px; --radp: 10px; --pt: #f3f3f5; --sombra: none; }
+  /* Psicodélico: lista de vidrio oscuro, abajo sin caja (sombra que se desvanece), solo íconos; el tema que suena lleva un ojito pixel art */
+  body[data-panel=psico] { --bg: rgba(6,5,10,.55); --borde: 1px solid color-mix(in srgb, var(--acento) 30%, transparent); --rad: 50%; --radp: 14px; --pt: #ece8f4; --sombra: 0 10px 30px rgba(0,0,0,.35); }
+  body[data-panel=psico] .caja { -webkit-backdrop-filter: blur(14px) saturate(1.2); backdrop-filter: blur(14px) saturate(1.2); }
+  body[data-panel=psico] .pz[data-tipo=panel] { transition: opacity .6s; }
+  body[data-panel=psico] .pz[data-tipo=panel] .caja { background: linear-gradient(to top, rgba(4,3,8,.88), rgba(4,3,8,.55) 60%, transparent); border: none; border-radius: 0; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+  body[data-panel=psico] .fila { border-radius: 8px; margin: 1px 6px; opacity: .72; }
+  body[data-panel=psico] .fila:hover { background: rgba(255,255,255,.05); }
+  body[data-panel=psico] .fila.sonando { opacity: 1; background: linear-gradient(90deg, color-mix(in srgb, var(--acento) 26%, transparent), transparent 85%); box-shadow: inset 3px 0 0 var(--acento); }
+  body[data-panel=psico] .fila.sonando .nombre { color: color-mix(in srgb, var(--acento) 35%, #fff); }
+  body[data-panel=psico] .fila.sonando .nombre::before { content: ""; display: inline-block; width: 18px; height: 10px; margin-right: 7px; vertical-align: -1px; background: var(--acento);
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 9 5' shape-rendering='crispEdges'%3E%3Cpath d='M2 0h5v1h1v1h1v1h-1v1h-1v1h-5v-1h-1v-1h-1v-1h1v-1h1z M3 1v3h3v-3z' fill-rule='evenodd'/%3E%3Crect x='4' y='2' width='1' height='1'/%3E%3C/svg%3E") center/contain no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 9 5' shape-rendering='crispEdges'%3E%3Cpath d='M2 0h5v1h1v1h1v1h-1v1h-1v1h-5v-1h-1v-1h-1v-1h1v-1h1z M3 1v3h3v-3z' fill-rule='evenodd'/%3E%3Crect x='4' y='2' width='1' height='1'/%3E%3C/svg%3E") center/contain no-repeat; }
+  body[data-panel=psico] .fila.sonando img { box-shadow: 0 0 10px color-mix(in srgb, var(--acento) 55%, transparent); }
+  body[data-panel=psico] .bt { background: none; border: none; box-shadow: none; opacity: .85; aspect-ratio: 1; -webkit-backdrop-filter: none; backdrop-filter: none; }
+  body[data-panel=psico] .bt.mayor { aspect-ratio: 1; border-radius: 50%; border: 1.5px solid var(--acento); opacity: 1; box-shadow: 0 0 14px color-mix(in srgb, var(--acento) 35%, transparent); }
+  body[data-panel=psico] input#barra { height: 4px; background: linear-gradient(90deg, var(--acento) var(--p), rgba(255,255,255,.14) var(--p)); box-shadow: 0 0 10px color-mix(in srgb, var(--acento) 30%, transparent); }
+  body[data-panel=psico] input#barra::-webkit-slider-thumb { width: 12px; height: 12px; background: #ece8f4; box-shadow: 0 0 8px var(--acento); }
+  body[data-panel=psico] .tit { color: #f1eef6; }
+  /* a los 3 s sin mover el mouse se va todo, no solo los controles: queda la visualización sola */
+  body.inactivo[data-panel=psico] .pz:is([data-tipo=panel], [data-tipo=titulo], [data-tipo=artista]) { opacity: 0 !important; pointer-events: none; }
   .caja { background: var(--bg); border: var(--borde); border-radius: var(--radp); box-shadow: var(--sombra); width: 100%; height: 100%; color: var(--pt); }
   .caja.sinborde { border: none; box-shadow: none; }
   body[data-panel=gel] .caja { background: linear-gradient(180deg,rgba(255,255,255,.35),rgba(255,255,255,.05) 50%,rgba(0,0,0,.25)), color-mix(in srgb, var(--acento) 55%, #000); color: #fff; }

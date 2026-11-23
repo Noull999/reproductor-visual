@@ -15,7 +15,7 @@ const ESQUEMA = {
     "imagen": { "t": "imagen" }
   },
   "estilo": {
-    "panel": { "t": "enum", "n": "Paneles y botones", "v": { "vidrio": "Vidrio", "metal": "Metal", "gel": "Gel", "pixel": "Píxel", "liso": "Liso oscuro", "ps2": "Consola (PS2)" }, "def": "vidrio" },
+    "panel": { "t": "enum", "n": "Paneles y botones", "v": { "vidrio": "Vidrio", "metal": "Metal", "gel": "Gel", "pixel": "Píxel", "liso": "Liso oscuro", "ps2": "Consola (PS2)", "psico": "Psicodélico" }, "def": "vidrio" },
     "acento": { "t": "color", "n": "Color de acento", "def": "#ff2d3d" },
     "acentoAuto": { "t": "bool", "n": "Acento tomado de la carátula", "def": false },
     "fuente": { "t": "enum", "n": "Letra", "v": { "Geist": "Geist (moderna)", "Fredoka": "Fredoka (redondeada)", "Instrument Serif": "Instrument Serif (serif)", "Silkscreen": "Silkscreen (píxel)", "VT323": "VT323 (pantalla LCD)", "Michroma": "Michroma (ancha)" }, "def": "Geist" },
