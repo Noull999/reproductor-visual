@@ -6,7 +6,7 @@
 //                           dibujar(t, espectro, onda, bajo, medio, agudo, tono) }
 "use strict";
 const VISU_NUEVOS = ["espejo", "espiral", "fractal"];   // los usa la plantilla Psicodélico
-const VISU2000 = ["estrellas", "anillos", "barras", "bateria", "llamas", "remolino", "rayos", "onda", "agua", "caleido", "lava"];
+const VISU2000 = ["estrellas", "anillos", "barras", "bateria", "llamas", "remolino", "rayos", "onda", "agua", "caleido", "lava", "osciloscopio"];
 function crearVisu2000(canvas) {
   const W = 480, H = 270, FUNDIDO = 2;
   let CX = W / 2, CY = H / 2;   // el centro de los efectos (la plantilla lo puede poner detrás de su reproductor)
@@ -181,6 +181,24 @@ function crearVisu2000(canvas) {
           for (let i = 0; i < x.onda.length; i += 4) { const px = (i / x.onda.length - .5) * W * 1.1, py = (x.onda[i] - 128) / 128 * H * .4 * (1 + x.bajo); i ? g.lineTo(px, py) : g.moveTo(px, py); }
           g.stroke(); g.restore();
         }
+      });
+    },
+    // osciloscopio en modo X-Y con fósforo: la onda contra sí misma un poco después (figuras tipo Lissajous), con estela y grilla
+    osciloscopio(t, x) {
+      eco(1.004, 0, .8);   // el fósforo se apaga de a poco
+      const N = x.onda.length, D = Math.floor(N / 7), esc = H * (.62 + x.bajo * .22), giro = t * .15 * V;
+      g.strokeStyle = col(x.tono, 45, .035); g.lineWidth = 1; g.beginPath();   // grilla (se acumula con la estela hasta verse tenue)
+      for (let i = -5; i <= 5; i++) { g.moveTo(CX + i * H * .09, CY - H * .45); g.lineTo(CX + i * H * .09, CY + H * .45); g.moveTo(CX - H * .45, CY + i * H * .09); g.lineTo(CX + H * .45, CY + i * H * .09); }
+      g.stroke();
+      sumar(() => {
+        g.save(); g.translate(CX, CY); g.rotate(giro); g.beginPath();
+        for (let i = 0; i < N - D; i += 2) {
+          const a = (x.onda[i] - 128) / 128, b = (x.onda[i + D] - 128) / 128, px = (a + b) * .7 * esc, py = (a - b) * .7 * esc;   // girado 45°: X = suma, Y = diferencia
+          i ? g.lineTo(px, py) : g.moveTo(px, py);
+        }
+        g.lineJoin = "round"; g.strokeStyle = col(x.tono, 45, .08 + x.bajo * .06); g.lineWidth = 5; g.stroke();   // halo
+        g.strokeStyle = col(x.tono, 55, .5); g.lineWidth = 1.3; g.stroke();                                     // trazo
+        g.restore();
       });
     },
     // Headspace (Y2K): lámpara de lava, gotas de gel que suben, se juntan y laten con el bajo
