@@ -121,7 +121,7 @@ let propia = null;
 { const url = Props.leer("dreamcore").fondo;
   if (url && /\.(mp4|webm)(&|$)/i.test(url)) {   // video en loop: se dibuja cuadro a cuadro con el mismo VHS encima
     const v = Object.assign(document.createElement("video"), { src: url, muted: true, loop: true, autoplay: true, playsInline: true });
-    v.addEventListener("loadeddata", () => { propia = v; }); v.play().catch(() => {});
+    v.addEventListener("loadeddata", () => { propia = v; v.playbackRate = .65; }); v.play().catch(() => {});   // más lento: más de sueño y el loop se nota menos
   } else if (url) { const im = new Image(); im.onload = () => { propia = im; }; im.src = url; } }
 
 // ---- Lienzo: se dibuja chico (como un VHS) y se estira ----
