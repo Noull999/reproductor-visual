@@ -3,93 +3,123 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Inicio — prototipo</title>
-<link rel="stylesheet" href="vidrio-liquido.css">
+<title>Reproductor</title>
 <style>
-  body { overflow: hidden; }
-  .capa { position: relative; z-index: 1; height: 100%; display: flex; flex-direction: column; padding: 18px 28px; box-sizing: border-box; }
-  nav { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px 10px 20px; }
-  nav b { display: flex; align-items: center; gap: 10px; font-weight: 600; }
-  main { flex: 1; display: flex; flex-direction: column; justify-content: center; max-width: 1100px; }
-  .etiqueta { align-self: flex-start; padding: 7px 14px; display: flex; gap: 8px; align-items: center; color: var(--suave); }
-  h1 { font-size: clamp(40px, 6vw, 76px); font-weight: 500; letter-spacing: -.035em; line-height: 1.02; margin: 22px 0 14px; }
-  h1 span { background: linear-gradient(90deg, #fff3f2, #ff6b78); -webkit-background-clip: text; background-clip: text; color: transparent; }
-  .sub { color: var(--suave); font-size: 17px; max-width: 520px; margin: 0 0 34px; }
-  .fuentes { display: grid; grid-template-columns: repeat(3, minmax(0, 300px)); gap: 16px; }
-  .fuente { padding: 22px; text-decoration: none; color: inherit; display: flex; flex-direction: column; gap: 10px;
-    transition: transform .25s cubic-bezier(.2,.8,.2,1), box-shadow .25s; cursor: pointer; }
-  .fuente:hover { transform: translateY(-4px); box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 18px 50px rgba(255,45,61,.25); }
-  .fuente .icono { font-size: 26px; }
-  .fuente b { font-size: 18px; font-weight: 600; }
-  .fuente p { margin: 0; color: var(--suave); font-size: 14px; line-height: 1.45; }
-  .fuente .estado { margin-top: auto; color: var(--suave); }
-  .otra { margin: 22px 0 0; } .otra a { color: var(--suave); text-decoration: none; } .otra a:hover { color: var(--texto); }
+  @font-face { font-family: Geist; src: url(fonts/Geist-latin-a147f99c.woff2) format("woff2"); font-weight: 100 900; }
+  @font-face { font-family: Geist; src: url(fonts/Geist-latin-ext-4841e590.woff2) format("woff2"); font-weight: 100 900; unicode-range: U+0100-02AF, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+  /* Inicio neutro y claro: el color lo ponen las plantillas */
+  :root { --fondo: #f3f2ef; --tarjeta: #fff; --borde: #e4e2dc; --texto: #141414; --suave: #8a877f; --sel: #141414; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body { background: var(--fondo); color: var(--texto); font-family: Geist, "Segoe UI", system-ui, sans-serif; display: grid; grid-template-columns: 290px 1fr; gap: 28px; padding: 28px; overflow: hidden; }
+  aside { display: flex; flex-direction: column; gap: 10px; min-height: 0; }
+  .logo { font-weight: 700; font-size: 22px; letter-spacing: -.02em; margin: 6px 6px 4px; display: flex; align-items: center; gap: 10px; }
+  .logo i { width: 9px; height: 9px; border-radius: 50%; background: #ff2d3d; }
+  .titulo-lado { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--suave); margin: 18px 8px 4px; }
+  .fuente { all: unset; cursor: pointer; padding: 15px 18px; border-radius: 16px; background: var(--tarjeta); border: 1px solid var(--borde); display: flex; align-items: center; gap: 14px; font-size: 16px; font-weight: 500;
+    transition: transform .18s cubic-bezier(.2,.8,.2,1), background .18s, border-color .18s; }
+  .fuente:hover { transform: translateX(3px); border-color: #cfccc4; }
+  .fuente:focus-visible { outline: 2px solid #2f6bff; outline-offset: 2px; }
+  .fuente small { display: block; font-weight: 400; color: var(--suave); font-size: 12.5px; margin-top: 2px; }
+  .fuente .ic { font-size: 22px; width: 28px; text-align: center; }
+  .fuente.sel { background: var(--sel); color: #fff; border-color: var(--sel); } .fuente.sel small { color: #a9a7a0; }
   .fuente.ocupada { opacity: .6; pointer-events: none; }
+  .abajo { margin-top: auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .abajo a { padding: 11px 6px; border-radius: 12px; background: var(--tarjeta); border: 1px solid var(--borde); text-align: center; color: inherit; text-decoration: none; font-size: 13.5px; font-weight: 500; }
+  .abajo a:hover { border-color: #cfccc4; }
+  main { min-height: 0; overflow-y: auto; padding-right: 4px; }
+  h1 { margin: 6px 0 4px; font-size: 30px; font-weight: 600; letter-spacing: -.03em; } h1 span { color: var(--suave); font-weight: 400; }
+  .ayuda { margin: 0 0 18px; color: var(--suave); font-size: 14px; }
+  .rejilla { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 16px; padding-bottom: 8px; }
+  .plantilla { all: unset; cursor: pointer; border-radius: 16px; overflow: hidden; background: var(--tarjeta); border: 1px solid var(--borde); display: block;
+    transition: transform .2s cubic-bezier(.2,.8,.2,1), box-shadow .2s; }
+  .plantilla:hover { transform: translateY(-3px); box-shadow: 0 14px 34px rgba(0,0,0,.12); }
+  .plantilla:focus-visible { outline: 2px solid #2f6bff; outline-offset: 2px; }
+  .plantilla img, .plantilla .mia { display: block; width: 100%; aspect-ratio: 1000 / 568; object-fit: cover; background: #ddd; }
+  .plantilla .mia { display: grid; place-items: center; color: #fff; font-size: 13px; }
+  .plantilla p { margin: 0; padding: 11px 14px; font-weight: 500; display: flex; justify-content: space-between; gap: 10px; }
+  .plantilla p span { color: var(--suave); font-weight: 400; font-size: 13px; white-space: nowrap; }
+  .plantilla p b { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  @media (prefers-reduced-motion: reduce) { .fuente, .plantilla { transition: none; } }
 </style>
 </head>
 <body>
-<svg width="0" height="0" style="position:absolute"><filter id="liquido" x="0%" y="0%" width="100%" height="100%" color-interpolation-filters="sRGB">
-  <feTurbulence type="fractalNoise" baseFrequency="0.006 0.009" numOctaves="2" seed="11" result="ruido"/>
-  <feGaussianBlur in="ruido" stdDeviation="2.5" result="suave"/>
-  <feDisplacementMap in="SourceGraphic" in2="suave" scale="70" xChannelSelector="R" yChannelSelector="G"/>
-</filter></svg>
-<canvas id="haz"></canvas>
-
-<div class="capa">
-  <nav class="vidrio pastilla"><b><span class="punto"></span>Reproductor <span class="mono" style="color:var(--suave)">· sin nombre aún</span></b>
-    <span style="display:flex;gap:8px"><a class="btn vidrio pastilla" href="ajustes.html" style="padding:9px 18px">Ajustes</a>
-    <a class="btn vidrio pastilla" href="index.html" style="padding:9px 18px">Plantillas</a></span></nav>
-  <main>
-    <div class="etiqueta vidrio pastilla mono"><span class="punto" style="background:#3ddc84;box-shadow:0 0 10px #3ddc84"></span>Elige de dónde suena</div>
-    <h1>Tu música,<br><span>a tu manera.</span></h1>
-    <p class="sub">Escucha tus likes de Spotify o SoundCloud, tus carpetas o lo que ya suena en el PC, con la pantalla que tú elijas.</p>
-    <div class="fuentes">
-      <a class="fuente vidrio tarjeta" id="fuenteSpotify" href="index.html?fuente=spotify">
-        <span class="icono">🟢</span><b>Spotify</b>
-        <p>Tus me gusta y tus playlists. Suena en tu Spotify de escritorio y la app lo controla (Premium).</p>
-        <span class="estado mono" id="estadoSpotify">Elegir →</span></a>
-      <a class="fuente vidrio tarjeta" id="fuenteSoundCloud" href="index.html?fuente=soundcloud">
-        <span class="icono">☁️</span><b>SoundCloud</b>
-        <p>Tus likes, completos, dentro de la app. Eliges, saltas y la pantalla sigue el ritmo exacto.</p>
-        <span class="estado mono" id="estadoSoundCloud">Elegir →</span></a>
-      <a class="fuente vidrio tarjeta" id="fuenteMusica" href="index.html?fuente=musica">
-        <span class="icono">💽</span><b>Mi música</b>
-        <p>Tus carpetas del PC. Cada carpeta es una lista.</p>
-        <span class="estado mono" id="estadoMusica">Elegir →</span></a>
-    </div>
-    <p class="otra mono"><a href="index.html?fuente=pc">¿Suena en otra app? Mostrar lo que suena en el PC →</a></p>
-  </main>
-</div>
-<script src="haz.js"></script>
+<aside>
+  <div class="logo"><i></i>Reproductor</div>
+  <div class="titulo-lado">Escuchar desde</div>
+  <button class="fuente" data-f="spotify"><span class="ic">🟢</span><div>Spotify<small data-e="spotify">Tus me gusta y playlists</small></div></button>
+  <button class="fuente" data-f="soundcloud"><span class="ic">☁️</span><div>SoundCloud<small data-e="soundcloud">Tus likes</small></div></button>
+  <button class="fuente" data-f="musica"><span class="ic">💽</span><div>Mi música<small data-e="musica">Tus carpetas</small></div></button>
+  <button class="fuente" data-f="pc"><span class="ic">🔊</span><div>Lo que suena en el PC<small>Spotify, el navegador, cualquier app</small></div></button>
+  <div class="abajo"><a href="index.html">Biblioteca</a><a href="editor.html?base=central">Editor</a><a href="ajustes.html">Ajustes</a></div>
+</aside>
+<main>
+  <h1>Elige tu pantalla <span id="cuantas"></span></h1>
+  <p class="ayuda" id="ayuda">Elige de dónde suena a la izquierda y luego la pantalla.</p>
+  <div class="rejilla" id="rejilla"></div>
+</main>
+<script src="propiedades.js"></script>
+<script src="esquema.js"></script>
+<script src="plantillas-propias.js"></script>
+<script src="catalogo.js"></script>
 <script>
 "use strict";
-iniciarHaz(document.getElementById("haz"));
-// Cada fuente empieza sin lista elegida (la lista de una fuente no vale para otra)
-document.querySelectorAll("a.fuente").forEach(a => a.addEventListener("click", () => sessionStorage.removeItem("carpeta")));
-// Spotify: la primera vez hay que aceptar el acceso en el navegador; después entra directo
-const sp = document.getElementById("fuenteSpotify"), estadoSp = document.getElementById("estadoSpotify");
-let spConectado = false;
-// Lo que falta por configurar lleva directo a Ajustes
-function irAAjustes(id, estadoId, texto) {
-  const a = document.getElementById(id); a.href = "ajustes.html"; document.getElementById(estadoId).textContent = texto;
+const $ = (id) => document.getElementById(id);
+const leer = (k, d) => { try { return localStorage.getItem(k) || d; } catch (e) { return d; } };
+const NOMBRES = { spotify: "Spotify", soundcloud: "SoundCloud", musica: "Mi música", pc: "lo que suena en el PC" };
+let fuente = leer("fuente-inicio", "soundcloud"), estado = {};   // estado: lo que le falta a cada fuente (se llena con los ajustes)
+
+function marcar() {
+  document.querySelectorAll(".fuente").forEach(b => { b.classList.toggle("sel", b.dataset.f === fuente); b.setAttribute("aria-pressed", b.dataset.f === fuente); });
+  $("ayuda").textContent = `Suena desde ${NOMBRES[fuente]}. Elige la pantalla.`;
 }
+document.querySelectorAll(".fuente").forEach(b => b.addEventListener("click", async () => {
+  const f = b.dataset.f;
+  if (estado[f] === "ajustes") { location.href = "ajustes.html"; return; }   // falta configurarla
+  if (f === "spotify" && estado.spotify === "conectar") {                    // la primera vez se acepta el acceso en el navegador
+    b.classList.add("ocupada"); const e = b.querySelector("small"); e.textContent = "Acepta el acceso en el navegador…";
+    const r = await window.pywebview.api.spotify_conectar(); b.classList.remove("ocupada");
+    if (!r.ok) { e.textContent = (r.error || "No se pudo conectar") + " · Reintentar"; return; }
+    estado.spotify = ""; e.textContent = "Conectado";
+  }
+  fuente = f; try { localStorage.setItem("fuente-inicio", f); } catch (e) {}
+  sessionStorage.removeItem("carpeta");   // la lista elegida de una fuente no vale para otra
+  marcar();
+}));
+
+// Las plantillas: las incluidas (con la variante que tienes elegida) y las tuyas del Editor
+function pintar() {
+  const r = $("rejilla"); r.innerHTML = "";
+  const tarjeta = (titulo, detalle, url, id, img, fondo) => {
+    const b = document.createElement("button"); b.className = "plantilla";
+    b.innerHTML = (img ? `<img alt="" loading="lazy">` : `<div class="mia"></div>`) + "<p><b></b><span></span></p>";
+    if (img) b.querySelector("img").src = img; else b.querySelector(".mia").style.background = fondo;
+    b.querySelector("b").textContent = titulo; b.querySelector("span").textContent = detalle;
+    b.title = `Abrir ${titulo}`;
+    b.onclick = () => { try { localStorage.setItem("biblioteca-plantilla", id); } catch (e) {} sessionStorage.setItem("fuente", fuente); location.href = url(fuente); };
+    r.appendChild(b);
+  };
+  PLANTILLAS.forEach(p => {
+    const n = todas(p).length, detalle = p.id === "anime" ? "tus skins" : `${n} ${n === 1 ? "variante" : "variantes"}`;
+    tarjeta(p.nombre, detalle, (f) => `${p.pagina}${p.pagina.includes("?") ? "&" : "?"}fuente=${f}`, p.id, elegida[p.id].previa);
+  });
+  const mias = Propias.leer();
+  mias.forEach(s => tarjeta(s.nombre, "tuya", (f) => `libre.html?plantilla=${s.id}&fuente=${f}`, "libre-" + s.id, null,
+    `linear-gradient(135deg, ${s.fondo.color || "#0b0708"}, color-mix(in srgb, ${s.estilo.acento} 55%, #000))`));
+  $("cuantas").textContent = `· ${PLANTILLAS.length + mias.length} plantillas`;
+}
+
 async function revisar() {
-  const a = await window.pywebview.api.ajustes();
-  spConectado = a.spotify.conectado;
-  if (!a.spotify.configurado) irAAjustes("fuenteSpotify", "estadoSpotify", "Configurar →");
-  else if (!a.spotify.conectado) estadoSp.textContent = "Conectar →";
-  if (!a.soundcloud.conectado) irAAjustes("fuenteSoundCloud", "estadoSoundCloud", "Conectar →");
-  if (!a.carpetas.length) irAAjustes("fuenteMusica", "estadoMusica", "Agregar carpeta →");
+  const a = await window.pywebview.api.ajustes(), txt = (f, t) => { document.querySelector(`[data-e="${f}"]`).textContent = t; };
+  if (!a.spotify.configurado) { estado.spotify = "ajustes"; txt("spotify", "Configurar en Ajustes"); }
+  else if (!a.spotify.conectado) { estado.spotify = "conectar"; txt("spotify", "Conectar"); }
+  else txt("spotify", "Conectado");
+  if (!a.soundcloud.conectado) { estado.soundcloud = "ajustes"; txt("soundcloud", "Conectar en Ajustes"); } else txt("soundcloud", "Conectado");
+  if (!a.carpetas.length) { estado.musica = "ajustes"; txt("musica", "Agregar una carpeta en Ajustes"); }
+  else txt("musica", `${a.carpetas.length} ${a.carpetas.length === 1 ? "carpeta" : "carpetas"}`);
+  if (estado[fuente]) { fuente = ["soundcloud", "spotify", "musica"].find(f => !estado[f]) || "pc"; marcar(); }   // la guardada ya no sirve: la primera lista
 }
-sp.addEventListener("click", async (e) => {
-  if (spConectado || sp.getAttribute("href") === "ajustes.html") return;
-  e.preventDefault();
-  sp.classList.add("ocupada"); estadoSp.textContent = "Acepta el acceso en el navegador…";
-  const r = await window.pywebview.api.spotify_conectar();
-  sp.classList.remove("ocupada");
-  if (r.ok) { spConectado = true; sessionStorage.removeItem("carpeta"); location.href = "index.html?fuente=spotify"; }
-  else estadoSp.textContent = (r.error || "No se pudo conectar") + " · Reintentar →";
-});
+marcar(); pintar();
 if (window.pywebview && window.pywebview.api) revisar();
 else window.addEventListener("pywebviewready", revisar);
 </script>
