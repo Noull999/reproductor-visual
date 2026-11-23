@@ -134,7 +134,7 @@ def desde_url(url: str) -> dict:
     pedido = urllib.request.Request(f"https://r2.webampskins.org/skins/{m.group(1).lower()}.wsz", headers={"User-Agent": "Reproductor"})
     with urllib.request.urlopen(pedido, timeout=30) as r:
         datos = r.read(MAX_ZIP + 1)
-    nombre = re.sub(r"[_\-]+", " ", unquote(m.group(2))).strip()
+    nombre = re.sub(r"\s+", " ", unquote(m.group(2)).replace("_", " ")).strip()
     return importar(datos, nombre)
 
 

@@ -313,6 +313,12 @@ class Api:
         except skins.SkinInvalido as e:
             return {"ok": False, "error": str(e)}
 
+    def skins_abrir_museo(self) -> dict:
+        """Abre el Winamp Skin Museum en el navegador de la persona (dirección fija: no abre links arbitrarios)."""
+        import webbrowser
+        webbrowser.open("https://skins.webamp.org/")
+        return {"ok": True}
+
     def skin_borrar(self, sid: str) -> dict:
         skins.borrar(sid)
         return {"ok": True}

@@ -192,7 +192,7 @@ function fondo() {
     }); return;
   }
   if (tipo === "visu2000") {
-    const lienzo = document.createElement("canvas"); c.appendChild(lienzo); const v = crearVisu2000(lienzo);
+    const lienzo = document.createElement("canvas"); c.appendChild(lienzo); const v = crearVisu2000(lienzo); v.velocidad(fv("velocidad") / 100);
     lienzo.style.cursor = "pointer"; lienzo.onclick = () => v.siguiente(); R.alCambiar(() => v.siguiente());
     R.cadaCuadro((t) => { const d = R.espectro(); v.dibujar(t, d, R.ondaAudio(), R.energia(d, 1, 8), R.energia(d, 10, 60), R.energia(d, 60, 200), tono(acento)); }); return;
   }

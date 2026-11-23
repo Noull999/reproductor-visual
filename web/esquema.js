@@ -11,6 +11,7 @@ const ESQUEMA = {
     "desenfoque": { "t": "num", "n": "Desenfoque (carátula)", "min": 10, "max": 140, "def": 70, "u": " px" },
     "brillo": { "t": "num", "n": "Brillo", "min": 20, "max": 130, "def": 100, "u": " %" },
     "tinte": { "t": "color", "n": "Tinte del agujero negro", "def": "", "vacio": true },
+    "velocidad": { "t": "num", "n": "Velocidad (visualización 2000)", "min": 20, "max": 150, "def": 100, "u": " %" },
     "imagen": { "t": "imagen" }
   },
   "estilo": {

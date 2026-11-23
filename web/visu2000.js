@@ -2,7 +2,7 @@
 // y opción "Visualización 2000" de las plantillas propias. Se dibujan en vivo con la música a baja resolución y se estiran
 // (se ven suaves y brillantes, como entonces). La "retroalimentación" (cada cuadro redibuja el anterior un poco más
 // grande, girado y desvanecido) hace los túneles y las estelas. Entre un efecto y otro hay un fundido de 2 s.
-// crearVisu2000(canvas) → { grupo([efectos]), intervalo(seg, 0 = solo al cambiar de canción), siguiente(),
+// crearVisu2000(canvas) → { grupo([efectos]), intervalo(seg, 0 = solo al cambiar de canción), velocidad(0.1-1.5), siguiente(),
 //                           dibujar(t, espectro, onda, bajo, medio, agudo, tono) }
 "use strict";
 const VISU2000 = ["estrellas", "anillos", "barras", "bateria", "llamas", "remolino", "rayos", "onda", "agua", "caleido"];
@@ -13,13 +13,14 @@ function crearVisu2000(canvas) {
   const o = canvas.getContext("2d"), trabajo = lienzo(), g = trabajo.getContext("2d"), copia = lienzo(), c2 = copia.getContext("2d"), viejo = lienzo();
   const negro = (ctx) => { ctx.fillStyle = "#000"; ctx.fillRect(0, 0, W, H); };
   negro(g); negro(o);
-  let pico = .3, lista = VISU2000.slice(), modo = 0, cada = 45, desde = 0, ahora = 0, cambio = -99, prom = 0, golpe = 0, giro = 0;
+  let V = 1, pico = .3, lista = VISU2000.slice(), modo = 0, cada = 45, desde = 0, ahora = 0, cambio = -99, prom = 0, golpe = 0, giro = 0;
   let estrellas = [], anillos = [], gotas = [], ultimoAnillo = 0;
   const FW = 120, FH = 68, calor = new Float32Array(FW * (FH + 2)), fuego = document.createElement("canvas"); fuego.width = FW; fuego.height = FH;
   const fg = fuego.getContext("2d"), fimg = fg.createImageData(FW, FH);
 
   // redibuja el cuadro anterior transformado: zoom > 1 = túnel hacia afuera; filtro = humo o cambio de color
   function eco(zoom, rot, alfa, filtro) {
+    zoom = Math.pow(zoom, V); rot *= V; alfa = Math.pow(alfa, V);   // V < 1: todo se mueve más lento (y las estelas duran lo mismo en segundos)
     c2.clearRect(0, 0, W, H); c2.drawImage(trabajo, 0, 0); negro(g);
     g.save(); g.filter = filtro || "none"; g.globalAlpha = alfa;
     g.translate(CX, CY); g.rotate(rot); g.scale(zoom, zoom); g.drawImage(copia, -CX, -CY);
@@ -42,7 +43,7 @@ function crearVisu2000(canvas) {
       sumar(() => {
         g.lineWidth = 1.2;
         for (const e of estrellas) {
-          const z0 = e.z; e.z -= .006 + x.bajo * .03 + golpe * .02;
+          const z0 = e.z; e.z -= (.006 + x.bajo * .03 + golpe * .02) * V;
           if (e.z <= .02) { e.x = Math.random() * 2 - 1; e.y = Math.random() * 2 - 1; e.z = 1; continue; }
           const px = (z) => [CX + e.x / z * CX * .5, CY + e.y / z * CY * .5], [a, b] = px(z0), [c, d] = px(e.z);
           g.strokeStyle = col(x.tono + e.x * 30, 55 + (1 - e.z) * 20, .3 + (1 - e.z) * .6);
@@ -52,10 +53,10 @@ function crearVisu2000(canvas) {
     },
     anillos(t, x) {
       eco(1.01, .01, .8);
-      if (golpe > .95 || t - ultimoAnillo > .45) { anillos.push({ r: 3, lados: 6, rot: t }); ultimoAnillo = t; }
+      if (golpe > .95 || t - ultimoAnillo > .45 / V) { anillos.push({ r: 3, lados: 6, rot: t }); ultimoAnillo = t; }
       sumar(() => {
         for (let i = anillos.length - 1; i >= 0; i--) {
-          const a = anillos[i]; a.r *= 1.035 + x.bajo * .04; if (a.r > W) { anillos.splice(i, 1); continue; }
+          const a = anillos[i]; a.r *= Math.pow(1.035 + x.bajo * .04, V); if (a.r > W) { anillos.splice(i, 1); continue; }
           g.strokeStyle = col(x.tono + a.r * .3, 50, Math.min(.7, a.r / 60)); g.lineWidth = 1 + a.r / 60; g.beginPath();
           for (let k = 0; k <= a.lados; k++) { const an = a.rot + k / a.lados * Math.PI * 2; g.lineTo(CX + Math.cos(an) * a.r, CY + Math.sin(an) * a.r * .8); }
           g.stroke();
@@ -78,7 +79,7 @@ function crearVisu2000(canvas) {
     },
     // Grafito: batería, llamas, remolino de plasma
     bateria(t, x) {
-      giro += .004 + x.bajo * .02;
+      giro += (.004 + x.bajo * .02) * V;
       eco(1.035 + x.bajo * .05, .015 + x.bajo * .03, .945);
       sumar(() => {
         const N = 64;
@@ -149,10 +150,10 @@ function crearVisu2000(canvas) {
     // Azul: ondas de agua y caleidoscopio
     agua(t, x) {
       eco(.998, 0, .9, "blur(1.2px)");
-      if (golpe > .95 || Math.random() < .03 + x.medio * .1) gotas.push({ x: Math.random() * W, y: Math.random() * H, r: 1, f: .6 + x.bajo * .4 });
+      if (golpe > .95 || Math.random() < (.03 + x.medio * .1) * V) gotas.push({ x: Math.random() * W, y: Math.random() * H, r: 1, f: .6 + x.bajo * .4 });
       sumar(() => {
         for (let i = gotas.length - 1; i >= 0; i--) {
-          const a = gotas[i]; a.r += 1.4 + a.f; a.f *= .985; if (a.f < .05 || a.r > W * .6) { gotas.splice(i, 1); continue; }
+          const a = gotas[i]; a.r += (1.4 + a.f) * V; a.f *= Math.pow(.985, V); if (a.f < .05 || a.r > W * .6) { gotas.splice(i, 1); continue; }
           for (let k = 0; k < 2; k++) { g.strokeStyle = col(x.tono + k * 20, 55, a.f * .55 / (k + 1)); g.lineWidth = 1.5; g.beginPath(); g.ellipse(a.x, a.y, a.r * (1 - k * .25), a.r * .55 * (1 - k * .25), 0, 0, 7); g.stroke(); }
         }
       });
@@ -180,6 +181,7 @@ function crearVisu2000(canvas) {
   return {
     grupo(l) { const nueva = (l || VISU2000).filter(e => EFECTOS[e]); if (nueva.join() !== lista.join()) { lista = nueva.length ? nueva : VISU2000.slice(); modo = -1; cambiar(); } },
     intervalo(s) { cada = s; },
+    velocidad(v) { V = Math.max(.1, Math.min(1.5, v)); },
     siguiente: cambiar,
     dibujar(t, d, onda, bajo, medio, agudo, tono) {
       // se adapta a la música: el bajo se mide contra su pico reciente (con bajo potente no queda todo al máximo)

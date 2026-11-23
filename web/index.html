@@ -253,7 +253,8 @@ async function seccionSkins() {
   const caja = $("extras"), d = document.createElement("div"); d.className = "skins-winamp"; caja.appendChild(d);
   const api = window.pywebview && pywebview.api;
   d.innerHTML = `<div class="mono">Skins de Winamp</div>
-    <p class="ayuda">Busca uno en <b>skins.webamp.org</b>, copia el link de la página del skin y pégalo aquí. También sirve un archivo .wsz. Quedan solo en tu PC.</p>
+    <p class="ayuda">Busca ideas en el museo de skins de Winamp (más de 70 mil), abre el que te guste, copia el link de su página y pégalo aquí. También sirve un archivo .wsz. Quedan solo en tu PC.</p>
+    <button class="suave" data-a="museo">Buscar skins en skins.webamp.org ↗</button>
     <div class="fila-skin"><input type="text" placeholder="https://skins.webamp.org/skin/…" aria-label="Link del skin"><button class="suave">Agregar</button></div>
     <button class="suave" data-a="archivo">Elegir archivo .wsz…</button><div class="lista-skins"></div>`;
   const campo = d.querySelector("input"), lista = d.querySelector(".lista-skins");
@@ -270,6 +271,7 @@ async function seccionSkins() {
   }
   const resultado = (r) => { if (r && r.ok && r.skin) { try { localStorage.setItem("skin-winamp", r.skin.id); } catch (e) {} mensaje(`Skin «${r.skin.nombre}» agregado.`); campo.value = ""; pintarLista(); refrescar(true); } else if (r && !r.ok) mensaje(r.error); };
   d.querySelector(".fila-skin button").onclick = async () => { if (!api) return; mensaje("Descargando el skin…"); resultado(await api.skin_importar_url(campo.value)); };
+  d.querySelector('[data-a="museo"]').onclick = () => { if (api) api.skins_abrir_museo(); };
   d.querySelector('[data-a="archivo"]').onclick = async () => { if (api) resultado(await api.skin_importar_archivo()); };
   pintarLista();
 }
