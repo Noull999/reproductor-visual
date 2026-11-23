@@ -25,7 +25,7 @@
   body[data-panel=metal] { --bg: linear-gradient(180deg,#eef1f5,#b1b9c6 55%,#8f97a5); --borde: 1px solid rgba(0,0,0,.55); --rad: 10px; --radp: 14px; --pt: #272c35; --sombra: inset 0 1px 0 rgba(255,255,255,.75), 0 6px 14px rgba(0,0,0,.45); }
   body[data-panel=gel] { --bg: linear-gradient(180deg,rgba(255,255,255,.78),rgba(255,255,255,.14) 50%,transparent 52%), var(--acento); --borde: 1px solid rgba(0,0,0,.35); --rad: 999px; --radp: 28px; --pt: #0e1f08; --sombra: inset 0 -3px 6px rgba(0,0,0,.25), 0 4px 10px rgba(0,0,0,.45); }
   body[data-panel=pixel] { --bg: #1a1620; --borde: 3px solid var(--acento); --rad: 0; --radp: 0; --pt: #f3f3f5; --sombra: none; }
-  body[data-panel=ps2] { --bg: linear-gradient(180deg,rgba(70,140,255,.42),rgba(10,24,84,.78) 55%,rgba(6,14,56,.85)); --borde: 1.5px solid rgba(130,225,255,.8); --rad: 3px; --radp: 3px; --pt: #e8f6ff; --sombra: inset 0 1px 0 rgba(255,255,255,.55), 0 0 18px rgba(40,170,255,.35); }
+  body[data-panel=ps2] { --bg: linear-gradient(180deg,color-mix(in srgb, var(--acento) 45%, transparent),color-mix(in srgb, var(--acento) 22%, rgba(6,8,30,.85)) 55%,rgba(6,8,30,.88)); --borde: 1.5px solid color-mix(in srgb, var(--acento) 70%, #fff); --rad: 3px; --radp: 3px; --pt: #e8f6ff; --sombra: inset 0 1px 0 rgba(255,255,255,.55), 0 0 18px color-mix(in srgb, var(--acento) 40%, transparent); }
   body[data-panel=ps2] .caja, body[data-panel=ps2] .bt { clip-path: polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px); }
   body[data-panel=liso] { --bg: rgba(14,14,18,.86); --borde: 1px solid #2c2c36; --rad: 8px; --radp: 10px; --pt: #f3f3f5; --sombra: none; }
   .caja { background: var(--bg); border: var(--borde); border-radius: var(--radp); box-shadow: var(--sombra); width: 100%; height: 100%; color: var(--pt); }
@@ -84,6 +84,7 @@
 <script src="esquema.js"></script>
 <script src="plantillas-propias.js"></script>
 <script src="tunel.js"></script>
+<script src="agujero.js"></script>
 <script src="haz.js"></script>
 <script src="nucleo.js"></script>
 <script src="modulos.js"></script>
@@ -168,6 +169,10 @@ function fondo() {
       g.fillStyle = "rgba(255,255,255,.7)";
       ps.forEach(q => { q[1] -= .0006 * q[2] * (1 + GOLPE * 6); if (q[1] < -.02) { q[1] = 1.02; q[0] = Math.random(); } const z = 2 + q[2] * 3; g.fillRect(q[0] * w, q[1] * h, z, z); });
     }); return;
+  }
+  if (tipo === "agujero") {
+    const lienzo = document.createElement("canvas"); c.appendChild(lienzo); const a = crearAgujero(lienzo); a.tono(fv("tono"));
+    R.cadaCuadro((t) => a.dibujar(t, R.energia(R.espectro(), 1, 8))); return;
   }
   if (tipo === "caratula") {
     capa(fv("color")); const d = capa("none"); d.style.cssText += `;inset:-12%;width:124%;height:124%;filter:blur(${fv("desenfoque")}px) saturate(1.4) brightness(.45)`;

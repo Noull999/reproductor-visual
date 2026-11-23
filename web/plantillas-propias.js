@@ -51,7 +51,7 @@ const Propias = (() => {
       fondo: { tipo: "burbujas", color: "#123a00", brillo: 100 }, estilo: { panel: "gel", acento: "#9be22a", fuente: "Fredoka" },
       piezas: () => armar([["cabeza", [24, 2, 42, 95]], ["lista", [70, 5, 27, 82]], ["volumen", [34, 95, 24, 3.5]]]) },
     dosmil: { nombre: "2000s", reglas: { requeridas: ["equipo"], nota: "El equipo de metal es el reproductor: se puede mover, agrandar y cambiar de skin. Trae pantalla LCD, botones, perilla y barra, así que no se agregan sueltos." },
-      fondo: { tipo: "tunel", color: "#000000", brillo: 80 }, estilo: { panel: "metal", acento: "#3fa9ff", fuente: "Michroma" },
+      fondo: { tipo: "agujero", color: "#000000", tono: 180, brillo: 90 }, estilo: { panel: "metal", acento: "#3fa9ff", fuente: "Michroma" },
       piezas: () => armar([["lista", [72, 3, 26, 58]], ["equipo", [5, 66, 67, 31]]]) },
     ambiente: { nombre: "Ambiente", reglas: { requeridas: ["titulo", "botones", "barra"], nota: COMUN },
       fondo: { tipo: "caratula", color: "#08080a", desenfoque: 70, brillo: 100 }, estilo: { panel: "liso", acento: "#9aa4b8", acentoAuto: true, fuente: "Geist" },
@@ -64,9 +64,13 @@ const Propias = (() => {
         ["titulo", [3, 49, 40, 5], { tam: 90 }], ["artista", [3, 54, 40, 3]], ["lista", [72, 4, 26, 82]], ["botones", [3, 91, 20, 8]], ["barra", [26, 94.2, 46, 2.4]],
         ["tiempo", [75, 91.5, 10, 6]], ["volumen", [86, 92, 11, 5]]]) },
   };
-  INCLUIDAS.anime = { nombre: "Anime PS2", reglas: { requeridas: ["titulo", "botones", "barra"], nota: COMUN },
-      fondo: { tipo: "columnas", color: "#02071c", color2: "#0b2f7a", brillo: 100 }, estilo: { panel: "ps2", acento: "#19c8ff", fuente: "Michroma" },
-      piezas: () => armar([["efecto", [22, 0, 56, 92], { efecto: "lineas" }], ["imagen", [27, 3, 46, 96], { imagen: "img/anime/personaje.webp", reaccion: "golpe", aura: true, aberracion: true }],
+  // Anime PS2: cada variante es otro personaje con su propio color de acento
+  const ANIME = { Cian: ["cian", "#19c8ff"], Rosa: ["rosa", "#ff7ac8"], Gotica: ["gotica", "#e0233c"], Violeta: ["violeta", "#9b6bff"] };
+  const animeActual = () => { let v = ""; try { v = localStorage.getItem("variante-anime") || ""; } catch (e) {} return ANIME[v] || ANIME.Cian; };
+  INCLUIDAS.anime = { nombre: "Anime PS2", reglas: { requeridas: ["titulo", "botones", "barra"], nota: COMUN }, VARIANTES: ANIME,
+      fondo: { tipo: "columnas", color: "#02071c", color2: "#0b2f7a", brillo: 100 },
+      get estilo() { return { panel: "ps2", acento: animeActual()[1], fuente: "Michroma" }; },
+      piezas: () => armar([["efecto", [22, 0, 56, 92], { efecto: "lineas" }], ["imagen", [27, 3, 46, 96], { imagen: `img/anime/${animeActual()[0]}.webp`, reaccion: "golpe", aura: true, aberracion: true }],
         ["efecto", [0, 0, 100, 100], { efecto: "destellos", sensibilidad: 80 }], ["panel", [2.5, 60, 27, 26]], ["titulo", [4, 63, 24, 7], { tam: 90, mayusculas: true }], ["artista", [4, 72, 24, 4], { tam: 80 }],
         ["caratula", [4, 5, 21, 30], { forma: "cuadrada", borde: true }], ["lista", [72, 5, 26, 78]], ["panel", [0, 88, 100, 12]], ["botones", [30, 89.5, 22, 9]], ["barra", [54, 93, 28, 2.4]], ["tiempo", [84, 91, 12, 5]]]) };
   function desdeBase(id) {

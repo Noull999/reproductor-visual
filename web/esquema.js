@@ -3,13 +3,14 @@
 // Debe seguir siendo JSON válido después de "const ESQUEMA = " (comillas dobles, sin comentarios dentro).
 // Cada opción: { "t": "enum"|"num"|"bool"|"color"|"imagen", "n": etiqueta, "v": {valor: etiqueta}, "min", "max", "def", "u": unidad, "vacio": true }
 const ESQUEMA = {
-  "fondos": { "haz": "Haz de luz", "tunel": "Túnel psicodélico", "burbujas": "Burbujas", "luces": "Luces suaves", "estrellas": "Estrellas de píxel", "caratula": "Carátula desenfocada", "degradado": "Degradado", "color": "Color liso", "imagen": "Imagen propia", "columnas": "Columnas de luz (PS2)" },
+  "fondos": { "haz": "Haz de luz", "tunel": "Túnel psicodélico", "burbujas": "Burbujas", "luces": "Luces suaves", "estrellas": "Estrellas de píxel", "caratula": "Carátula desenfocada", "degradado": "Degradado", "color": "Color liso", "imagen": "Imagen propia", "columnas": "Columnas de luz (PS2)", "agujero": "Agujero negro (retro)" },
   "fondo": {
     "color": { "t": "color", "n": "Color de base", "def": "#08080a" },
     "color2": { "t": "color", "n": "Segundo color (degradado)", "def": "#2a1030" },
     "angulo": { "t": "num", "n": "Ángulo del degradado", "min": 0, "max": 360, "def": 160, "u": "°" },
     "desenfoque": { "t": "num", "n": "Desenfoque (carátula)", "min": 10, "max": 140, "def": 70, "u": " px" },
     "brillo": { "t": "num", "n": "Brillo", "min": 20, "max": 130, "def": 100, "u": " %" },
+    "tono": { "t": "num", "n": "Tono (agujero negro)", "min": -180, "max": 180, "def": 0, "u": "°" },
     "imagen": { "t": "imagen" }
   },
   "estilo": {
@@ -81,6 +82,6 @@ const ESQUEMA = {
     "opacidad": { "t": "num", "n": "Opacidad", "min": 10, "max": 100, "def": 100, "u": " %" }
   },
   "bases": ["liquido", "headspace", "dosmil", "ambiente", "pixel", "anime"],
-  "imagenesIncluidas": ["img/anime/personaje.webp"],
+  "imagenesIncluidas": ["img/anime/cian.webp", "img/anime/rosa.webp", "img/anime/gotica.webp", "img/anime/violeta.webp"],
   "maxPiezas": 30
 };
