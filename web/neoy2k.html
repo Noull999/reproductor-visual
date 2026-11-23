@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neo Y2K</title>
+<script src="hls.min.js"></script>
+<style>
+  /* Neo Y2K (portadas de rap de 2016 en adelante): azul eléctrico, verde ácido, cromo, japonés vertical y destellos */
+  :root { --verde: #8cff2a; --azul: #1f6bff; --p: 0%; --v: 80%;
+    --cromo: linear-gradient(180deg, #ffffff 0%, #d7e2ff 20%, #5e6f9a 46%, #f4f8ff 52%, #9fb2d8 74%, #ffffff 100%); }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #04103a; color: #fff; font-family: Arial, sans-serif; }
+  #fondo { position: fixed; inset: 0; width: 100%; height: 100%; }
+  .cromo { background: var(--cromo); -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(0 0 2px #fff) drop-shadow(0 0 18px color-mix(in srgb, var(--azul) 80%, #fff)); }
+  .mono { font: 700 11px Consolas, monospace; letter-spacing: 3px; color: var(--verde); }
+
+  #grandeTitulo { position: fixed; left: 4vw; top: 3vh; max-width: 56vw; margin: 0; font: italic 900 clamp(44px, 6.4vw, 104px)/1 "Arial Black", sans-serif;
+    letter-spacing: -.05em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transform: skewX(-8deg); padding: 0 .1em; }
+  /* hueco de la carátula: el lienzo la dibuja aquí (con el barrido de brillo y los destellos) */
+  #portada { position: fixed; left: 26vw; top: 17vh; width: min(52vh, 30vw); aspect-ratio: 1; pointer-events: none; }
+  .vertical { position: fixed; writing-mode: vertical-rl; font: 900 clamp(28px, 3.2vw, 50px) "Yu Gothic", "Meiryo", sans-serif; letter-spacing: 6px;
+    text-shadow: 0 0 14px var(--verde), 0 0 2px #fff; }
+  #jp { left: calc(26vw + min(52vh, 30vw) + 2.4vw); top: 17vh; }
+  #jp2 { left: 1.6vw; top: 30vh; font-size: 18px; letter-spacing: 10px; text-shadow: none; opacity: .75; }
+  .etiqueta { position: fixed; left: 26vw; top: calc(17vh + min(52vh, 30vw) + 18px); border: 2px solid #fff; padding: 4px 8px; font: 700 10px/1.25 Arial, sans-serif;
+    letter-spacing: 1px; background: rgba(0,0,0,.55); }
+  .etiqueta b { display: block; font-size: 15px; letter-spacing: 3px; }
+  .rayas { position: fixed; left: calc(26vw + 230px); top: calc(17vh + min(52vh, 30vw) + 30px); display: flex; gap: 6px; }
+  .rayas i { width: 22px; height: 12px; background: #fff; transform: skewX(-35deg); }
+
+  /* ---- lista: columna con números grandes en contorno ---- */
+  #columna { position: fixed; right: 2.4vw; top: 4vh; bottom: 4vh; width: min(25vw, 380px); border-left: 1px solid rgba(255,255,255,.5); padding-left: 22px;
+    display: flex; flex-direction: column; }
+  #columna .cab { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  #lista { flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--verde) transparent; }
+  .fila { display: grid; grid-template-columns: 56px 1fr 44px; align-items: center; min-height: 50px; border-bottom: 1px solid rgba(255,255,255,.14); cursor: pointer; }
+  .fila img { display: none; }
+  .fila .n { font: italic 900 30px "Arial Black", sans-serif; color: transparent; -webkit-text-stroke: 1.2px rgba(255,255,255,.55); }
+  .fila .nombre { font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 8px; }
+  .fila .dur { font: 11px Consolas, monospace; opacity: .7; text-align: right; }
+  .fila:hover .nombre { color: color-mix(in srgb, var(--verde) 60%, #fff); }
+  .fila.sonando .n { -webkit-text-stroke: 0; color: var(--verde); text-shadow: 0 0 14px var(--verde); }
+  .fila.sonando .nombre { color: var(--verde); }
+  #temas { display: flex; gap: 8px; }
+  #temas button { width: 16px; height: 16px; padding: 0; border: none; border-radius: 50%; cursor: pointer; opacity: .55; transition: opacity .2s, transform .2s; }
+  #temas button:hover { opacity: 1; }
+  #temas button.elegido { opacity: 1; transform: scale(1.25); box-shadow: 0 0 0 2px #fff, 0 0 12px var(--verde); }
+
+  /* ---- controles: líneas técnicas finas ---- */
+  #hud { position: fixed; left: 4vw; right: calc(min(25vw, 380px) + 6vw); bottom: 4vh; height: 124px; }
+  .linea { position: absolute; left: 0; right: 0; top: 0; height: 1px; background: linear-gradient(90deg, var(--verde), color-mix(in srgb, var(--verde) 10%, transparent)); }
+  .linea::before { content: ""; position: absolute; left: 0; top: -3px; width: 7px; height: 7px; background: var(--verde); }
+  #hud .mono { position: absolute; top: 12px; left: 0; }
+  #titulo { position: absolute; top: 28px; left: 0; right: 300px; font: italic 900 30px "Arial Black", sans-serif; letter-spacing: -1px; text-transform: uppercase;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 6px; }
+  .pista { position: absolute; left: 0; right: 300px; top: 84px; height: 16px; display: flex; align-items: center; }
+  #barra { -webkit-appearance: none; appearance: none; width: 100%; height: 4px; margin: 0; cursor: pointer;
+    background: linear-gradient(90deg, var(--azul), var(--verde) var(--p), rgba(255,255,255,.2) var(--p)); box-shadow: 0 0 10px color-mix(in srgb, var(--verde) 50%, transparent); }
+  #barra::-webkit-slider-thumb { -webkit-appearance: none; width: 30px; height: 30px; border: none; background: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-10 -10 20 20'%3E%3Cpath d='M0-10 L2.2-2.2 10 0 2.2 2.2 0 10 -2.2 2.2 -10 0 -2.2-2.2Z' fill='white'/%3E%3C/svg%3E");
+    filter: drop-shadow(0 0 6px #fff); }
+  .bajo { position: absolute; left: 0; right: 300px; top: 104px; display: flex; gap: 14px; font: 11px Consolas, monospace; color: #cfe0ff; white-space: nowrap; overflow: hidden; }
+  #artista { overflow: hidden; text-overflow: ellipsis; }
+  .botones { position: absolute; right: 0; top: 30px; display: flex; gap: 10px; align-items: center; }
+  .botones button { width: 52px; height: 40px; border: none; cursor: pointer; display: grid; place-items: center; font: 15px "Segoe UI Symbol", sans-serif; color: #04103a;
+    clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%); background: var(--cromo); transition: transform .1s, filter .15s; }
+  .botones button:hover { filter: brightness(1.12); } .botones button:active { transform: scale(.94); }
+  #bPlay { width: 84px; height: 54px; font-size: 22px; background: var(--verde); }
+  .vol { position: absolute; right: 0; top: 96px; width: 220px; display: flex; gap: 8px; align-items: center; }
+  #iconoVol { background: none; border: none; color: #fff; cursor: pointer; font-size: 14px; padding: 0; opacity: .8; }
+  #volumen { -webkit-appearance: none; appearance: none; flex: 1; height: 3px; margin: 0; cursor: pointer; background: linear-gradient(90deg, var(--verde) var(--v), rgba(255,255,255,.2) var(--v)); }
+  #volumen::-webkit-slider-thumb { -webkit-appearance: none; width: 10px; height: 10px; background: #fff; transform: rotate(45deg); }
+  a.volver { background: rgba(0,0,0,.45); border: 1px solid rgba(255,255,255,.5); border-radius: 0; font: 700 11px Consolas, monospace; letter-spacing: 2px; }
+</style>
+</head>
+<body>
+<canvas id="fondo" data-fondo></canvas>
+<h1 id="grandeTitulo" class="cromo">—</h1>
+<div id="portada"></div>
+<div id="jp" class="vertical">感染した音楽</div>
+<div id="jp2" class="vertical ocultable">再生中 ・ 二〇一六</div>
+<div class="etiqueta ocultable">SONIDO<b>EXPLÍCITO</b>VOLUMEN ALTO RECOMENDADO</div>
+<div class="rayas ocultable"><i></i><i></i><i></i><i></i></div>
+<aside id="columna" class="ocultable" data-prop="lista">
+  <div class="cab"><span class="mono">// TRACKLIST — <span id="cuenta">0</span></span><div id="temas" title="Colores"></div></div>
+  <div id="lista"></div>
+</aside>
+<div id="hud" class="ocultable">
+  <div class="linea"></div><div class="mono">NOW PLAYING ✦ 再生中</div>
+  <div id="titulo" class="cromo">—</div>
+  <div class="pista"><input id="barra" type="range" min="0" max="1000" value="0" title="Avance"></div>
+  <div class="bajo"><span id="tiempo">0:00 / 0:00</span><span>·</span><span id="artista"></span></div>
+  <div class="botones"><button id="bAnt" title="Anterior">&#x23EE;&#xFE0E;</button><button id="bPlay" title="Play / pausa">▶</button><button id="bSig" title="Siguiente">&#x23ED;&#xFE0E;</button></div>
+  <div class="vol"><button id="iconoVol" title="Silenciar">🔊</button><input id="volumen" type="range" min="0" max="100" value="80" title="Volumen"></div>
+</div>
+
+<script src="propiedades.js"></script>
+<script src="nucleo.js"></script>
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const raiz = document.documentElement.style;
+
+// ---- Variantes de color: [verde, azul] ----
+const TEMAS = { "Ácido": ["#8cff2a", "#1f6bff"], "Chicle": ["#ff5fd8", "#6a2cff"], "Hielo": ["#7ff6ff", "#2a3cff"], "Fuego": ["#ffd23a", "#ff2a4a"] };
+let tema = "Ácido";
+function usarTema(n) {
+  tema = n in TEMAS ? n : "Ácido";
+  raiz.setProperty("--verde", TEMAS[tema][0]); raiz.setProperty("--azul", TEMAS[tema][1]);
+  document.querySelectorAll("#temas button").forEach(b => b.classList.toggle("elegido", b.dataset.t === tema));
+  try { localStorage.setItem("tema-neoy2k", tema); } catch (e) {}
+}
+for (const [n, [a, b]] of Object.entries(TEMAS)) {
+  const bt = document.createElement("button"); bt.dataset.t = n; bt.title = n; bt.setAttribute("aria-label", n);
+  bt.style.background = `linear-gradient(135deg, ${a} 50%, ${b} 50%)`; bt.onclick = () => usarTema(n); $("temas").appendChild(bt);
+}
+try { usarTema(localStorage.getItem("tema-neoy2k") || "Ácido"); } catch (e) { usarTema("Ácido"); }
+
+// ---- Carátula: la nítida va en el hueco #portada; una copia borrosa llena el fondo ----
+let caratula = null, ultima = null;
+const borrosa = document.createElement("canvas"); borrosa.width = borrosa.height = 360;
+function cargar(src) {
+  caratula = null; if (!src) return pintarBorrosa();
+  const img = new Image(); img.onload = () => { caratula = img; pintarBorrosa(); }; img.src = src;
+}
+function pintarBorrosa() {
+  const b = borrosa.getContext("2d"), [v, a] = TEMAS[tema];
+  const q = b.createLinearGradient(0, 0, 360, 360); q.addColorStop(0, a); q.addColorStop(1, "#04103a"); b.fillStyle = q; b.fillRect(0, 0, 360, 360);
+  if (caratula) { b.filter = "blur(16px) saturate(1.7)"; b.drawImage(caratula, 20, 20, 320, 320); b.filter = "none"; }
+}
+pintarBorrosa();
+R.alCambiar((p) => {
+  $("grandeTitulo").textContent = p.titulo || "—";
+  $("cuenta").textContent = R.pistas.length;
+  if (p.caratula !== ultima) { ultima = p.caratula; cargar(p.caratula); }
+});
+$("volumen").addEventListener("input", (e) => raiz.setProperty("--v", e.target.value + "%"));
+
+// ---- Fondo animado ----
+const cv = $("fondo"), g = cv.getContext("2d");
+let s = 4; const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
+const ESTELAS = Array.from({ length: 20 }, () => ({ y: rnd(), v: 300 + rnd() * 900, l: 200 + rnd() * 500, gr: 3 + rnd() * 8, x0: rnd() * 2000, blanca: rnd() < .35 }));
+const CHISPAS = Array.from({ length: 14 }, () => ({ x: rnd(), y: rnd(), f: rnd() * 6, r: 6 + rnd() * 12 }));
+const rgba = (hex, a) => { const n = parseInt(hex.slice(1), 16); return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${a})`; };
+const chispa = (x, y, r, a) => { g.fillStyle = `rgba(255,255,255,${a})`; g.beginPath(); g.moveTo(x, y - r); g.quadraticCurveTo(x, y, x + r, y); g.quadraticCurveTo(x, y, x, y + r); g.quadraticCurveTo(x, y, x - r, y); g.quadraticCurveTo(x, y, x, y - r); g.fill(); };
+let suave = 0;
+R.cadaCuadro((t) => {
+  if (cv.width !== innerWidth || cv.height !== innerHeight) { cv.width = innerWidth; cv.height = innerHeight; }
+  const W = cv.width, H = cv.height, bajo = R.energia(R.espectro(), 1, 8), [verde, azul] = TEMAS[tema];
+  suave += (bajo - suave) * .25;
+  raiz.setProperty("--p", (R.progreso() * 100).toFixed(2) + "%");
+  // carátula gigante y borrosa que respira
+  const z = 1.15 + Math.sin(t * .4) * .05 + suave * .04, L = Math.max(W, H) * 1.5;
+  g.save(); g.translate(W / 2, H / 2); g.rotate(Math.sin(t * .2) * .04); g.scale(z, z); g.drawImage(borrosa, -L / 2, -L / 2, L, L); g.restore();
+  g.globalCompositeOperation = "color"; g.globalAlpha = .6; g.fillStyle = azul; g.fillRect(0, 0, W, H);   // el tono del tema manda; la carátula pone la luz
+  g.globalCompositeOperation = "source-over"; g.globalAlpha = 1;
+  const v = g.createLinearGradient(0, 0, W, 0); v.addColorStop(0, "rgba(4,16,58,.55)"); v.addColorStop(.5, "rgba(4,16,58,.1)"); v.addColorStop(1, "rgba(4,16,58,.72)"); g.fillStyle = v; g.fillRect(0, 0, W, H);
+  // estelas de movimiento y destellos de lente
+  g.globalCompositeOperation = "lighter";
+  for (const e of ESTELAS) { const x = ((e.x0 + t * e.v) % (W + e.l)) - e.l, q = g.createLinearGradient(x, 0, x + e.l, 0);
+    q.addColorStop(0, rgba(verde, 0)); q.addColorStop(.6, e.blanca ? `rgba(255,255,255,${.22 + suave * .25})` : rgba(verde, .2 + suave * .25)); q.addColorStop(1, rgba(verde, 0));
+    g.fillStyle = q; g.fillRect(x, e.y * H, e.l, e.gr); }
+  const r = $("portada").getBoundingClientRect();
+  const flare = (x, y, rr) => { const q = g.createRadialGradient(x, y, 0, x, y, rr); q.addColorStop(0, "rgba(255,255,255,.9)"); q.addColorStop(.15, "rgba(190,225,255,.45)"); q.addColorStop(1, rgba(azul, 0));
+    g.fillStyle = q; g.fillRect(x - rr, y - rr, rr * 2, rr * 2); g.fillStyle = "rgba(255,255,255,.7)"; g.fillRect(x - rr * 1.6, y - 1, rr * 3.2, 2); g.fillRect(x - 1, y - rr * .8, 2, rr * 1.6); };
+  flare(r.right, r.top, 80 + suave * 60); flare(W * .7, H * .74, 36 + suave * 26);
+  g.globalCompositeOperation = "source-over";
+  // estrella de cromo que gira, detrás de la esquina de la carátula
+  const er = r.width * .58; g.save(); g.translate(r.left - r.width * .2, r.bottom - r.width * .1); g.rotate(-.25 + t * .15); g.beginPath();
+  for (let i = 0; i < 8; i++) { const rr = i % 2 ? er * .22 : er, a = i / 8 * Math.PI * 2 - Math.PI / 2; g.lineTo(Math.cos(a) * rr, Math.sin(a) * rr * .9); }
+  g.closePath(); const cs = g.createLinearGradient(0, -er, 0, er); cs.addColorStop(0, "#fff"); cs.addColorStop(.45, "#5e6f9a"); cs.addColorStop(.55, "#f4f8ff"); cs.addColorStop(1, "#9fb2d8");
+  g.strokeStyle = cs; g.lineWidth = Math.max(5, er * .045); g.shadowColor = rgba(azul, .9); g.shadowBlur = 20; g.stroke(); g.restore();
+  // la carátula: brillo que late con el bajo, barrido diagonal cada 3 s y destellos que se prenden y apagan
+  const { left: X, top: Y, width: S } = r;
+  g.save(); g.shadowColor = rgba(azul, .6 + suave * .4); g.shadowBlur = 40 + suave * 50; g.fillStyle = "#000"; g.fillRect(X, Y, S, S); g.restore();
+  if (caratula) g.drawImage(caratula, X, Y, S, S); else { g.fillStyle = azul; g.fillRect(X, Y, S, S); }
+  g.save(); g.beginPath(); g.rect(X, Y, S, S); g.clip(); g.globalCompositeOperation = "lighter";
+  const bx = X - S * .75 + ((t % 3) / 3) * S * 2.5, sw = g.createLinearGradient(-S * .22, 0, S * .22, 0);
+  sw.addColorStop(0, "rgba(255,255,255,0)"); sw.addColorStop(.42, rgba(verde, .3)); sw.addColorStop(.5, "rgba(255,255,255,.7)"); sw.addColorStop(.58, rgba(azul, .3)); sw.addColorStop(1, "rgba(255,255,255,0)");
+  g.fillStyle = sw; g.translate(bx, Y + S / 2); g.rotate(.5); g.fillRect(-S * .22, -S, S * .44, S * 2); g.restore();
+  g.save(); g.globalCompositeOperation = "lighter";
+  for (const c of CHISPAS) { const a = Math.max(0, Math.sin(t * 3 + c.f)) ** 4; if (a > .02) chispa(X + c.x * S, Y + c.y * S, c.r * (.6 + a * .6) * S / 400, a * .95); }
+  g.restore();
+  g.strokeStyle = "rgba(255,255,255,.7)"; g.lineWidth = 2; g.strokeRect(X, Y, S, S);
+});
+</script>
+</body>
+</html>
