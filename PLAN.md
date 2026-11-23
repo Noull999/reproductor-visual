@@ -102,6 +102,10 @@ comparte son solo datos e imágenes, nunca código.
 - [x] **Vista previa en vivo** en el panel: la plantilla real corriendo en un marco con música inventada (fuente `demo`), que se recarga al cambiar cualquier propiedad. Las tarjetas de la cuadrícula siguen con capturas fijas.
 - [x] Más propiedades por plantilla: deformación del vidrio (Líquido), cantidad de burbujas (Headspace), brillo del túnel (2000s), desenfoque del fondo (Ambiente) y tamaño de los píxeles (Pixel). Se definen en `propiedades.js` (`EXTRAS`).
 - [ ] Colores libres (un selector de color además de las variantes).
+- [x] Plantillas nuevas: **Psicodélico** (ojo pixel art, caleidoscopio, espiral, fractal; 8 colores), **Neo Y2K** (carátula con barrido de brillo; Ácido, Chicle, Hielo y Fuego con figura y partículas propias) y **Dreamcore** (VHS + ventanas de Windows 95; escenas Damero, Backrooms y Espacio con serafín; avisos y popups de virus).
+- [x] **Fondo propio en video** (mp4/webm en loop), además de imagen.
+- [ ] Dreamcore con fondos de IA animados (video maker / Higgsfield: damero_2 aprobado, falta el video en loop; backrooms y serafín sin generar).
+- [ ] Frutiger Aero: rehacer (la primera propuesta no gustó).
 - [x] Guía de imágenes (`guia.html`): medidas, esquema de zonas y textos para pedirle al generador.
 
 ## Fase 3 — Editor de plantillas (modelo de datos, sin código)  ← HECHA (primera versión)
