@@ -151,7 +151,7 @@ const PLANTILLAS = [
     grupos: ["Y2K", "Gel"].map(c => ({ titulo: `Cuerpo ${c}`, items: [["Lima", "#9be22a"], ["Chicle", "#ff7ad9"], ["Cielo", "#6cc8ff"], ["Mandarina", "#ff9a2a"], ["Cromo", "#c9d3dc"]]
       .map(([n, col]) => v(`${c} · ${n}`, col, `headspace-${c.toLowerCase()}-${n.toLowerCase()}`, { cuerpo: c, color2: n })) })) },
   { id: "dosmil", nombre: "2000s", pagina: "dosmil.html", predeterminada: "Plata",
-    desc: "Reproductor de metal con pantalla LCD, perilla de volumen y playlist, sobre un agujero negro retro que gira y late con el bajo.",
+    desc: "Reproductor de metal con pantalla LCD, perilla de volumen y playlist, sobre visualizaciones de la época de Windows Media Player (túnel, rayos y onda) que se mueven con la música.",
     guardar: (x) => ({ "skin-2000s": x.nombre }),
     grupos: [{ titulo: "Skin", items: [v("Plata", "#c3c9d3", "dosmil-plata"), v("Grafito", "#4a4e58", "dosmil-grafito"), v("LCD verde", "#b4bba6", "dosmil-lcd-verde"), v("Azul", "#2b4fae", "dosmil-azul")] }] },
   { id: "ambiente", nombre: "Ambiente", pagina: "ambiente.html", predeterminada: "Carátula",

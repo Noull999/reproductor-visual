@@ -13,7 +13,7 @@ const Props = (() => {
   const EXTRAS = {
     liquido: [{ id: "deformacion", nombre: "Fuerza de la deformación del vidrio", min: 0, max: 140, def: 70, unidad: "" }],
     headspace: [{ id: "burbujas", nombre: "Cantidad de burbujas", min: 0, max: 80, def: 34, unidad: "" }],
-    dosmil: [{ id: "tunel", nombre: "Brillo del agujero negro de fondo", min: 20, max: 130, def: 80, unidad: " %" }],
+    dosmil: [{ id: "tunel", nombre: "Brillo de la visualización de fondo", min: 20, max: 130, def: 100, unidad: " %" }],
     ambiente: [{ id: "desenfoque", nombre: "Desenfoque del fondo", min: 10, max: 140, def: 70, unidad: " px" }],
     pixel: [{ id: "pixel", nombre: "Tamaño de los píxeles", min: 3, max: 9, def: 5, unidad: " px" }],
   };

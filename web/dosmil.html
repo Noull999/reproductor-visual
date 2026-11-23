@@ -156,17 +156,22 @@
 
 <script src="propiedades.js"></script>
 <script src="nucleo.js"></script>
-<script src="agujero.js"></script>
+<script src="visu2000.js"></script>
 <script>
 "use strict";
-const agujero = crearAgujero(document.getElementById("tunel"));
+// Fondo: visualización estilo Windows Media Player / Winamp (clic en el fondo = otra visualización)
+const visu = crearVisu2000(document.getElementById("tunel"));
+document.getElementById("tunel").style.filter = `brightness(${Props.extra("dosmil", "tunel") / 100})`;
+document.getElementById("tunel").onclick = () => visu.siguiente();
+let tonoSkin = 210;
+R.alCambiar(() => visu.siguiente());
 const $ = (id) => document.getElementById(id);
 const raiz = document.documentElement.style;
 const SKINS = {
-  "Plata":     { metal: "#c3c9d3", grabado: "#3b4250", lcd: "#06131f", tinta: "#7fdcff", acento: "#3fa9ff", tinte: "#4aa8ff" },
-  "Grafito":   { metal: "#3b3e46", grabado: "#aeb2bb", lcd: "#140a00", tinta: "#ffb000", acento: "#ff6a00", tinte: "" },
-  "LCD verde": { metal: "#b4bba6", grabado: "#3d4535", lcd: "#a3b585", tinta: "#16220e", acento: "#5bd13a", tinte: "#7ad13a" },
-  "Azul":      { metal: "#2b4fae", grabado: "#d2deff", lcd: "#000a18", tinta: "#e6f3ff", acento: "#00e5ff", tinte: "#00d5ff" },
+  "Plata":     { metal: "#c3c9d3", grabado: "#3b4250", lcd: "#06131f", tinta: "#7fdcff", acento: "#3fa9ff" },
+  "Grafito":   { metal: "#3b3e46", grabado: "#aeb2bb", lcd: "#140a00", tinta: "#ffb000", acento: "#ff6a00" },
+  "LCD verde": { metal: "#b4bba6", grabado: "#3d4535", lcd: "#a3b585", tinta: "#16220e", acento: "#5bd13a" },
+  "Azul":      { metal: "#2b4fae", grabado: "#d2deff", lcd: "#000a18", tinta: "#e6f3ff", acento: "#00e5ff" },
 };
 const rgb = (h) => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
 const luz = ([r, g, b]) => (0.299 * r + 0.587 * g + 0.114 * b) / 255;
@@ -175,7 +180,8 @@ let skin = SKINS.Plata;
 function usarSkin(nombre) {
   skin = SKINS[nombre] || SKINS.Plata;
   for (const k of ["metal", "grabado", "lcd", "tinta", "acento"]) raiz.setProperty("--" + k, skin[k]);
-  agujero.tinte(skin.tinte, Props.extra("dosmil", "tunel"));
+  const [r, g, b] = rgb(skin.acento).map(x => x / 255), mx = Math.max(r, g, b), dd = mx - Math.min(r, g, b);
+  tonoSkin = !dd ? 0 : mx === r ? 60 * (((g - b) / dd) % 6) : mx === g ? 60 * ((b - r) / dd + 2) : 60 * ((r - g) / dd + 4);
   // LCD de fondo oscuro: la tinta brilla. LCD claro (verde): tinta opaca, sin brillo.
   raiz.setProperty("--brilloLcd", luz(rgb(skin.tinta)) > luz(rgb(skin.lcd)) ? "0 0 6px var(--tinta)" : "none");
   document.querySelectorAll("#skins button").forEach(b => b.classList.toggle("elegida", b.dataset.s === nombre));
@@ -268,12 +274,12 @@ perilla.addEventListener("keydown", (e) => {
   if (d) { e.preventDefault(); ponerVol(+vol.value + d); }
 });
 
-// ---- Cada cuadro: agujero negro de fondo, espectro del LCD, reloj y estado ----
+// ---- Cada cuadro: visualización de fondo, espectro del LCD, reloj y estado ----
 const esp = $("espectro"), eg = esp.getContext("2d"), BARRAS = 20, SEG = 21, picos = new Array(BARRAS).fill(0);
 const dosCifras = (s) => { s = isFinite(s) && s > 0 ? s : 0; return `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(Math.floor(s % 60)).padStart(2, "0")}`; };
 R.cadaCuadro((t) => {
   const d = R.espectro();
-  agujero.dibujar(t, R.energia(d, 1, 8));
+  visu.dibujar(t, d, R.ondaAudio(), R.energia(d, 1, 8), R.energia(d, 10, 60), R.energia(d, 60, 200), tonoSkin);
 
   const sonando = $("bPlay").textContent === "❚❚";
   document.body.classList.toggle("sonando", sonando);
