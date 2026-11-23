@@ -174,6 +174,8 @@ const SKINS = {
   "LCD verde": { metal: "#b4bba6", grabado: "#3d4535", lcd: "#a3b585", tinta: "#16220e", acento: "#5bd13a", visu: ["osciloscopio", "onda"] },
   "Azul":      { metal: "#2b4fae", grabado: "#d2deff", lcd: "#000a18", tinta: "#e6f3ff", acento: "#00e5ff", visu: ["agua", "caleido"] },
 };
+{ const c = Props.colorLibre("dosmil"); if (c) { const [h] = Props.tonoDe(c), X = (s, l) => Props.aHex(Props.hslARgb(h, s, l));
+    SKINS["Propio"] = { metal: X(.12, .74), grabado: X(.25, .22), lcd: X(.7, .06), tinta: X(1, .74), acento: c, visu: ["estrellas", "anillos", "agua"] }; } }
 const rgb = (h) => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
 const luz = ([r, g, b]) => (0.299 * r + 0.587 * g + 0.114 * b) / 255;
 let skin = SKINS.Plata;

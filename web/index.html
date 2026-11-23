@@ -211,7 +211,7 @@ function pintar() {
     const fila = document.createElement("div"); fila.className = "colores";
     gr.items.forEach(x => {
       const c = document.createElement("button");
-      c.className = "color" + (x === sel ? " elegida" : ""); c.style.setProperty("--c", x.color);
+      c.className = "color" + (x === sel || (x.nombre === "Propio" && sel.nombre === "Propio") ? " elegida" : ""); c.style.setProperty("--c", x.color);
       c.innerHTML = `<i></i>${x.nombre.replace(/^(Y2K|Gel|Propio) · /, "")}`;
       // elegir una variante la deja puesta (la vista previa en vivo la lee al recargarse); "Usar esta" solo entra
       c.onclick = () => { elegida[actual.id] = x; try { Object.entries(actual.guardar(x)).forEach(([k, val]) => localStorage.setItem(k, val)); } catch (e) {} pintar(); refrescar(true); };
@@ -219,6 +219,30 @@ function pintar() {
     });
     caja.appendChild(fila);
   });
+  if (CON_COLOR_LIBRE.includes(actual.id)) {   // color propio: cualquier color, no solo las variantes de la plantilla
+    const t = document.createElement("div"); t.className = "mono"; t.textContent = "Color propio"; caja.appendChild(t);
+    const f = document.createElement("div"); f.className = "colores"; f.style.cssText = "align-items:center;gap:10px";
+    const libre = Props.colorLibre(actual.id), campo = document.createElement("input");
+    campo.type = "color"; campo.value = libre || sel.color || "#8cff2a"; campo.title = "Elegir un color";
+    campo.style.cssText = "width:46px;height:34px;padding:0;border:1px solid rgba(255,255,255,.3);border-radius:6px;background:none;cursor:pointer";
+    campo.onchange = () => {
+      props.colorLibre = campo.value; Props.guardar(actual.id, props);
+      const x = todas(actual).find(i => i.nombre === "Propio"); elegida[actual.id] = x;
+      try { Object.entries(actual.guardar(x)).forEach(([k, val]) => localStorage.setItem(k, val)); } catch (e) {}
+      pintar(); refrescar(true);
+    };
+    f.appendChild(campo);
+    if (libre) {
+      const q = document.createElement("button"); q.className = "suave"; q.textContent = "Quitar";
+      q.onclick = () => {
+        props.colorLibre = ""; Props.guardar(actual.id, props);
+        if (elegida[actual.id].nombre === "Propio") { elegida[actual.id] = todas(actual).find(x => x.nombre === actual.predeterminada); try { Object.entries(actual.guardar(elegida[actual.id])).forEach(([k, val]) => localStorage.setItem(k, val)); } catch (e) {} }
+        pintar(); refrescar(true);
+      };
+      f.appendChild(q);
+    } else { const s = document.createElement("span"); s.className = "ayuda"; s.textContent = "Elige cualquier color: la plantilla arma su variante con él."; f.appendChild(s); }
+    caja.appendChild(f);
+  }
 }
 // ---- Personalizar: lo que se cambia aquí se guarda al instante y la vista previa en vivo se recarga ----
 let props = Props.leer(actual.id), aviso = 0, recarga = 0;

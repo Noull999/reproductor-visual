@@ -112,6 +112,8 @@ const ESTILO = {
   "Hielo": { forma: null, jp: "氷の心臓", jp2: "アイスアウト ・ 二〇一八" },
   "Fuego": { forma: "alambre", jp: "炎上中の音楽", jp2: "燃えろ ・ 二〇一九" },
 };
+{ const c = Props.colorLibre("neoy2k"); if (c) { const [h] = Props.tonoDe(c);
+    TEMAS["Propio"] = [c, Props.aHex(Props.hslARgb(h + 200, .8, .42))]; ESTILO["Propio"] = { forma: "estrella", jp: "君の色", jp2: "自分の色 ・ 二〇二〇" }; } }
 let tema = "Ácido";
 function usarTema(n) {
   tema = n in TEMAS ? n : "Ácido";

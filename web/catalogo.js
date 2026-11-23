@@ -43,10 +43,19 @@ const PLANTILLAS = [
     grupos: [{ titulo: "Paleta", items: [v("Sangre", "#e8452c", "pixel-sangre"), v("Game Boy", "#9bbc0f", "pixel-game-boy"), v("NES", "#e40058", "pixel-nes"), v("Vaporwave", "#ff71ce", "pixel-vaporwave"), v("Matrix", "#39ff6a", "pixel-matrix"), v("Hielo", "#8fe3ff", "pixel-hielo"), v("Ámbar", "#ffb000", "pixel-ambar")] }] },
 ];
 // Headspace suma un grupo "Cuerpo propio" cuando la persona subió uno
+const CON_COLOR_LIBRE = ["liquido", "headspace", "dosmil", "ambiente", "pixel", "neoy2k", "psicodelico"];   // las que arman una variante desde un solo color
 const gruposDe = (p) => {
-  if (p.id !== "headspace" || !Props.leer("headspace").cuerpo) return p.grupos;
-  const colores = [["Lima", "#9be22a"], ["Chicle", "#ff7ad9"], ["Cielo", "#6cc8ff"], ["Mandarina", "#ff9a2a"], ["Cromo", "#c9d3dc"]];
-  return [...p.grupos, { titulo: "Cuerpo propio", items: colores.map(([n, col]) => v(`Propio · ${n}`, col, `headspace-y2k-${n.toLowerCase()}`, { cuerpo: "Propio", color2: n })) }];
+  let g = p.grupos;
+  if (p.id === "headspace" && Props.leer("headspace").cuerpo) {
+    const colores = [["Lima", "#9be22a"], ["Chicle", "#ff7ad9"], ["Cielo", "#6cc8ff"], ["Mandarina", "#ff9a2a"], ["Cromo", "#c9d3dc"]];
+    g = [...g, { titulo: "Cuerpo propio", items: colores.map(([n, col]) => v(`Propio · ${n}`, col, `headspace-y2k-${n.toLowerCase()}`, { cuerpo: "Propio", color2: n })) }];
+  }
+  const libre = CON_COLOR_LIBRE.includes(p.id) && Props.colorLibre(p.id);
+  if (libre) {   // el color de la persona: una variante más (la vista previa es la de la predeterminada)
+    const base = g[0].items.find(x => x.nombre === p.predeterminada) || g[0].items[0];
+    g = [...g, { titulo: "Tu color", items: [{ ...base, nombre: "Propio", color: libre, cuerpo: guardado("cuerpo-headspace", "Y2K"), color2: "Propio" }] }];
+  }
+  return g;
 };
 const todas = (p) => gruposDe(p).flatMap(g => g.items);
 const guardado = (k, def) => { try { return localStorage.getItem(k) || def; } catch (e) { return def; } };

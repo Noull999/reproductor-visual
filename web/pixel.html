@@ -120,6 +120,7 @@ const PALETAS = {
   "Hielo":     ["#050b14", "#10223a", "#6f8fae", "#e6f6ff", "#3a8dde", "#8fe3ff"],
   "Ámbar":     ["#0b0600", "#2a1700", "#8a5a00", "#ffd27a", "#d98a00", "#ffb000"],
 };
+{ const c = Props.colorLibre("pixel"); if (c) { const [h] = Props.tonoDe(c), X = (s, l) => Props.aHex(Props.hslARgb(h, s, l)); PALETAS["Propio"] = [X(.5, .04), X(.45, .13), X(.3, .55), X(.6, .92), c, X(.9, .7)]; } }
 const CLAVES = ["fondo", "panel", "tenue", "texto", "acento", "brillo"];
 const rgb = (h) => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
 const luz = ([r, g, b]) => 0.299 * r + 0.587 * g + 0.114 * b;

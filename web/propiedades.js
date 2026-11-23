@@ -2,7 +2,7 @@
 // y cada plantilla). Se guardan por plantilla en localStorage ("props-liquido", …): solo datos, nunca código.
 "use strict";
 const Props = (() => {
-  const DEFECTO = { intensidad: 50, velocidad: 50, lista: true, soloVisual: true, fondo: "", cuerpo: null, extra: {} };
+  const DEFECTO = { intensidad: 50, velocidad: 50, lista: true, soloVisual: true, fondo: "", cuerpo: null, colorLibre: "", extra: {} };
   const clave = (id) => "props-" + id;
   // Dónde va cada pieza sobre el cuerpo de Headspace, en % de la imagen [x, y, ancho, alto]
   const ZONAS_HEADSPACE = {
@@ -35,11 +35,25 @@ const Props = (() => {
     // 50 = tal cual está hoy; los extremos van de 0,3× a 1,7× (intensidad) y de 0,25× a 1,75× (velocidad)
     factorIntensidad: (v) => 0.3 + (v / 100) * 1.4,
     factorVelocidad: (v) => 0.25 + (v / 100) * 1.5,
-    // Las plantillas propias comparten libre.html: cada una guarda sus propiedades con su id ("libre-p123")
+    // Las plantillas propias comparten libre.html: cada una guarda sus propiedades con su id ("libre-p123");
+    // las incluidas que también viven en libre.html (Anime, Psicodélico) usan su id a secas, como las ve la Biblioteca
     plantillaActual: () => {
-      const n = (location.pathname.split("/").pop() || "").replace(".html", "");
-      return n === "libre" ? "libre-" + new URLSearchParams(location.search).get("plantilla") : n;
+      const n = (location.pathname.split("/").pop() || "").replace(".html", ""), q = new URLSearchParams(location.search).get("plantilla");
+      return n === "libre" ? (["anime", "psicodelico"].includes(q) ? q : "libre-" + q) : n;
     },
+    // Color propio de la persona (un "#rrggbb") o null; con él cada plantilla arma su variante "Propio"
+    colorLibre: (id) => { const c = api.leer(id).colorLibre; return /^#[0-9a-f]{6}$/i.test(c || "") ? c.toLowerCase() : null; },
+    tonoDe: (hex) => {   // [tono 0-360, saturación 0-1, luz 0-1]
+      const [r, g, b] = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16) / 255), mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2, d = mx - mn;
+      if (!d) return [0, 0, l];
+      const s = d / (1 - Math.abs(2 * l - 1)), h = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4;
+      return [(h * 60 + 360) % 360, s, l];
+    },
+    hslARgb: (h, s, l) => {
+      h = ((h % 360) + 360) % 360; const a = s * Math.min(l, 1 - l), f = (n) => { const k = (n + h / 30) % 12; return l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1)); };
+      return [f(0), f(8), f(4)].map(v => Math.round(v * 255));
+    },
+    aHex: (rgb) => "#" + rgb.map(v => v.toString(16).padStart(2, "0")).join(""),
   };
   return api;
 })();

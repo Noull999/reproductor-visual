@@ -172,6 +172,7 @@ const TEMAS = {
   "Bosque":    [[140, 230, 150], [50, 150, 110], [15, 50, 40]],
   "Mono":      [[235, 235, 235], [150, 150, 150], [45, 45, 45]],
 };
+{ const c = Props.colorLibre("ambiente"); if (c) { const [h] = Props.tonoDe(c), X = (s, l) => Props.hslARgb(h, s, l); TEMAS["Propio"] = [X(.85, .68), X(.6, .45), X(.5, .16)]; } }
 let tema = "Carátula", deCaratula = null;
 function usarTema(nombre) {
   tema = nombre in TEMAS ? nombre : "Carátula";

@@ -168,7 +168,7 @@ function construir(s) {
     document.body.classList.toggle("sonando", (document.getElementById("bPlay") || {}).textContent === "❚❚");
   });
   if (s.piezas.some(p => p.tipo === "winamp")) puntosSkins();   // un punto por cada skin importado
-  if (s.id === "psicodelico") puntosColores(Propias.INCLUIDAS.psicodelico.colores);
+  if (s.id === "psicodelico") { const mio = Props.colorLibre("psicodelico"), cols = Propias.INCLUIDAS.psicodelico.colores; puntosColores(mio ? [...cols, ["Propio", mio]] : cols); }
   const vol = document.getElementById("volumen");
   if (vol) vol.addEventListener("input", () => raiz.setProperty("--v", vol.value + "%"));
 }

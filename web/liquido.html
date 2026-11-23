@@ -122,6 +122,7 @@ $("grande").onload = () => { $("grande").style.visibility = "visible"; };
 // El haz late con el bajo; sin música, pulso suave (lo resuelve R.espectro).
 // Temas de color: tiñen el haz, los botones, las barras y los brillos
 const TEMAS = { "Rojo": "#ff2d3d", "Hielo": "#3db8ff", "Violeta": "#a855ff", "Ácido": "#b6ff2d", "Oro": "#ffb02d" };
+{ const c = Props.colorLibre("liquido"); if (c) TEMAS["Propio"] = c; }   // el color propio de la Biblioteca
 let colorHaz = [255, 45, 61];
 function usarTema(nombre) {
   const hex = TEMAS[nombre] || TEMAS.Rojo;
