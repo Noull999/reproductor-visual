@@ -173,7 +173,12 @@ function escena(t, bajo) {
   // suelo de damero que avanza hacia ti
   const Y = (z) => HOR + (810 - HOR) / z, X = (c, z) => 1440 * .42 + c * 150 / z, corre = (t * .5) % .8;
   for (let i = 40; i >= 0; i--) { const z0 = Math.max(1, 1 + i * .4 - corre), z1 = z0 + .4; if (z1 <= 1) continue;
-    for (let c = -26; c < 26; c++) { g.fillStyle = (c + i) % 2 ? "#9be23a" : "#2f8f2a"; g.beginPath(); g.moveTo(X(c, z0), Y(z0)); g.lineTo(X(c + 1, z0), Y(z0)); g.lineTo(X(c + 1, z1), Y(z1)); g.lineTo(X(c, z1), Y(z1)); g.fill(); } }
+    for (const claro of [true, false]) {   // un solo trazo por color y fila (antes: un trazo por cuadrito, ~2.100 por cuadro)
+      g.fillStyle = claro ? "#9be23a" : "#2f8f2a"; g.beginPath();
+      for (let c = -26; c < 26; c++) if (((c + i) % 2 !== 0) === claro) { g.moveTo(X(c, z0), Y(z0)); g.lineTo(X(c + 1, z0), Y(z0)); g.lineTo(X(c + 1, z1), Y(z1)); g.lineTo(X(c, z1), Y(z1)); g.closePath(); }
+      g.fill();
+    }
+  }
   const bruma = g.createLinearGradient(0, HOR - 10, 0, HOR + 80); bruma.addColorStop(0, "rgba(91,95,184,1)"); bruma.addColorStop(1, "rgba(91,95,184,0)"); g.fillStyle = bruma; g.fillRect(0, HOR - 10, 1440, 90);
   // esferas que flotan
   ESFERAS.forEach(([x, y, r, f]) => esfera(x + Math.sin(t * .3 + f) * r * .5, y + Math.sin(t * .8 + f) * r * .3, r * (1 + bajo * .05)));
@@ -281,15 +286,18 @@ function imagenPropia(t, bajo) {   // la imagen elegida, flotando: acercamiento 
 
 // ---- Pasada VHS sobre el cuadro chico: colores corridos, grano, líneas y la franja de tracking ----
 let golpe = 0;
+// El ruido sale de una tabla ya sorteada (un Math.random por punto y por cuadro era lo más caro de todo el efecto)
+const RUIDO = Int8Array.from({ length: 1 << 17 }, () => Math.round((Math.random() - .5) * 254)), MASCARA = RUIDO.length - 1;
+const SALIDA_VHS = new Uint8ClampedArray(ANCHO * ALTO * 4);
 function vhs(t, bajo) {
-  const img = g.getImageData(0, 0, ANCHO, ALTO), d = img.data, out = new Uint8ClampedArray(d.length);
-  const corr = Math.round((1 + bajo * 3) * SUCIO * 2), banda = (t * 40) % (ALTO + 60) - 30, ruido = 40 * SUCIO;
+  const img = g.getImageData(0, 0, ANCHO, ALTO), d = img.data, out = SALIDA_VHS;
+  const corr = Math.round((1 + bajo * 3) * SUCIO * 2), banda = (t * 40) % (ALTO + 60) - 30, ruido = 40 * SUCIO / 254, desfase = (Math.random() * RUIDO.length) | 0;
   for (let y = 0; y < ALTO; y++) {
     const enBanda = y > banda && y < banda + 14, salto = enBanda ? Math.round((Math.random() - .5) * 24 * SUCIO) : (golpe > 0 && (y >> 4) % 3 === 0 ? Math.round(golpe * 18) : 0);
     const oscuro = y % 2 ? .9 : 1;
     for (let x = 0; x < ANCHO; x++) {
       const i = (y * ANCHO + x) * 4, xr = Math.min(ANCHO - 1, Math.max(0, x + corr + salto)), xg = Math.min(ANCHO - 1, Math.max(0, x + salto)), xb = Math.min(ANCHO - 1, Math.max(0, x - corr + salto));
-      const n = (Math.random() - .5) * (enBanda ? ruido * 4 : ruido);
+      const n = RUIDO[(i + desfase) & MASCARA] * (enBanda ? ruido * 4 : ruido);
       out[i] = (d[(y * ANCHO + xr) * 4] + n) * oscuro; out[i + 1] = (d[(y * ANCHO + xg) * 4 + 1] + n) * oscuro; out[i + 2] = (d[(y * ANCHO + xb) * 4 + 2] + n) * oscuro; out[i + 3] = 255;
     }
   }
