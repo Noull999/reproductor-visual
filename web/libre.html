@@ -171,7 +171,7 @@ function fondo() {
     }); return;
   }
   if (tipo === "agujero") {
-    const lienzo = document.createElement("canvas"); c.appendChild(lienzo); const a = crearAgujero(lienzo); a.tono(fv("tono"));
+    const lienzo = document.createElement("canvas"); c.appendChild(lienzo); const a = crearAgujero(lienzo); a.tinte(fv("tinte"));
     R.cadaCuadro((t) => a.dibujar(t, R.energia(R.espectro(), 1, 8))); return;
   }
   if (tipo === "caratula") {

@@ -10,7 +10,7 @@ const ESQUEMA = {
     "angulo": { "t": "num", "n": "Ángulo del degradado", "min": 0, "max": 360, "def": 160, "u": "°" },
     "desenfoque": { "t": "num", "n": "Desenfoque (carátula)", "min": 10, "max": 140, "def": 70, "u": " px" },
     "brillo": { "t": "num", "n": "Brillo", "min": 20, "max": 130, "def": 100, "u": " %" },
-    "tono": { "t": "num", "n": "Tono (agujero negro)", "min": -180, "max": 180, "def": 0, "u": "°" },
+    "tinte": { "t": "color", "n": "Tinte del agujero negro", "def": "", "vacio": true },
     "imagen": { "t": "imagen" }
   },
   "estilo": {

@@ -51,7 +51,7 @@ const Propias = (() => {
       fondo: { tipo: "burbujas", color: "#123a00", brillo: 100 }, estilo: { panel: "gel", acento: "#9be22a", fuente: "Fredoka" },
       piezas: () => armar([["cabeza", [24, 2, 42, 95]], ["lista", [70, 5, 27, 82]], ["volumen", [34, 95, 24, 3.5]]]) },
     dosmil: { nombre: "2000s", reglas: { requeridas: ["equipo"], nota: "El equipo de metal es el reproductor: se puede mover, agrandar y cambiar de skin. Trae pantalla LCD, botones, perilla y barra, así que no se agregan sueltos." },
-      fondo: { tipo: "agujero", color: "#000000", tono: 180, brillo: 90 }, estilo: { panel: "metal", acento: "#3fa9ff", fuente: "Michroma" },
+      fondo: { tipo: "agujero", color: "#000000", tinte: "#4aa8ff", brillo: 90 }, estilo: { panel: "metal", acento: "#3fa9ff", fuente: "Michroma" },
       piezas: () => armar([["lista", [72, 3, 26, 58]], ["equipo", [5, 66, 67, 31]]]) },
     ambiente: { nombre: "Ambiente", reglas: { requeridas: ["titulo", "botones", "barra"], nota: COMUN },
       fondo: { tipo: "caratula", color: "#08080a", desenfoque: 70, brillo: 100 }, estilo: { panel: "liso", acento: "#9aa4b8", acentoAuto: true, fuente: "Geist" },

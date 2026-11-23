@@ -15,7 +15,6 @@
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; overflow: hidden; background: #000; font-family: "Michroma", Tahoma, sans-serif; }
   #tunel { position: fixed; inset: 0; width: 100%; height: 100%; }
-  #nucleoOscuro { position: fixed; inset: 0; pointer-events: none; background: radial-gradient(circle at 50% 42%, rgba(0,0,0,.32), transparent 55%); }
   #titulo { display: none; }   /* el título se muestra en la marquesina */
 
   /* ---- Metal cepillado con relieve, compartido por el equipo, la playlist y los botones ---- */
@@ -164,10 +163,10 @@ const agujero = crearAgujero(document.getElementById("tunel"));
 const $ = (id) => document.getElementById(id);
 const raiz = document.documentElement.style;
 const SKINS = {
-  "Plata":     { metal: "#c3c9d3", grabado: "#3b4250", lcd: "#06131f", tinta: "#7fdcff", acento: "#3fa9ff", tono: 180 },
-  "Grafito":   { metal: "#3b3e46", grabado: "#aeb2bb", lcd: "#140a00", tinta: "#ffb000", acento: "#ff6a00", tono: 0 },
-  "LCD verde": { metal: "#b4bba6", grabado: "#3d4535", lcd: "#a3b585", tinta: "#16220e", acento: "#5bd13a", tono: 95 },
-  "Azul":      { metal: "#2b4fae", grabado: "#d2deff", lcd: "#000a18", tinta: "#e6f3ff", acento: "#00e5ff", tono: 200 },
+  "Plata":     { metal: "#c3c9d3", grabado: "#3b4250", lcd: "#06131f", tinta: "#7fdcff", acento: "#3fa9ff", tinte: "#4aa8ff" },
+  "Grafito":   { metal: "#3b3e46", grabado: "#aeb2bb", lcd: "#140a00", tinta: "#ffb000", acento: "#ff6a00", tinte: "" },
+  "LCD verde": { metal: "#b4bba6", grabado: "#3d4535", lcd: "#a3b585", tinta: "#16220e", acento: "#5bd13a", tinte: "#7ad13a" },
+  "Azul":      { metal: "#2b4fae", grabado: "#d2deff", lcd: "#000a18", tinta: "#e6f3ff", acento: "#00e5ff", tinte: "#00d5ff" },
 };
 const rgb = (h) => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
 const luz = ([r, g, b]) => (0.299 * r + 0.587 * g + 0.114 * b) / 255;
@@ -176,7 +175,7 @@ let skin = SKINS.Plata;
 function usarSkin(nombre) {
   skin = SKINS[nombre] || SKINS.Plata;
   for (const k of ["metal", "grabado", "lcd", "tinta", "acento"]) raiz.setProperty("--" + k, skin[k]);
-  agujero.tono(skin.tono, Props.extra("dosmil", "tunel"));
+  agujero.tinte(skin.tinte, Props.extra("dosmil", "tunel"));
   // LCD de fondo oscuro: la tinta brilla. LCD claro (verde): tinta opaca, sin brillo.
   raiz.setProperty("--brilloLcd", luz(rgb(skin.tinta)) > luz(rgb(skin.lcd)) ? "0 0 6px var(--tinta)" : "none");
   document.querySelectorAll("#skins button").forEach(b => b.classList.toggle("elegida", b.dataset.s === nombre));
