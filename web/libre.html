@@ -191,8 +191,9 @@ function fondo() {
       ps.forEach(q => { q[1] -= .0006 * q[2] * (1 + GOLPE * 6); if (q[1] < -.02) { q[1] = 1.02; q[0] = Math.random(); } const z = 2 + q[2] * 3; g.fillRect(q[0] * w, q[1] * h, z, z); });
     }); return;
   }
-  if (tipo === "visu2000") {
+  if (tipo === "visu2000" || tipo === "nuevos") {
     const lienzo = document.createElement("canvas"); c.appendChild(lienzo); const v = crearVisu2000(lienzo); v.velocidad(fv("velocidad") / 100);
+    if (tipo === "nuevos") { v.grupo(VISU_NUEVOS); v.intervalo(25); }
     lienzo.style.cursor = "pointer"; lienzo.onclick = () => v.siguiente(); R.alCambiar(() => v.siguiente());
     R.cadaCuadro((t) => { const d = R.espectro(); v.dibujar(t, d, R.ondaAudio(), R.energia(d, 1, 8), R.energia(d, 10, 60), R.energia(d, 60, 200), tono(acento)); }); return;
   }

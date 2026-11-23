@@ -5,6 +5,7 @@
 // crearVisu2000(canvas) → { grupo([efectos]), intervalo(seg, 0 = solo al cambiar de canción), velocidad(0.1-1.5), centro(x, y en 0-1), siguiente(),
 //                           dibujar(t, espectro, onda, bajo, medio, agudo, tono) }
 "use strict";
+const VISU_NUEVOS = ["espejo", "espiral", "fractal", "ojo"];   // en prueba: solo los usa la plantilla Laboratorio
 const VISU2000 = ["estrellas", "anillos", "barras", "bateria", "llamas", "remolino", "rayos", "onda", "agua", "caleido", "lava"];
 function crearVisu2000(canvas) {
   const W = 480, H = 270, FUNDIDO = 2;
@@ -18,6 +19,12 @@ function crearVisu2000(canvas) {
   let estrellas = [], anillos = [], gotas = [], ultimoAnillo = 0;
   const FW = 120, FH = 68, calor = new Float32Array(FW * (FH + 2)), fuego = document.createElement("canvas"); fuego.width = FW; fuego.height = FH;
   const fg = fuego.getContext("2d"), fimg = fg.createImageData(FW, FH);
+  const material = lienzo(), mg = material.getContext("2d"), BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map(v => v / 16 - .47);
+  const NEGRO = [0, 0, 0], PUPILA = [8, 6, 10], BRILLO = [235, 235, 228], LINEA = [20, 12, 18], chicos = {};
+  let fase = 0, paleta = [], paletaTono = null;
+  // efectos pixelados: se pintan pixel a pixel en un lienzo chico y se estiran sin suavizar
+  const px = (w, h) => { if (!chicos[w]) { const c = document.createElement("canvas"); c.width = w; c.height = h; const x = c.getContext("2d"); chicos[w] = { c, x, img: x.createImageData(w, h) }; } return chicos[w]; };
+  const estirar = (p) => { p.x.putImageData(p.img, 0, 0); g.imageSmoothingEnabled = false; g.drawImage(p.c, 0, 0, W, H); g.imageSmoothingEnabled = true; };
 
   // redibuja el cuadro anterior transformado: zoom > 1 = túnel hacia afuera; filtro = humo o cambio de color
   function eco(zoom, rot, alfa, filtro) {
@@ -184,11 +191,94 @@ function crearVisu2000(canvas) {
         }
       });
     },
+
+    // ---- Nuevos (en prueba, plantilla Laboratorio) ----
+    // espejo: un "material" lleno de cosas que se mueven, reflejado en 12 gajos (caleidoscopio de verdad)
+    espejo(t, x) {
+      const N = 12, GAJO = Math.PI * 2 / N, R = W * .75, m = mg, T = x.tono;
+      m.globalCompositeOperation = "source-over"; m.fillStyle = "rgba(0,0,0,.22)"; m.fillRect(0, 0, W, H);   // estela del material
+      m.globalCompositeOperation = "lighter";
+      const P = (r, a) => [CX + Math.cos(a) * r, CY + Math.sin(a) * r], va = (k) => GAJO * (.5 + .5 * Math.sin(t * (.3 + k * .07) * V + k * 2.1));
+      for (let k = 0; k < 6; k++) {   // manchas de luz que van y vienen
+        const r = R * (.5 + .5 * Math.sin(t * (.21 + k * .05) * V + k)), [px, py] = P(r, va(k)), rad = 8 + k * 3 + x.bajo * 12;
+        const gr = m.createRadialGradient(px, py, 0, px, py, rad); gr.addColorStop(0, col(T + [0, 30, -25, 90, 15, -40][k], 45, .32)); gr.addColorStop(1, col(T, 30, 0));
+        m.fillStyle = gr; m.beginPath(); m.arc(px, py, rad, 0, 7); m.fill();
+      }
+      for (let k = 0; k < 7; k++) {   // hojas y rombos que giran mientras viajan
+        const r = ((t * (14 + k * 6) * (1 + x.bajo * .6) * V + k * 47) % R), [px, py] = P(r, va(k + 6)), l = 6 + r * .12;
+        m.save(); m.translate(px, py); m.rotate(t * (k % 2 ? 1.3 : -.9) * V + k); m.beginPath();
+        if (k % 2) { m.moveTo(-l, 0); m.quadraticCurveTo(0, -l * .5, l, 0); m.quadraticCurveTo(0, l * .5, -l, 0); }
+        else { m.moveTo(0, -l * .7); m.lineTo(l * .45, 0); m.lineTo(0, l * .7); m.lineTo(-l * .45, 0); m.closePath(); }
+        m.fillStyle = col(T + (k % 3) * 25 - 25, 26, .32); m.fill(); m.strokeStyle = col(T + (k % 2) * 80, 52, .6); m.lineWidth = 1.3; m.stroke(); m.restore();
+      }
+      m.strokeStyle = col(T + 60, 52, .55); m.lineWidth = 1.5; m.beginPath();   // la onda serpenteando por el gajo
+      for (let i = 0; i < 64; i++) { const v = (x.onda[i * 8] - 128) / 128, [px, py] = P(i / 64 * R, GAJO * (.5 + v * .45)); i ? m.lineTo(px, py) : m.moveTo(px, py); }
+      m.stroke();
+      for (let k = 0; k < 3; k++) { const r = ((t * 60 * V + k * R / 3) % R); m.strokeStyle = col(T - 20 + k * 30, 45, .35 * (1 - r / R) + x.bajo * .2); m.lineWidth = 2; m.beginPath(); m.arc(CX, CY, r, 0, GAJO); m.stroke(); }
+      eco(1.012, .004, .66);
+      sumar(() => {
+        for (let k = 0; k < N; k++) {
+          g.save(); g.translate(CX, CY); g.rotate(k * GAJO + t * .08 * V); if (k % 2) { g.rotate(GAJO); g.scale(1, -1); }
+          g.beginPath(); g.moveTo(0, 0); g.arc(0, 0, W, -.002, GAJO + .002); g.closePath(); g.clip();
+          g.drawImage(material, -CX, -CY); g.restore();
+        }
+      });
+    },
+    // espiral: túnel hipnótico de franjas en dos colores, pixelado y con contraste suave
+    espiral(t, x) {
+      const p = px(160, 90), d = p.img.data, c1 = hsl(x.tono / 360, .85, .42), c2 = hsl((x.tono + 240) / 360, .85, .42);
+      fase += (.6 + x.bajo * 1.6) / 60 * V;
+      for (let y = 0; y < 90; y++) for (let i = 0; i < 160; i++) {
+        const dx = (i - CX / 3) / 90, dy = (y - CY / 3) / 90, r = Math.hypot(dx, dy) + .001, a = Math.atan2(dy, dx) / (Math.PI * 2);
+        const prof = Math.log(r) * 2.2 - fase, rayo = a * 24 + prof * 1.5 + Math.sin(t * .3 * V) * 2;
+        const anillo = ((Math.floor(prof * 3) % 3) + 3) % 3, c = ((Math.floor(rayo) % 2) + 2) % 2 ? c1 : c2;
+        const luz = Math.min(1, r * 1.6) * (anillo === 2 ? .12 : 1) * (.75 + x.bajo * .25), o = (y * 160 + i) * 4;
+        d[o] = c[0] * luz; d[o + 1] = c[1] * luz; d[o + 2] = c[2] * luz; d[o + 3] = 255;
+      }
+      estirar(p);
+    },
+    // fractal: Mandelbrot con zoom lento hacia las espirales; la paleta va rotando (más rápido con el bajo)
+    fractal(t, x) {
+      const p = px(240, 135), d = p.img.data, z = ((t - desde) * V) % 40, esc = .025 * Math.pow(.9, z) / 240, MAX = 140 + Math.floor(z * 6);
+      if (paletaTono !== x.tono) { paletaTono = x.tono; paleta = Array.from({ length: 64 }, (_, k) => hsl(x.tono / 360 + Math.sin(k / 64 * Math.PI * 2) * .08, .9, .16 + .36 * (.5 + .5 * Math.sin(k / 64 * Math.PI * 4)))); }
+      fase += (1 + x.bajo * 4) * .5 * V;
+      for (let y = 0; y < 135; y++) for (let i = 0; i < 240; i++) {
+        let zr = 0, zi = 0, n = 0; const cr = -.7453 + (i - 120) * esc, ci = .1127 + (y - 67) * esc;
+        while (n < MAX && zr * zr + zi * zi < 4) { const q = zr * zr - zi * zi + cr; zi = 2 * zr * zi + ci; zr = q; n++; }
+        const o = (y * 240 + i) * 4, c = n === MAX ? NEGRO : paleta[(n * 2 + Math.floor(fase)) % 64];
+        d[o] = c[0]; d[o + 1] = c[1]; d[o + 2] = c[2]; d[o + 3] = 255;
+      }
+      estirar(p);
+    },
+    // ojo: pixel art con trama; la pupila se abre con el bajo, mira a los lados y parpadea cada 5 s
+    ojo(t, x) {
+      const p = px(120, 68), d = p.img.data, A = x.tono / 360, tt = t * V, ciclo = tt % 5, abierto = 1 - (ciclo < .25 ? Math.abs(Math.sin(ciclo / .25 * Math.PI)) : 0);
+      const mx = Math.sin(tt * .7) * 9 + Math.sin(tt * 2.3) * 2, my = Math.sin(tt * .5) * 3;
+      const ex = CX / 4, ey = CY / 4, ew = 44, eh = 22 * abierto, ir = 15, pr = 4.5 + x.bajo * 5.5;
+      for (let y = 0; y < 68; y++) for (let i = 0; i < 120; i++) {
+        const b = BAYER[(y % 4) * 4 + (i % 4)] * .18, o = (y * 120 + i) * 4, u = (i - ex) / ew, borde = eh * (1 - u * u), dy = y - ey;
+        let c;
+        if (Math.abs(u) < 1 && Math.abs(dy) < borde) {
+          const ddx = i - ex - mx, ddy = y - ey - my, r = Math.hypot(ddx, ddy), sombra = Math.max(0, 1 - (borde - Math.abs(dy)) / 5);   // el párpado hace sombra
+          if (r < pr) c = PUPILA;
+          else if (r < ir) { const rayas = .5 + .5 * Math.sin(Math.atan2(ddy, ddx) * 14 + r * .6), k = (r - pr) / (ir - pr);
+            c = hsl(A + rayas * .04, .9, Math.max(.06, .18 + .32 * (1 - k) * (.6 + .4 * rayas) - (k > .85 ? .15 : 0) + b - sombra * .2)); }
+          else c = hsl(A + .05, .25, Math.max(.1, .66 - Math.abs(u) * .25 - sombra * .5 + b));
+          if (Math.hypot(ddx + 5, ddy + 5) < 2.2) c = BRILLO;
+        } else {
+          if (Math.abs(u) < 1.08 && Math.abs(Math.abs(dy) - borde) < 1.6) c = LINEA;   // línea del párpado
+          else { const r = Math.hypot((i - ex) / 60, (y - ey) / 34); c = hsl(A + .5, .5, Math.max(0, .1 - r * .06 + b * .4 + x.bajo * .03)); }
+          if (dy < -borde - 1 && dy > -borde - 5 && Math.abs(u) < .95 && i % 4 === 0 && dy < -borde - 1 - (1 - u * u) * 3) c = LINEA;   // pestañas
+        }
+        d[o] = c[0]; d[o + 1] = c[1]; d[o + 2] = c[2]; d[o + 3] = 255;
+      }
+      estirar(p);
+    },
   };
 
   function cambiar() {
     const v = viejo.getContext("2d"); v.clearRect(0, 0, W, H); v.drawImage(canvas, 0, 0);   // el efecto anterior se funde
-    negro(g); estrellas = []; anillos = []; gotas = []; calor.fill(0);
+    negro(g); negro(mg); estrellas = []; anillos = []; gotas = []; calor.fill(0); fase = 0;
     modo = (modo + 1) % lista.length; desde = ahora; cambio = ahora;
   }
   return {

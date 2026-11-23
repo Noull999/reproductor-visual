@@ -68,6 +68,12 @@ const Propias = (() => {
   INCLUIDAS.anime = { nombre: "Anime PS2", reglas: { requeridas: ["winamp"], nota: "El reproductor de Winamp lo es todo: trae pantalla, botones, barra, ecualizador y lista. Los skins se importan en la Biblioteca (link de skins.webamp.org o archivo .wsz)." },
       fondo: { tipo: "visu2000", color: "#000000", brillo: 55, velocidad: 50 }, estilo: { panel: "liso", acento: "#5ef0ff", fuente: "Geist" },
       piezas: () => armar([["winamp", [3, 13, 94, 72], { ambiente: true }]]) };
+  // Laboratorio: para probar visualizaciones nuevas antes de repartirlas en las plantillas
+  INCLUIDAS.laboratorio = { nombre: "Laboratorio", reglas: { requeridas: ["titulo", "botones", "barra"], nota: COMUN },
+      fondo: { tipo: "nuevos", color: "#000000", brillo: 90, velocidad: 80 }, estilo: { panel: "liso", acento: "#b04bff", fuente: "Geist" },
+      piezas: () => armar([["panel", [0, 88, 100, 12]], ["titulo", [3, 89.5, 30, 5]], ["artista", [3, 94.5, 30, 3.5]], ["botones", [36, 89, 18, 9]],
+        ["barra", [57, 92.2, 24, 2.4]], ["tiempo", [82, 90, 7, 6]], ["volumen", [90, 91, 8, 5]]]) };
+  const SOLAS = ["anime", "laboratorio"];
   function desdeBase(id) {
     const b = INCLUIDAS[id]; if (!b) return null;
     const spec = { id: nuevoId(), nombre: `${b.nombre} (mi versión)`, base: id, fondo: JSON.parse(JSON.stringify(b.fondo)), estilo: JSON.parse(JSON.stringify(b.estilo)), piezas: b.piezas() };
@@ -78,8 +84,8 @@ const Propias = (() => {
 
   // ---- Almacén ----
   function guardar(spec) { const l = leer(), i = l.findIndex(x => x.id === spec.id); if (i < 0) l.push(spec); else l[i] = spec; escribir(l); }
-  // "anime" (id de la plantilla incluida) se arma sola: la Biblioteca la abre en libre.html sin copiarla a localStorage
-  const obtener = (id) => leer().find(x => x.id === id) || (id === "anime" ? { id, nombre: INCLUIDAS.anime.nombre, base: "anime", fondo: INCLUIDAS.anime.fondo, estilo: INCLUIDAS.anime.estilo, piezas: INCLUIDAS.anime.piezas() } : null);
+  // "anime" y "laboratorio" (ids de plantillas incluidas) se arman solas: la Biblioteca la abre en libre.html sin copiarla a localStorage
+  const obtener = (id) => leer().find(x => x.id === id) || (SOLAS.includes(id) ? { id, nombre: INCLUIDAS[id].nombre, base: id, fondo: INCLUIDAS[id].fondo, estilo: INCLUIDAS[id].estilo, piezas: INCLUIDAS[id].piezas() } : null);
   const borrar = (id) => escribir(leer().filter(x => x.id !== id));
   function duplicar(id) {
     const o = obtener(id); if (!o) return null;
