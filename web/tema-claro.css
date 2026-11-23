@@ -1,0 +1,33 @@
+/* Modo claro de las pantallas de la app (Inicio/Biblioteca, Editor, Ajustes, Guía). Se activa con
+   <html data-tema="claro"> (tema.js). Las plantillas no cargan esta hoja: nunca les cambia el estilo. */
+html[data-tema="claro"] { --fondo: #f3f2ef; --texto: #141414; --suave: #8a877f; --borde: #e4e2dc; }
+html[data-tema="claro"] #haz { display: none; }
+html[data-tema="claro"] .vidrio { background: #fff; -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: none; border: 1px solid var(--borde); }
+html[data-tema="claro"] .btn-principal { color: #fff; background: #141414; box-shadow: none; }
+html[data-tema="claro"] .btn-principal:hover { box-shadow: 0 8px 24px rgba(0,0,0,.18); }
+html[data-tema="claro"] .punto { box-shadow: none; }
+html[data-tema="claro"] input[type=range] { background: rgba(0,0,0,.1); }
+html[data-tema="claro"] input[type=range]::-webkit-slider-thumb { background: #141414; box-shadow: none; }
+html[data-tema="claro"] input[type=text], html[data-tema="claro"] select, html[data-tema="claro"] textarea { background: #fff; color: var(--texto); }
+html[data-tema="claro"] code { background: #ecebe7; }
+
+/* Inicio / Biblioteca */
+html[data-tema="claro"] nav .tabs .actual { background: rgba(0,0,0,.06); }
+html[data-tema="claro"] .fuente { background: #fff; border-color: var(--borde); }
+html[data-tema="claro"] .fuente:hover { border-color: #cfccc4; }
+html[data-tema="claro"] .fuente.sel { background: #141414; color: #fff; border-color: #141414; }
+html[data-tema="claro"] .fuente.sel small { color: #a9a7a0; }
+html[data-tema="claro"] .card { background: #fff; border: 1px solid var(--borde); }
+html[data-tema="claro"] .card.elegida { box-shadow: 0 0 0 2px #141414, 0 12px 30px rgba(0,0,0,.12); }
+html[data-tema="claro"] .card.nueva .mia { background: #ecebe7; }
+html[data-tema="claro"] #marco { box-shadow: 0 12px 34px rgba(0,0,0,.18); }
+html[data-tema="claro"] .color { background: #fff; border: 1px solid var(--borde); }
+html[data-tema="claro"] .color.elegida { background: #ecebe7; border-color: var(--texto); }
+html[data-tema="claro"] .fila-skin input { background: #fff; }
+html[data-tema="claro"] .skin, html[data-tema="claro"] .ranura { background: #faf9f7; border: 1px solid var(--borde); }
+html[data-tema="claro"] .ranura .mini { background-color: #e4e2dc; }
+
+/* Ajustes */
+html[data-tema="claro"] .carpeta { background: #faf9f7; border: 1px solid var(--borde); }
+html[data-tema="claro"] .tema-op { background: #fff; }
+html[data-tema="claro"] .tema-op.sel { background: #141414; color: #fff; border-color: #141414; }

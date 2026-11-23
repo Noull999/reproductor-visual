@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Reproductor</title>
 <link rel="stylesheet" href="vidrio-liquido.css">
+<link rel="stylesheet" href="tema-claro.css">
+<script src="tema.js"></script>
 <style>
   body { overflow: hidden; }
   [hidden] { display: none !important; }
@@ -14,7 +16,7 @@
   nav .tabs { display: flex; gap: 6px; }
   nav .tabs a, nav .tabs span { padding: 7px 16px; border-radius: 999px; font-size: 14px; text-decoration: none; color: var(--suave); }
   nav .tabs a:hover { color: var(--texto); }
-  nav .tabs .actual { background: rgba(0,0,0,.06); color: var(--texto); }
+  nav .tabs .actual { background: rgba(255,255,255,.1); color: var(--texto); }
   nav .tabs .pronto { opacity: .45; }
   .barra-fuente { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; color: var(--suave); }
   #carpetas { display: none; flex-wrap: wrap; gap: 8px; }
@@ -28,33 +30,27 @@
   main.eligiendo .der { display: none; }
   #fuentes { display: flex; flex-direction: column; gap: 8px; min-height: 0; overflow: hidden; }
   #fuentes .titulo-lado { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--suave); margin: 4px 6px 2px; white-space: nowrap; }
-  .fuente { all: unset; cursor: pointer; padding: 13px 14px; border-radius: 16px; background: #fff; border: 1px solid var(--borde); display: flex; align-items: center; gap: 12px; font-size: 15px; font-weight: 500; white-space: nowrap; overflow: hidden;
+  .fuente { all: unset; cursor: pointer; padding: 13px 14px; border-radius: 16px; background: rgba(255,255,255,.05); border: 1px solid var(--borde); display: flex; align-items: center; gap: 12px; font-size: 15px; font-weight: 500; white-space: nowrap; overflow: hidden;
     transition: background .18s, border-color .18s, transform .18s; }
-  .fuente:hover { border-color: #cfccc4; }
+  .fuente:hover { border-color: rgba(255,255,255,.3); }
   .fuente:focus-visible { outline: 2px solid #2f6bff; outline-offset: 2px; }
   .fuente .ic { font-size: 21px; width: 24px; text-align: center; flex: none; }
   .fuente small { display: block; font-weight: 400; color: var(--suave); font-size: 12px; margin-top: 2px; }
-  .fuente.sel { background: #141414; color: #fff; border-color: #141414; } .fuente.sel small { color: #a9a7a0; }
+  .fuente.sel { background: rgba(255,255,255,.92); color: #141414; border-color: transparent; } .fuente.sel small { color: #666; }
   .fuente.ocupada { opacity: .6; pointer-events: none; }
   /* Cerrado: solo los íconos (un clic lo vuelve a abrir) */
   main:not(.eligiendo) #fuentes .titulo-lado, main:not(.eligiendo) .fuente div { display: none; }
   main:not(.eligiendo) .fuente { justify-content: center; padding: 13px 0; }
   main:not(.eligiendo) .fuente:not(.sel) { opacity: .55; } main:not(.eligiendo) .fuente:not(.sel):hover { opacity: 1; }
-  /* Estilo claro y neutro: el color lo ponen las plantillas */
-  :root { --fondo: #f3f2ef; --texto: #141414; --suave: #8a877f; --borde: #e4e2dc; }
-  #haz { display: none; }
-  .vidrio { background: #fff; -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: none; border: 1px solid var(--borde); }
-  .btn-principal { color: #fff; background: #141414; box-shadow: none; } .btn-principal:hover { box-shadow: 0 8px 24px rgba(0,0,0,.18); }
-  .punto { box-shadow: none; }
+
   main.bloqueada { opacity: .35; pointer-events: none; }
   .izq { overflow-y: auto; padding: 4px 6px 4px 2px; display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; align-content: start; scrollbar-width: thin; }
-  .card { border-radius: 18px; overflow: hidden; cursor: pointer; border: 1px solid var(--borde); background: #fff; transition: transform .2s, box-shadow .2s; text-align: left; padding: 0; color: inherit; font: inherit; }
+  .card { border-radius: 18px; overflow: hidden; cursor: pointer; border: .8px solid var(--borde); background: rgba(255,255,255,.04); transition: transform .2s, box-shadow .2s; text-align: left; padding: 0; color: inherit; font: inherit; }
   .card:hover { transform: translateY(-3px); }
-  .card.elegida { box-shadow: 0 0 0 2px #141414, 0 12px 30px rgba(0,0,0,.12); }
-  .card:hover { box-shadow: 0 12px 30px rgba(0,0,0,.1); }
+  .card.elegida { box-shadow: 0 0 0 1.5px var(--rojo), 0 10px 40px rgba(255,45,61,.25); }
   .card img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; display: block; background: #120a0c; }
   .card .mia { width: 100%; aspect-ratio: 16 / 9; display: flex; align-items: flex-end; padding: 8px 10px; box-sizing: border-box; font: 11px "Geist Mono", monospace; color: rgba(255,255,255,.7); }
-  .card.nueva .mia { background: #ecebe7; align-items: center; justify-content: center; }
+  .card.nueva .mia { background: rgba(255,255,255,.05); align-items: center; justify-content: center; }
   .card.nueva .mia b { font-size: 34px; font-weight: 300; color: var(--suave); }
   .card .info { padding: 9px 12px 11px; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
   .card b { font-weight: 600; font-size: 15px; }
@@ -62,7 +58,7 @@
   .der { padding: 18px; display: flex; flex-direction: column; gap: 14px; min-height: 0; overflow-y: auto; }
   /* Vista previa en vivo: la plantilla real (música inventada) a 1440x810 reducida al ancho del marco */
   #marco { width: min(100%, calc(27vh * 16 / 9)); aspect-ratio: 16 / 9; align-self: center; border-radius: 14px; overflow: hidden; position: relative; background: #120a0c;
-    box-shadow: 0 12px 34px rgba(0,0,0,.18); flex: none; }
+    box-shadow: 0 16px 50px rgba(0,0,0,.5), 0 0 0 1px var(--borde); flex: none; }
   #vistaViva { position: absolute; left: 0; top: 0; width: 1440px; height: 810px; border: 0; transform-origin: 0 0; pointer-events: none; }
   #cargandoVista { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--suave); font-size: 13px; pointer-events: none; transition: opacity .3s; }
   .enlace { color: var(--suave); font-size: 13px; text-decoration: none; } .enlace:hover { color: var(--texto); }
@@ -85,26 +81,26 @@
   .grupo .mono { color: var(--suave); }
   .colores { display: flex; flex-wrap: wrap; gap: 8px; }
   .color { display: flex; align-items: center; gap: 8px; padding: 6px 12px 6px 8px; border-radius: 999px; cursor: pointer; font: 13px Geist, system-ui; color: var(--texto);
-    border: 1px solid var(--borde); background: #fff; }
+    border: .8px solid var(--borde); background: rgba(255,255,255,.05); }
   .color i { width: 16px; height: 16px; border-radius: 50%; display: inline-block; background: var(--c); box-shadow: 0 0 8px var(--c); }
-  .color.elegida { border-color: var(--texto); background: #ecebe7; }
+  .color.elegida { border-color: var(--texto); background: rgba(255,255,255,.14); }
   .ctl { display: flex; flex-direction: column; gap: 4px; }
   .ctl .fila { display: flex; justify-content: space-between; font-size: 13px; color: var(--suave); }
   .ctl .fila b { color: var(--texto); font-weight: 500; font-variant-numeric: tabular-nums; }
-  input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 6px; border-radius: 999px; margin: 6px 0; cursor: pointer; background: rgba(0,0,0,.1); }
-  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: #141414; box-shadow: none; }
+  input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 6px; border-radius: 999px; margin: 6px 0; cursor: pointer; background: rgba(255,255,255,.14); }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: 0 0 12px var(--rojo); }
   .interruptor { display: flex; align-items: center; gap: 10px; font-size: 14px; cursor: pointer; }
   .interruptor input { accent-color: var(--rojo); width: 16px; height: 16px; }
   .skins-winamp { display: grid; gap: 8px; margin-top: 6px; }
   .skins-winamp .ayuda { font-size: 12.5px; color: var(--suave, #a8a8b3); margin: 0; line-height: 1.45; }
   .fila-skin { display: flex; gap: 8px; }
-  .fila-skin input { flex: 1; min-width: 0; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--borde); background: #fff; color: inherit; font: inherit; font-size: 13px; }
+  .fila-skin input { flex: 1; min-width: 0; padding: 8px 10px; border-radius: 10px; border: .8px solid var(--borde); background: rgba(255,255,255,.05); color: inherit; font: inherit; font-size: 13px; }
   .lista-skins { display: grid; gap: 6px; }
-  .skin { display: flex; align-items: center; gap: 10px; padding: 6px 10px; border-radius: 12px; border: 1px solid var(--borde); background: #faf9f7; font-size: 13.5px; }
+  .skin { display: flex; align-items: center; gap: 10px; padding: 6px 10px; border-radius: 12px; border: .8px solid var(--borde); background: rgba(255,255,255,.04); font-size: 13.5px; }
   .skin i { width: 12px; height: 12px; border-radius: 50%; flex: none; }
   .skin span { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .ranura { display: flex; align-items: center; gap: 12px; padding: 8px 10px; border-radius: 14px; border: 1px solid var(--borde); background: #faf9f7; }
-  .ranura .mini { width: 64px; height: 36px; border-radius: 8px; background: #e4e2dc center / cover; flex: none; }
+  .ranura { display: flex; align-items: center; gap: 12px; padding: 8px 10px; border-radius: 14px; border: .8px solid var(--borde); background: rgba(255,255,255,.04); }
+  .ranura .mini { width: 64px; height: 36px; border-radius: 8px; background: rgba(255,255,255,.08) center / cover; flex: none; }
   .ranura .nombre { flex: 1; font-size: 14px; } .ranura .nombre small { display: block; color: var(--suave); font-size: 12px; }
   .ranura button, .acciones .suave { background: none; border: .8px solid var(--borde); color: var(--texto); border-radius: 999px; padding: 6px 14px; cursor: pointer; font: 13px Geist, system-ui; }
   .ranura button:hover, .acciones .suave:hover { border-color: var(--texto); }

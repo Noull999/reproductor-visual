@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ajustes</title>
 <link rel="stylesheet" href="vidrio-liquido.css">
+<link rel="stylesheet" href="tema-claro.css">
+<script src="tema.js"></script>
 <style>
   [hidden] { display: none !important; }
   body { overflow: auto; }
@@ -28,6 +30,9 @@
   .carpeta { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 16px; border-radius: 14px; background: rgba(255,255,255,.05); }
   .carpeta span { font: 13px "Geist Mono", monospace; word-break: break-all; }
   .carpeta button { background: none; border: none; color: var(--suave); cursor: pointer; font-size: 18px; } .carpeta button:hover { color: var(--rojo); }
+  .temas { display: flex; gap: 10px; }
+  .tema-op { padding: 10px 20px; border-radius: 999px; border: 1px solid var(--borde); background: rgba(255,255,255,.05); color: var(--texto); font: 500 14px Geist, system-ui; cursor: pointer; }
+  .tema-op.sel { background: rgba(255,255,255,.92); color: #141414; border-color: transparent; }
   #aviso { min-height: 1.4em; color: var(--suave); font-size: 14px; }
 </style>
 </head>
@@ -41,6 +46,12 @@
 <div class="capa">
   <div class="tope mono"><a href="index.html">← Inicio</a><span id="aviso"></span></div>
   <h1>Ajustes</h1>
+
+  <section class="vidrio tarjeta" id="tApariencia">
+    <div class="fila"><h2>🎨 Apariencia</h2><span class="temas" role="group" aria-label="Apariencia">
+      <button class="tema-op" data-t="oscuro">Oscuro</button><button class="tema-op" data-t="claro">Claro</button></span></div>
+    <p>El color de la pantalla principal, el Editor y estos ajustes. Las plantillas mantienen siempre su propio estilo.</p>
+  </section>
 
   <section class="vidrio tarjeta" id="tSpotify">
     <div class="fila"><h2>🟢 Spotify</h2><span class="estado" id="eSpotify"><i></i><b>…</b></span></div>
@@ -128,6 +139,10 @@ $("bDesconectarSc").onclick = async () => { await api().soundcloud_desconectar()
 $("bAgregar").onclick = async () => { const r = await api().ajustes_agregar_carpeta(); if (!r.ok) aviso(r.error); pintar(); };
 
 if (window.pywebview && window.pywebview.api) pintar(); else window.addEventListener("pywebviewready", pintar);
+// Apariencia: se guarda en este equipo y se aplica al tiro
+function marcarTema() { document.querySelectorAll(".tema-op").forEach(b => { const si = b.dataset.t === document.documentElement.dataset.tema; b.classList.toggle("sel", si); b.setAttribute("aria-pressed", si); }); }
+document.querySelectorAll(".tema-op").forEach(b => b.onclick = () => { try { localStorage.setItem("tema-app", b.dataset.t); } catch (e) {} document.documentElement.dataset.tema = b.dataset.t; marcarTema(); });
+marcarTema();
 </script>
 </body>
 </html>
