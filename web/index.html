@@ -170,6 +170,10 @@ const PLANTILLAS = [
     desc: "Un Winamp de los 2000 con los skins que tú elijas (anime, juegos…): ventana, ecualizador que baila y lista, sobre visualizaciones de la época. Los skins se importan abajo y quedan solo en tu PC.",
     guardar: () => ({}),
     grupos: [{ titulo: "Skins", items: [v("Winamp", "#5ef0ff", "anime-winamp")] }] },
+  { id: "pixel", nombre: "Pixel", pagina: "pixel.html", predeterminada: "Sangre",
+    desc: "8 bits: espectro en bloques y carátula pixelada, con paletas de color a elegir.",
+    guardar: (x) => ({ "paleta-pixel": x.nombre }),
+    grupos: [{ titulo: "Paleta", items: [v("Sangre", "#e8452c", "pixel-sangre"), v("Game Boy", "#9bbc0f", "pixel-game-boy"), v("NES", "#e40058", "pixel-nes"), v("Vaporwave", "#ff71ce", "pixel-vaporwave"), v("Matrix", "#39ff6a", "pixel-matrix"), v("Hielo", "#8fe3ff", "pixel-hielo"), v("Ámbar", "#ffb000", "pixel-ambar")] }] },
 ];
 // Headspace suma un grupo "Cuerpo propio" cuando la persona subió uno
 const gruposDe = (p) => {
