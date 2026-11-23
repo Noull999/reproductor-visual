@@ -1,7 +1,6 @@
 /* Modo claro de las pantallas de la app (Inicio/Biblioteca, Editor, Ajustes, Guía). Se activa con
    <html data-tema="claro"> (tema.js). Las plantillas no cargan esta hoja: nunca les cambia el estilo. */
 html[data-tema="claro"] { --fondo: #f3f2ef; --texto: #141414; --suave: #8a877f; --borde: #e4e2dc; }
-html[data-tema="claro"] #haz { display: none; }
 html[data-tema="claro"] .vidrio { background: #fff; -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: none; border: 1px solid var(--borde); }
 html[data-tema="claro"] .btn-principal { color: #fff; background: #141414; box-shadow: none; }
 html[data-tema="claro"] .btn-principal:hover { box-shadow: 0 8px 24px rgba(0,0,0,.18); }

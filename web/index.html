@@ -160,14 +160,15 @@
     <button class="btn vidrio pastilla" id="zCancelar">Cancelar</button>
   </div>
 </div></div>
-<script src="haz.js"></script>
+<script src="agujero.js"></script>
+<script src="fondo-app.js"></script>
 <script src="propiedades.js"></script>
 <script src="esquema.js"></script>
 <script src="plantillas-propias.js"></script>
 <script src="catalogo.js"></script>
 <script>
 "use strict";
-iniciarHaz(document.getElementById("haz"));
+fondoApp();   // la galaxia desenfocada (fondo-app.js)
 const $ = (id) => document.getElementById(id);
 const q = new URLSearchParams(location.search);
 // La fuente: al abrir la app se elige a la izquierda; al volver de una plantilla ya viene elegida (misma sesión)

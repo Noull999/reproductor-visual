@@ -78,12 +78,13 @@
     <aside class="der vidrio tarjeta" id="panel"></aside>
   </main>
 </div>
-<script src="haz.js"></script>
+<script src="agujero.js"></script>
+<script src="fondo-app.js"></script>
 <script src="esquema.js"></script>
 <script src="plantillas-propias.js"></script>
 <script>
 "use strict";
-iniciarHaz(document.getElementById("haz"));
+fondoApp();   // la galaxia desenfocada (fondo-app.js)
 const $ = (id) => document.getElementById(id);
 const q = new URLSearchParams(location.search);
 let spec = Propias.obtener(q.get("id"));

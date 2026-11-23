@@ -80,10 +80,11 @@
     <div class="fila"><span></span><button class="btn btn-principal" id="bAgregar">Agregar carpeta…</button></div>
   </section>
 </div>
-<script src="haz.js"></script>
+<script src="agujero.js"></script>
+<script src="fondo-app.js"></script>
 <script>
 "use strict";
-iniciarHaz(document.getElementById("haz"));
+fondoApp();   // la galaxia desenfocada (fondo-app.js)
 const $ = (id) => document.getElementById(id);
 const api = () => window.pywebview.api;
 const aviso = (t) => { $("aviso").textContent = t; if (t) setTimeout(() => { if ($("aviso").textContent === t) $("aviso").textContent = ""; }, 5000); };

@@ -94,11 +94,12 @@
     </ul>
   </section>
 </div>
-<script src="haz.js"></script>
+<script src="agujero.js"></script>
+<script src="fondo-app.js"></script>
 <script src="propiedades.js"></script>
 <script>
 "use strict";
-iniciarHaz(document.getElementById("haz"));
+fondoApp();   // la galaxia desenfocada (fondo-app.js)
 // Esquema de las zonas (las mismas por defecto que usa el ajuste de zonas)
 const Z = Props.ZONAS_HEADSPACE, es = document.getElementById("esquema"), ley = document.getElementById("leyenda");
 const piezas = [["Pantalla", Z.pantalla, "#4da3ff"], ["Botones", Z.botones, "#ffd23d"], ["Barra", Z.barra, "#3ddc84"], ["Boca", Z.boca, "#ff7a45"],
