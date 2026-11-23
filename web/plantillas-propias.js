@@ -65,7 +65,7 @@ const Propias = (() => {
         ["tiempo", [75, 91.5, 10, 6]], ["volumen", [86, 92, 11, 5]]]) },
   };
   // Anime PS2: cada variante es otro personaje con su propio color de acento
-  const ANIME = { Cian: ["cian", "#19c8ff"], Rosa: ["rosa", "#ff7ac8"], Gotica: ["gotica", "#e0233c"], Violeta: ["violeta", "#9b6bff"] };
+  const ANIME = { Cian: ["cian", "#19c8ff", "Audífonos"], Rosa: ["rosa", "#ff7ac8", "Androide"], Gotica: ["gotica", "#e0233c", "Gótica"], Violeta: ["violeta", "#9b6bff", "Colegiala"] };
   const animeActual = () => { let v = ""; try { v = localStorage.getItem("variante-anime") || ""; } catch (e) {} return ANIME[v] || ANIME.Cian; };
   INCLUIDAS.anime = { nombre: "Anime PS2", reglas: { requeridas: ["titulo", "botones", "barra"], nota: COMUN }, VARIANTES: ANIME,
       fondo: { tipo: "columnas", color: "#02071c", color2: "#0b2f7a", brillo: 100 },
