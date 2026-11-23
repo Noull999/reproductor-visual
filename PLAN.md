@@ -101,7 +101,7 @@ comparte son solo datos e imágenes, nunca código.
 - [ ] Chasis propio en 2000s: su cuerpo es una maqueta CSS (varias piezas alineadas), no una imagen plana con zonas; necesita otro diseño (por ahora solo fondo propio).
 - [x] **Vista previa en vivo** en el panel: la plantilla real corriendo en un marco con música inventada (fuente `demo`), que se recarga al cambiar cualquier propiedad. Las tarjetas de la cuadrícula siguen con capturas fijas.
 - [x] Más propiedades por plantilla: deformación del vidrio (Líquido), cantidad de burbujas (Headspace), brillo del túnel (2000s), desenfoque del fondo (Ambiente) y tamaño de los píxeles (Pixel). Se definen en `propiedades.js` (`EXTRAS`).
-- [ ] Colores libres (un selector de color además de las variantes).
+- [x] Colores libres: un color propio en la Biblioteca que cada plantilla (Líquido, Headspace, 2000s, Ambiente, Pixel, Neo Y2K, Psicodélico) convierte en su variante «Propio».
 - [x] Plantillas nuevas: **Psicodélico** (ojo pixel art, caleidoscopio, espiral, fractal; 8 colores), **Neo Y2K** (carátula con barrido de brillo; Ácido, Chicle, Hielo y Fuego con figura y partículas propias) y **Dreamcore** (VHS + ventanas de Windows 95; escenas Damero, Backrooms y Espacio con serafín; avisos y popups de virus).
 - [x] **Fondo propio en video** (mp4/webm en loop), además de imagen.
 - [ ] Dreamcore con fondos de IA animados (video maker / Higgsfield: damero_2 aprobado, falta el video en loop; backrooms y serafín sin generar).
@@ -163,7 +163,7 @@ Una plantilla propia es un objeto JSON (`plantillas-propias.js`): fondo, estilo 
 - [x] **Importar** con el botón "Importar plantilla…" de la Biblioteca. El archivo se trata como contenido no confiable
       (`plantillas.py`): lista permitida de valores, colores y números acotados, solo `manifest.json` e `imagenes/<nombre>.webp`
       dentro del zip, límites de tamaño, imágenes re-codificadas con Pillow, el id lo pone la app. 33 pruebas, con archivos maliciosos.
-- [ ] Exportar también las plantillas incluidas con tus ajustes (variante, colores, cuerpo propio de Headspace).
+- [x] Exportar las plantillas incluidas con tus ajustes (`ajustes.py`): variante, color propio, controles, fondo y cuerpo propio de Headspace; se importan con el mismo botón «Importar plantilla…».
 - [ ] *(Más adelante)* catálogo de comunidad: un repositorio público con la lista de plantillas (sin servidor); moderación manual
       y revisión de derechos de las imágenes.
 - [ ] *(Más adelante, solo si hay usuarios)* galería online con servidor.

@@ -18,6 +18,7 @@ from pathlib import Path
 import webview
 
 import config
+import ajustes
 import plantillas
 import servidor
 import skins
@@ -337,8 +338,29 @@ class Api:
         skins.borrar(sid)
         return {"ok": True}
 
+    def ajustes_exportar(self, datos_json: str) -> dict:
+        """Guarda los ajustes de una plantilla incluida (variante, color, controles, fondo y cuerpo propios) en un .plantilla."""
+        ventana = webview.windows[0] if webview.windows else None
+        if ventana is None:
+            return {"ok": False, "error": "No hay ventana abierta."}
+        try:
+            datos = ajustes.empaquetar(datos_json, servidor.CARPETA_IMAGENES)
+            id_ = json.loads(datos_json)["plantilla"]
+            destino = ventana.create_file_dialog(webview.SAVE_DIALOG, save_filename=f"{id_}-ajustes.plantilla", file_types=("Plantilla (*.plantilla)",))
+            if not destino:
+                return {"ok": True, "cancelado": True}
+            ruta = Path(destino[0] if isinstance(destino, (list, tuple)) else destino)
+            if ruta.suffix.lower() != ".plantilla":
+                ruta = ruta.with_name(ruta.name + ".plantilla")
+            ruta.write_bytes(datos)
+            return {"ok": True, "ruta": str(ruta)}
+        except plantillas.PlantillaInvalida as e:
+            return {"ok": False, "error": str(e)}
+        except OSError as e:
+            return {"ok": False, "error": f"No se pudo guardar el archivo: {e.strerror or e}"}
+
     def plantilla_importar(self) -> dict:
-        """Elige un .plantilla, lo valida entero y devuelve la plantilla nueva (con id propio) para guardarla."""
+        """Elige un .plantilla (una hecha en el Editor o los ajustes de una incluida), lo valida entero y lo devuelve para aplicarlo."""
         ventana = webview.windows[0] if webview.windows else None
         if ventana is None:
             return {"ok": False, "error": "No hay ventana abierta."}
@@ -349,8 +371,11 @@ class Api:
             ruta = Path(elegido[0])
             if ruta.stat().st_size > plantillas.MAX_ZIP:
                 raise plantillas.PlantillaInvalida("El archivo es demasiado grande.")
+            datos = ruta.read_bytes()
+            if ajustes.es_de_ajustes(datos):
+                return {"ok": True, "ajustes": ajustes.desempaquetar(datos, servidor.CARPETA_IMAGENES)}
             nuevo_id = "p" + format(int(time.time() * 1000), "x") + secrets.token_hex(2)
-            return {"ok": True, "spec": plantillas.desempaquetar(ruta.read_bytes(), nuevo_id, servidor.CARPETA_IMAGENES)}
+            return {"ok": True, "spec": plantillas.desempaquetar(datos, nuevo_id, servidor.CARPETA_IMAGENES)}
         except plantillas.PlantillaInvalida as e:
             return {"ok": False, "error": str(e)}
         except OSError as e:

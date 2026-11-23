@@ -145,7 +145,7 @@
         <a class="enlace" href="guia.html">Guía de imágenes: medidas y qué pedirle al generador →</a>
         <div id="msgProps"></div>
       </div>
-      <div class="acciones"><button class="btn btn-principal" id="usar">Usar esta</button><button class="suave" id="editar" hidden>Editar</button><button class="suave" id="hacerEditable" title="Crea una copia tuya hecha de piezas, con las reglas de esta plantilla">Editar esta plantilla</button><button class="suave" id="exportar" hidden>Exportar</button><button class="suave" id="restablecer">Restablecer</button></div>
+      <div class="acciones"><button class="btn btn-principal" id="usar">Usar esta</button><button class="suave" id="editar" hidden>Editar</button><button class="suave" id="hacerEditable" title="Crea una copia tuya hecha de piezas, con las reglas de esta plantilla">Editar esta plantilla</button><button class="suave" id="exportar" hidden>Exportar</button><button class="suave" id="exportarAjustes" title="Guarda tu variante, tu color y tus ajustes en un archivo para compartirlos">Exportar mis ajustes</button><button class="suave" id="restablecer">Restablecer</button></div>
     </section>
   </main>
 </div>
@@ -201,7 +201,7 @@ function pintar() {
   nueva.onclick = () => { location.href = "editor.html?base=central"; };
   g.appendChild(nueva);
   const sel = elegida[actual.id];
-  $("editar").hidden = !actual.propio; $("exportar").hidden = !actual.propio; $("hacerEditable").hidden = !!actual.propio; $("restablecer").hidden = !!actual.propio;
+  $("editar").hidden = !actual.propio; $("exportar").hidden = !actual.propio; $("exportarAjustes").hidden = !!actual.propio; $("hacerEditable").hidden = !!actual.propio; $("restablecer").hidden = !!actual.propio;
   $("nombre").textContent = actual.nombre;
   $("descripcion").textContent = actual.desc;
   const caja = $("gruposColor"); caja.innerHTML = "";
@@ -388,10 +388,29 @@ $("exportar").onclick = async () => {
   if (!r.ok) return mensaje(r.error);
   if (!r.cancelado) mensaje("Archivo guardado: se puede compartir tal cual.");
 };
+// Los ajustes de una plantilla incluida: variante, color propio, controles, fondo y cuerpo propios (el archivo se valida en Python)
+$("exportarAjustes").onclick = async () => {
+  const x = elegida[actual.id], p = props;
+  const datos = { plantilla: actual.id, variante: x ? actual.guardar(x) : {},
+    props: { intensidad: p.intensidad, velocidad: p.velocidad, lista: p.lista, soloVisual: p.soloVisual, colorLibre: p.colorLibre || "", extra: p.extra || {},
+      fondo: p.fondo || "", cuerpo: p.cuerpo ? { imagen: p.cuerpo.imagen, zonas: p.cuerpo.zonas } : null } };
+  const r = await window.pywebview.api.ajustes_exportar(JSON.stringify(datos));
+  if (!r.ok) return mensaje(r.error);
+  if (!r.cancelado) mensaje("Archivo guardado: quien lo importe tendrá tus ajustes.");
+};
+function aplicarAjustes(a) {
+  try { Object.entries(a.variante).forEach(([k, val]) => localStorage.setItem(k, val)); } catch (e) {}
+  const q = a.props;
+  Props.guardar(a.plantilla, { ...Props.DEFECTO, intensidad: q.intensidad, velocidad: q.velocidad, lista: q.lista, soloVisual: q.soloVisual, colorLibre: q.colorLibre, extra: q.extra, fondo: q.fondo || "", cuerpo: q.cuerpo || null });
+  try { localStorage.setItem("biblioteca-plantilla", a.plantilla); sessionStorage.setItem("aviso-importar", `Ajustes de ${PLANTILLAS.find(x => x.id === a.plantilla).nombre} aplicados.`); } catch (e) {}
+  location.reload();
+}
+try { const m = sessionStorage.getItem("aviso-importar"); if (m) { sessionStorage.removeItem("aviso-importar"); avisoGeneral(m); } } catch (e) {}
 $("importar").onclick = async () => {
   const r = await window.pywebview.api.plantilla_importar();
   if (!r.ok) return avisoGeneral(r.error);
   if (r.cancelado) return;
+  if (r.ajustes) return aplicarAjustes(r.ajustes);
   Propias.guardar(r.spec);
   try { localStorage.setItem("biblioteca-plantilla", "libre-" + r.spec.id); } catch (e) {}
   location.reload();
