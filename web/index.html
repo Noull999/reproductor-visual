@@ -247,7 +247,7 @@ function pintarProps() {
   caja.appendChild(ctl("Intensidad de los visuales", "intensidad", v => v === 50 ? "normal" : v));
   caja.appendChild(ctl("Velocidad de las animaciones", "velocidad", v => v === 50 ? "normal" : v));
   (Props.EXTRAS[actual.id] || []).forEach(x => {
-    const val = props.extra && props.extra[x.id] !== undefined ? props.extra[x.id] : x.def, texto = v => `${v}${x.unidad || ""}`;
+    const val = props.extra && props.extra[x.id] !== undefined ? props.extra[x.id] : x.def, texto = v => x.etiquetas ? x.etiquetas[v] : `${v}${x.unidad || ""}`;
     caja.appendChild(fila(x.nombre, val, texto(val), (v, r) => { r.parentElement.querySelector("b").textContent = texto(v); props.extra = { ...(props.extra || {}), [x.id]: v }; Props.guardar(actual.id, props); refrescar(); }, x));
   });
   [["Mostrar la lista de temas", "lista"], ["Ocultar los controles tras 3 s sin mover el mouse", "soloVisual"]].forEach(([texto, campo]) => {
