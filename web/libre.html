@@ -148,6 +148,7 @@ function construir(s) {
     document.body.classList.toggle("sonando", (document.getElementById("bPlay") || {}).textContent === "❚❚");
   });
   if (s.piezas.some(p => p.tipo === "winamp")) puntosSkins();   // un punto por cada skin importado
+  if (s.id === "psicodelico") puntosColores(Propias.INCLUIDAS.psicodelico.colores);
   const vol = document.getElementById("volumen");
   if (vol) vol.addEventListener("input", () => raiz.setProperty("--v", vol.value + "%"));
 }
@@ -162,6 +163,17 @@ function puntosSkins() {
       b.style.setProperty("--c", (s.pledit && s.pledit.current) || "#5ef0ff"); b.classList.toggle("elegido", !!act && act.id === s.id);
       b.onclick = () => window.reproductorWinamp.usar(s.id); d.appendChild(b);
     });
+  });
+}
+
+// ---- Psicodélico: un punto por color; cambia en vivo y queda elegido también en la Biblioteca ----
+function puntosColores(colores) {
+  const d = document.createElement("div"); d.id = "variantes"; d.className = "ocultable"; document.body.appendChild(d);
+  colores.forEach(([n, c]) => {
+    const b = document.createElement("button"); b.title = n; b.setAttribute("aria-label", n); b.style.setProperty("--c", c);
+    b.classList.toggle("elegido", c === ev("acento"));
+    b.onclick = () => { ponerAcento(rgb(c)); try { localStorage.setItem("color-psicodelico", c); } catch (e) {} d.querySelectorAll("button").forEach(x => x.classList.toggle("elegido", x === b)); };
+    d.appendChild(b);
   });
 }
 

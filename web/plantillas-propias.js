@@ -71,7 +71,8 @@ const Propias = (() => {
   // Psicodélico: el ojo pixel art sobre el caleidoscopio y la espiral, y el fractal (fondo "nuevos" de visu2000.js)
   INCLUIDAS.psicodelico = { nombre: "Psicodélico", reglas: { requeridas: ["titulo", "botones", "barra"], nota: COMUN },
       fondo: { tipo: "nuevos", color: "#000000", brillo: 90, velocidad: 80 }, estilo: { panel: "liso", acento: "#b04bff", fuente: "Geist" },
-      piezas: () => armar([["panel", [0, 88, 100, 12]], ["titulo", [3, 89.5, 30, 5]], ["artista", [3, 94.5, 30, 3.5]], ["botones", [36, 89, 18, 9]],
+      colores: [["Rojo", "#ff2a2a"], ["Naranja", "#ff8a1f"], ["Lima", "#9be22a"], ["Verde", "#1fe07a"], ["Cian", "#1fd5ff"], ["Azul", "#2f5bff"], ["Violeta", "#b04bff"], ["Rosa", "#ff3fa8"]],
+      piezas: () => armar([["lista", [74, 6, 24, 78]], ["panel", [0, 88, 100, 12]], ["titulo", [3, 89.5, 30, 5]], ["artista", [3, 94.5, 30, 3.5]], ["botones", [36, 89, 18, 9]],
         ["barra", [57, 92.2, 24, 2.4]], ["tiempo", [82, 90, 7, 6]], ["volumen", [90, 91, 8, 5]]]) };
   const SOLAS = ["anime", "psicodelico"];
   // el color que se eligió en la Biblioteca (solo Psicodélico tiene colores)

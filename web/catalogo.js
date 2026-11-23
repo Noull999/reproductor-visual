@@ -28,7 +28,7 @@ const PLANTILLAS = [
   { id: "psicodelico", nombre: "Psicodélico", pagina: "libre.html?plantilla=psicodelico", predeterminada: "Violeta",
     desc: "Un ojo pixel art que te mira desde el centro de un caleidoscopio y de un túnel en espiral, y un fractal que se hunde sin fin. Cambian cada 25 s o con un clic en el fondo.",
     guardar: (x) => ({ "color-psicodelico": x.color }),
-    grupos: [{ titulo: "Color", items: [v("Rojo", "#ff2a2a", "psicodelico-rojo", { color: "#ff2a2a" }), v("Naranja", "#ff8a1f", "psicodelico-naranja", { color: "#ff8a1f" }), v("Lima", "#9be22a", "psicodelico-lima", { color: "#9be22a" }), v("Verde", "#1fe07a", "psicodelico-verde", { color: "#1fe07a" }), v("Cian", "#1fd5ff", "psicodelico-cian", { color: "#1fd5ff" }), v("Azul", "#2f5bff", "psicodelico-azul", { color: "#2f5bff" }), v("Violeta", "#b04bff", "psicodelico-violeta", { color: "#b04bff" }), v("Rosa", "#ff3fa8", "psicodelico-rosa", { color: "#ff3fa8" })] }] },
+    grupos: [{ titulo: "Color", items: Propias.INCLUIDAS.psicodelico.colores.map(([n, c]) => v(n, c, `psicodelico-${n.toLowerCase()}`, { color: c })) }] },
   { id: "pixel", nombre: "Pixel", pagina: "pixel.html", predeterminada: "Sangre",
     desc: "8 bits: espectro en bloques y carátula pixelada, con paletas de color a elegir.",
     guardar: (x) => ({ "paleta-pixel": x.nombre }),
