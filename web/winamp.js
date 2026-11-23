@@ -1,11 +1,11 @@
 // Reproductor con skins clásicos de Winamp 2 (.wsz importados por la persona; quedan solo en su equipo).
-// Dibuja, en un solo lienzo pixelado, las tres ventanas apiladas como en Winamp: principal, ecualizador y lista,
+// Dibuja, en un solo lienzo pixelado, las tres ventanas de Winamp: principal y ecualizador apilados, y la lista al lado,
 // con las coordenadas originales de cada pieza del skin. Lo conecta al reproductor (R) y pone el color del skin
 // como acento de la plantilla. Si no hay skins importados, dibuja uno clásico propio hecho con formas simples.
 //   Winamp.montar(caja, { ambiente }) — la pieza "winamp" de las plantillas
 "use strict";
 const Winamp = (() => {
-  const AN = 275, MAIN = 116, EQ = 116, PL = 174, ALTO = MAIN + EQ + PL, S = 2;   // S: el lienzo va al doble para que el texto se lea nítido
+  const AN = 275, MAIN = 116, EQ = 116, PL = MAIN + EQ, ANCHO = AN * 2, ALTO = MAIN + EQ, S = 2;   // principal + ecualizador a la izquierda, lista a la derecha; S: el lienzo va al doble para que el texto se lea nítido
   const VIS_WINAMP = [[0,0,0],[24,33,41],[239,49,16],[206,41,16],[214,90,0],[214,102,0],[214,115,0],[198,123,8],[222,165,24],[214,181,33],[189,222,41],[148,222,33],[41,206,16],[50,190,16],[57,181,16],[49,156,8],[41,148,0],[24,132,8],[255,255,255],[214,214,222],[181,189,189],[160,170,175],[148,156,165],[150,150,150]];
   const FUENTE = { '"': [0, 26], "@": [0, 27], " ": [0, 30], "…": [1, 10], ".": [1, 11], ":": [1, 12], "(": [1, 13], ")": [1, 14], "-": [1, 15], "'": [1, 16], "!": [1, 17], "_": [1, 18], "+": [1, 19], "\\": [1, 20], "/": [1, 21], "[": [1, 22], "]": [1, 23], "^": [1, 24], "&": [1, 25], "%": [1, 26], ",": [1, 27], "=": [1, 28], "$": [1, 29], "#": [1, 30], "Å": [2, 0], "Ö": [2, 1], "Ä": [2, 2], "?": [2, 3], "*": [2, 4], "<": [1, 13], ">": [1, 14], "{": [1, 22], "}": [1, 23] };
   const letra = (c) => { const u = c.toUpperCase().normalize("NFD").replace(/[̀-ͯ]/g, ""); if (u >= "A" && u <= "Z") return [0, u.charCodeAt(0) - 65]; if (u >= "0" && u <= "9") return [1, +u]; return FUENTE[c] || FUENTE[u] || [0, 30]; };
@@ -15,14 +15,14 @@ const Winamp = (() => {
 
   function montar(caja, op) {
     const raiz = document.createElement("div"); raiz.className = "m-winamp";
-    raiz.style.cssText = `position:absolute;left:50%;top:50%;width:${AN}px;height:${ALTO}px;transform-origin:50% 50%`;
-    const c = document.createElement("canvas"); c.width = AN * S; c.height = ALTO * S;
-    c.style.cssText = `width:${AN}px;height:${ALTO}px;image-rendering:pixelated;display:block;cursor:default;filter:drop-shadow(0 12px 30px rgba(0,0,0,.6))`;
+    raiz.style.cssText = `position:absolute;left:50%;top:50%;width:${ANCHO}px;height:${ALTO}px;transform-origin:50% 50%`;
+    const c = document.createElement("canvas"); c.width = ANCHO * S; c.height = ALTO * S;
+    c.style.cssText = `width:${ANCHO}px;height:${ALTO}px;image-rendering:pixelated;display:block;cursor:default;filter:drop-shadow(0 12px 30px rgba(0,0,0,.6))`;
     // piezas invisibles que el reproductor (nucleo.js) actualiza por id: de aquí se leen título y estado
     const oculto = document.createElement("div"); oculto.style.display = "none";
     oculto.innerHTML = '<button id="bPlay">▶</button><div id="titulo"></div><div id="artista"></div><input id="volumen" type="range" min="0" max="100" value="80">';
     raiz.append(c, oculto); caja.appendChild(raiz);
-    const ajustar = () => { const s = Math.min(caja.clientWidth / AN, caja.clientHeight / ALTO) || .01; raiz.style.transform = `translate(-50%, -50%) scale(${s})`; };
+    const ajustar = () => { const s = Math.min(caja.clientWidth / ANCHO, caja.clientHeight / ALTO) || .01; raiz.style.transform = `translate(-50%, -50%) scale(${s})`; };
     new ResizeObserver(ajustar).observe(caja); requestAnimationFrame(ajustar);
     const g = c.getContext("2d"); g.scale(S, S); g.imageSmoothingEnabled = false;
     const vol = oculto.querySelector("#volumen"), bPlay = oculto.querySelector("#bPlay"), tit = oculto.querySelector("#titulo"), art = oculto.querySelector("#artista");
@@ -121,7 +121,7 @@ const Winamp = (() => {
     }
 
     function ventanaLista() {
-      g.save(); g.translate(0, MAIN + EQ);
+      g.save(); g.translate(AN, 0);
       const top = 20, abajo = PL - 38, ok = listo("pledit");
       g.fillStyle = pl.normalbg || "#000"; g.fillRect(12, top, AN - 32, abajo - top);
       if (ok) {
@@ -150,25 +150,25 @@ const Winamp = (() => {
       g.restore(); g.restore();
     }
 
-    R.cadaCuadro((t) => { const d = R.espectro(); g.clearRect(0, 0, AN, ALTO); ventanaPrincipal(t, d); ventanaEcualizador(d); ventanaLista(); });
+    R.cadaCuadro((t) => { const d = R.espectro(); g.clearRect(0, 0, ANCHO, ALTO); ventanaPrincipal(t, d); ventanaEcualizador(d); ventanaLista(); });
 
     // ---- ratón: botones, barras y lista ----
-    const punto = (e) => { const r = c.getBoundingClientRect(); return [(e.clientX - r.left) / r.width * AN, (e.clientY - r.top) / r.height * ALTO]; };
+    const punto = (e) => { const r = c.getBoundingClientRect(); return [(e.clientX - r.left) / r.width * ANCHO, (e.clientY - r.top) / r.height * ALTO]; };
     const boton = (x, y) => y >= 88 && y < 106 ? (x >= 16 && x < 39 ? "ant" : x < 62 ? "play" : x < 85 ? "pausa" : x < 108 ? "stop" : x < 130 ? "sig" : "") : "";
     const ponerVol = (x) => { vol.value = Math.round(Math.max(0, Math.min(1, (x - 114) / 54)) * 100); vol.dispatchEvent(new Event("input")); };
     c.addEventListener("pointerdown", (e) => {
       const [x, y] = punto(e); c.setPointerCapture(e.pointerId);
-      if (y < MAIN) {
+      if (x < AN && y < MAIN) {
         apretado = boton(x, y);
         if (y >= 72 && y < 82 && x >= 16 && x < 264) { arrastre = "pos"; R.saltarA(Math.max(0, Math.min(1, (x - 30) / 219))); }
         else if (y >= 57 && y < 70 && x >= 107 && x < 175) { arrastre = "vol"; ponerVol(x); }
-      } else if (y >= MAIN + EQ + 20 && y < MAIN + EQ + PL - 38 && x >= 12 && x < AN - 20) {
-        const k = scroll + Math.floor((y - MAIN - EQ - 20) / 13); if (k < R.pistas.length) R.cargar(k);
+      } else if (x >= AN + 12 && x < ANCHO - 20 && y >= 20 && y < PL - 38) {
+        const k = scroll + Math.floor((y - 20) / 13); if (k < R.pistas.length) R.cargar(k);
       }
     });
     c.addEventListener("pointermove", (e) => { const [x] = punto(e); if (arrastre === "vol") ponerVol(x); else if (arrastre === "pos") R.saltarA(Math.max(0, Math.min(1, (x - 30) / 219))); });
     c.addEventListener("pointerup", (e) => {
-      const [x, y] = punto(e), b = boton(x, y);
+      const [x, y] = punto(e), b = x < AN ? boton(x, y) : "";
       if (b && b === apretado) {
         const n = R.pistas.length;
         if (b === "play") { if (!sonando()) R.alternar(); else R.saltarA(0); }
@@ -178,7 +178,7 @@ const Winamp = (() => {
       }
       apretado = ""; arrastre = "";
     });
-    c.addEventListener("wheel", (e) => { const [, y] = punto(e); if (y > MAIN + EQ) { e.preventDefault(); scroll = Math.max(0, Math.min(Math.max(0, R.pistas.length - 8), scroll + Math.sign(e.deltaY) * 2)); } }, { passive: false });
+    c.addEventListener("wheel", (e) => { const [x] = punto(e); if (x > AN) { e.preventDefault(); scroll = Math.max(0, Math.min(Math.max(0, R.pistas.length - 12), scroll + Math.sign(e.deltaY) * 2)); } }, { passive: false });
 
     if (window.pywebview && pywebview.api) usar(""); else addEventListener("pywebviewready", () => usar(""));
     return { usar };

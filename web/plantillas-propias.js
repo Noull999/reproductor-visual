@@ -67,7 +67,7 @@ const Propias = (() => {
   // Anime PS2: un reproductor de Winamp con los skins que importa la persona (quedan solo en su equipo)
   INCLUIDAS.anime = { nombre: "Anime PS2", reglas: { requeridas: ["winamp"], nota: "El reproductor de Winamp lo es todo: trae pantalla, botones, barra, ecualizador y lista. Los skins se importan en la Biblioteca (link de skins.webamp.org o archivo .wsz)." },
       fondo: { tipo: "visu2000", color: "#000000", brillo: 55 }, estilo: { panel: "liso", acento: "#5ef0ff", fuente: "Geist" },
-      piezas: () => armar([["winamp", [33, 2, 34, 96], { ambiente: true }]]) };
+      piezas: () => armar([["winamp", [3, 13, 94, 72], { ambiente: true }]]) };
   function desdeBase(id) {
     const b = INCLUIDAS[id]; if (!b) return null;
     const spec = { id: nuevoId(), nombre: `${b.nombre} (mi versión)`, base: id, fondo: JSON.parse(JSON.stringify(b.fondo)), estilo: JSON.parse(JSON.stringify(b.estilo)), piezas: b.piezas() };

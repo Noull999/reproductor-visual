@@ -72,7 +72,7 @@ const ESQUEMA = {
       "efecto": { "t": "enum", "n": "Tipo", "v": { "lineas": "Líneas de velocidad", "anillos": "Anillos", "destellos": "Destellos" }, "def": "lineas" },
       "sensibilidad": { "t": "num", "n": "Sensibilidad", "min": 20, "max": 200, "def": 100, "u": " %" },
       "color": { "t": "color", "n": "Color", "def": "", "vacio": true } } },
-    "winamp": { "etiqueta": "Reproductor Winamp (tus skins)", "rect": [33, 2, 34, 96], "ids": ["titulo", "artista", "bAnt", "bPlay", "bSig", "barra", "tiempo", "volumen", "lista"], "aspecto": 0.677, "opciones": {
+    "winamp": { "etiqueta": "Reproductor Winamp (tus skins)", "rect": [3, 13, 94, 72], "ids": ["titulo", "artista", "bAnt", "bPlay", "bSig", "barra", "tiempo", "volumen", "lista"], "aspecto": 2.371, "opciones": {
       "ambiente": { "t": "bool", "n": "Fondo con el arte del skin", "def": true } } },
     "cabeza": { "etiqueta": "Cabeza Y2K (con pantalla)", "rect": [28, 3, 44, 92], "ids": ["caratula", "titulo", "artista", "bAnt", "bPlay", "bSig", "barra", "tiempo"], "aspecto": 0.789, "opciones": {
       "cuerpo": { "t": "enum", "n": "Cuerpo", "v": { "Y2K": "Y2K translúcido", "Gel": "Gel brillante", "Propio": "El que subiste en Headspace" }, "def": "Y2K" },
