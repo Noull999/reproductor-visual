@@ -18,6 +18,9 @@ AUDIO = {".mp3", ".wav", ".flac", ".m4a", ".aac", ".ogg", ".opus", ".aiff", ".ai
 mimetypes.add_type("audio/flac", ".flac")
 mimetypes.add_type("audio/aiff", ".aiff")
 mimetypes.add_type("audio/aiff", ".aif")
+mimetypes.add_type("image/webp", ".webp")
+mimetypes.add_type("video/mp4", ".mp4")
+mimetypes.add_type("video/webm", ".webm")
 
 carpetas_permitidas: list[Path] = []
 CARPETA_IMAGENES = Path.home() / ".visualizador" / "imagenes"   # fondos que sube la persona
@@ -70,6 +73,10 @@ class Manejador(SimpleHTTPRequestHandler):
         p = permitido(ruta)
         if not p:
             return self.send_error(404)
+        self._enviar(p)
+
+    def _enviar(self, p):
+        """Manda un archivo admitiendo "Range" (adelantar música, videos de fondo)."""
         total = p.stat().st_size
         inicio, fin = 0, total - 1
         rango = self.headers.get("Range", "")
@@ -116,16 +123,11 @@ class Manejador(SimpleHTTPRequestHandler):
         self.wfile.write(datos)
 
     def _imagen(self, nombre):
-        """Imagen propia de la carpeta ~/.visualizador/imagenes (solo nombres simples, nada de rutas)."""
+        """Imagen (o video de fondo) propia de la carpeta ~/.visualizador/imagenes (solo nombres simples, nada de rutas)."""
         p = CARPETA_IMAGENES / nombre
-        if not nombre or nombre != Path(nombre).name or p.suffix.lower() != ".webp" or not p.is_file():
+        if not nombre or nombre != Path(nombre).name or p.suffix.lower() not in (".webp", ".mp4", ".webm") or not p.is_file():
             return self.send_error(404)
-        datos = p.read_bytes()
-        self.send_response(200)
-        self.send_header("Content-Type", "image/webp")
-        self.send_header("Content-Length", str(len(datos)))
-        self.end_headers()
-        self.wfile.write(datos)
+        self._enviar(p)
 
     def _caratula(self, ruta):
         p = permitido(ruta)

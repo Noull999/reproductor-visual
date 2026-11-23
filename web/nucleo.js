@@ -24,7 +24,10 @@ const R = (() => {
   if (!props.lista) document.body.classList.add("sin-lista");
   if (props.fondo) {
     document.body.classList.add("fondo-propio");
-    const f = document.createElement("div"); f.id = "fondo-propio"; f.style.backgroundImage = `url("${props.fondo}")`;
+    const video = /\.(mp4|webm)(&|$)/i.test(props.fondo);   // el fondo propio también puede ser un video en loop
+    const f = document.createElement(video ? "video" : "div"); f.id = "fondo-propio";
+    if (video) Object.assign(f, { src: props.fondo, muted: true, loop: true, autoplay: true, playsInline: true });
+    else f.style.backgroundImage = `url("${props.fondo}")`;
     document.body.appendChild(f);
   }
   const mudoForzado = q.get("mudo") === "1" || demo;   // vista previa: los visuales siguen el audio pero no suena nada
@@ -273,7 +276,7 @@ const R = (() => {
       .ocultable{transition:opacity .6s}
       body.inactivo{cursor:none}
       /* Propiedades: fondo propio (reemplaza lo marcado data-fondo) y lista oculta (data-prop="lista") */
-      #fondo-propio{position:fixed;inset:0;z-index:-1;background-size:cover;background-position:center;filter:brightness(.8)}
+      #fondo-propio{position:fixed;inset:0;z-index:-1;width:100%;height:100%;object-fit:cover;background-size:cover;background-position:center;filter:brightness(.8)}
       body.fondo-propio{background:transparent !important}   /* si no, el fondo del body tapa la imagen */
       body.fondo-propio [data-fondo]{display:none !important}
       body.sin-lista [data-prop="lista"]{display:none !important}

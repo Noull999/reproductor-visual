@@ -8,6 +8,7 @@ import json
 import logging
 import re
 import secrets
+import shutil
 import sys
 import threading
 import time
@@ -242,14 +243,26 @@ class Api:
     # ---- Imágenes propias (fondos) ----
     def imagen_elegir(self, plantilla: str, ranura: str, transparente: bool = False) -> dict:
         """Selector de archivos de Windows; la imagen se reduce a 1920 px (1600 si es un cuerpo) y se guarda
-        como WebP. Si `transparente`, conserva el fondo transparente del PNG (cuerpos de plantilla)."""
+        como WebP. Si `transparente`, conserva el fondo transparente del PNG (cuerpos de plantilla).
+        Un fondo también puede ser un video corto (mp4/webm): se copia tal cual."""
         if not (plantilla.isalnum() and ranura.isalnum()):
             return {"ok": False, "error": "Nombre no válido."}
         ventana = webview.windows[0] if webview.windows else None
-        elegida = ventana.create_file_dialog(webview.OPEN_DIALOG, file_types=("Imágenes (*.png;*.jpg;*.jpeg;*.webp;*.gif;*.bmp)",)) if ventana else None
+        tipos = ("Imágenes y videos (*.png;*.jpg;*.jpeg;*.webp;*.gif;*.bmp;*.mp4;*.webm)",) if ranura == "fondo" else ("Imágenes (*.png;*.jpg;*.jpeg;*.webp;*.gif;*.bmp)",)
+        elegida = ventana.create_file_dialog(webview.OPEN_DIALOG, file_types=tipos) if ventana else None
         if not elegida:
             return {"ok": True, "cancelado": True}
+        origen = Path(elegida[0])
+        if ranura == "fondo" and origen.suffix.lower() in (".mp4", ".webm"):
+            if origen.stat().st_size > 300 * 1024 * 1024:
+                return {"ok": False, "error": "El video pesa más de 300 MB: usa uno más corto o más liviano."}
+            servidor.CARPETA_IMAGENES.mkdir(parents=True, exist_ok=True)
+            self.imagen_quitar(plantilla, ranura)
+            nombre = f"{plantilla}-{ranura}{origen.suffix.lower()}"
+            shutil.copyfile(origen, servidor.CARPETA_IMAGENES / nombre)
+            return {"ok": True, "url": f"/imagen?n={nombre}&v={int(time.time())}"}
         try:
+            self.imagen_quitar(plantilla, ranura)
             from PIL import Image
             img = Image.open(elegida[0]).convert("RGBA" if transparente else "RGB")
             img.thumbnail((1600, 1600) if transparente else (1920, 1920))
@@ -263,7 +276,8 @@ class Api:
 
     def imagen_quitar(self, plantilla: str, ranura: str) -> dict:
         if plantilla.isalnum() and ranura.isalnum():
-            (servidor.CARPETA_IMAGENES / f"{plantilla}-{ranura}.webp").unlink(missing_ok=True)
+            for ext in (".webp", ".mp4", ".webm"):
+                (servidor.CARPETA_IMAGENES / f"{plantilla}-{ranura}{ext}").unlink(missing_ok=True)
         return {"ok": True}
 
     # ---- Compartir plantillas propias: un solo archivo .plantilla (configuración + imágenes, sin código) ----

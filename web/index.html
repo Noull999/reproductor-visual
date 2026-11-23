@@ -233,7 +233,7 @@ new ResizeObserver(() => { $("vistaViva").style.transform = `scale(${$("marco").
 const cambiar = (campo, val, rapido) => { props[campo] = val; Props.guardar(actual.id, props); refrescar(rapido); };
 
 const RANURAS = { headspace: [{ id: "cuerpo", nombre: "Cuerpo propio", transparente: true, zonas: true, ayuda: "PNG con fondo transparente, de frente" }] };
-const FONDO = { id: "fondo", nombre: "Fondo propio", ayuda: "Reemplaza el fondo animado" };
+const FONDO = { id: "fondo", nombre: "Fondo propio", ayuda: "Una imagen o un video corto (mp4) que reemplaza el fondo animado" };
 
 function fila(titulo, valor, texto, onInput, ctl) {
   const d = document.createElement("div"); d.className = "ctl";
@@ -288,7 +288,8 @@ function pintarProps() {
   [...(RANURAS[actual.id] || []), FONDO].forEach(x => {
     const url = x.id === "fondo" ? props.fondo : (props.cuerpo && props.cuerpo.imagen);
     const d = document.createElement("div"); d.className = "ranura";
-    d.innerHTML = `<div class="mini" style="background-image:${url ? `url('${url}')` : "none"}"></div><div class="nombre">${x.nombre}<small>${url ? "Tu imagen" : x.ayuda}</small></div><div class="botones"></div>`;
+    const video = /\.(mp4|webm)(&|$)/i.test(url || "");
+    d.innerHTML = `<div class="mini" style="background-image:${url && !video ? `url('${url}')` : "none"}">${video ? "🎞" : ""}</div><div class="nombre">${x.nombre}<small>${url ? (video ? "Tu video" : "Tu imagen") : x.ayuda}</small></div><div class="botones"></div>`;
     const bs = d.querySelector(".botones"), boton = (t, f) => { const b = document.createElement("button"); b.textContent = t; b.onclick = f; bs.appendChild(b); };
     boton(url ? "Cambiar…" : "Elegir…", () => elegirImagen(x));
     if (url && x.zonas) boton("Ajustar zonas", abrirZonas);

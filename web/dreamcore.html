@@ -118,7 +118,11 @@ setTimeout(avisoAlAzar, 15000);
 
 // ---- Imagen propia (Biblioteca → Fondo propio): se anima en vez de la escena ----
 let propia = null;
-{ const url = Props.leer("dreamcore").fondo; if (url) { const im = new Image(); im.onload = () => { propia = im; }; im.src = url; } }
+{ const url = Props.leer("dreamcore").fondo;
+  if (url && /\.(mp4|webm)(&|$)/i.test(url)) {   // video en loop: se dibuja cuadro a cuadro con el mismo VHS encima
+    const v = Object.assign(document.createElement("video"), { src: url, muted: true, loop: true, autoplay: true, playsInline: true });
+    v.addEventListener("loadeddata", () => { propia = v; }); v.play().catch(() => {});
+  } else if (url) { const im = new Image(); im.onload = () => { propia = im; }; im.src = url; } }
 
 // ---- Lienzo: se dibuja chico (como un VHS) y se estira ----
 const ANCHO = 640, ALTO = 360, S = ANCHO / 1440;   // la escena está pensada en 1440×810
@@ -267,7 +271,7 @@ const VARIANTES = { "Damero": escena, "Backrooms": (t, b) => { g.save(); g.scale
 let variante = "Damero"; try { variante = localStorage.getItem("escena-dreamcore") || "Damero"; } catch (e) {}
 const dibujarEscena = VARIANTES[variante] || escena;
 function imagenPropia(t, bajo) {   // la imagen elegida, flotando: acercamiento lento, ondulación de sueño y pulso con el bajo
-  const z = 1.08 + Math.sin(t * .05) * .04 + bajo * .03, iw = propia.width, ih = propia.height, k = Math.max(ANCHO / iw, ALTO / ih) * z;
+  const iw = propia.videoWidth || propia.width, ih = propia.videoHeight || propia.height, z = 1.08 + Math.sin(t * .05) * .04 + bajo * .03, k = Math.max(ANCHO / iw, ALTO / ih) * z;
   const w = iw * k, h = ih * k, x0 = (ANCHO - w) / 2 + Math.sin(t * .07) * ANCHO * .02, y0 = (ALTO - h) / 2 + Math.cos(t * .05) * ALTO * .02;
   for (let y = 0; y < ALTO; y += 3) {   // franjas que ondulan
     const dx = Math.sin(y * .03 + t * 1.3) * (1.5 + bajo * 3);
