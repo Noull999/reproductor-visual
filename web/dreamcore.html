@@ -56,11 +56,12 @@
   .fila:hover:not(.sonando) { background: #dfe6f5; }
   .estado { display: flex; gap: 2px; margin: 2px; } .estado span { flex: 1; padding: 2px 4px; border: 1px solid; border-color: #808080 #fff #fff #808080; }
 
-  /* aviso que aparece solo de vez en cuando */
-  #aviso { width: 300px; display: none; transform: rotate(var(--giro, 1deg)); z-index: 10; }
-  #aviso.visible { display: block; }
-  #aviso p { margin: 14px 14px 10px; display: flex; gap: 12px; align-items: center; font-size: 13px; } #aviso p b { font-size: 28px; color: #c00; }
-  #aviso .btns { display: flex; gap: 10px; justify-content: center; padding-bottom: 10px; } #aviso .btns .bt95 { width: 76px; }
+  /* avisos que aparecen de repente (no se esconden con el modo solo visual: el susto es la gracia) */
+  .aviso { width: 300px; transform: rotate(var(--giro, 1deg)); z-index: 10; animation: aparece .12s steps(2); }
+  @keyframes aparece { from { opacity: 0; } }
+  .aviso p { margin: 14px 14px 10px; display: flex; gap: 12px; align-items: center; font-size: 13px; } .aviso p b { font-size: 28px; color: #c00; }
+  .aviso .btns { display: flex; gap: 10px; justify-content: center; padding-bottom: 10px; } .aviso .btns .bt95 { width: 76px; }
+  .aviso.virus .tb { background: linear-gradient(90deg, #7a0000, #d02020); }
   a.volver { background: #c3c3c3; color: #000; border: 2px solid; border-color: #fff #404040 #404040 #fff; border-radius: 0; font: 12px Tahoma, sans-serif; opacity: 1; }
 </style>
 </head>
@@ -69,8 +70,6 @@
 <div id="osd1" class="vhs">▶ PLAY</div>
 <div id="osd2" class="vhs">SP 0:00:00</div>
 <div id="osd3" class="vhs">AM 3:33<br>MAR. 14 1997</div>
-<div id="aviso" class="win ocultable"><div class="tb"><span id="avisoTit">no_despiertes.exe</span><i><b data-cerrar>✕</b></i></div>
-  <p><b>⚠</b><span id="avisoTxt"></span></p><div class="btns"><div class="bt95" data-cerrar>Sí</div><div class="bt95" data-cerrar>No</div></div></div>
 <div id="notas" class="win ocultable" data-prop="lista"><div class="tb">recuerdos.txt - Bloc de notas<i><b>_</b><b>□</b><b>✕</b></i></div>
   <div class="menu"><u>Archivo</u><u>Edición</u><u>Buscar</u><u>Ayuda</u></div>
   <div id="lista" class="hundido"></div><div class="estado"><span id="cuenta">0 recuerdos</span><span id="total"></span></div></div>
@@ -92,18 +91,30 @@ R.alCambiar(() => {
   $("total").textContent = R.fmt(R.pistas.reduce((s, p) => s + (p.duracion || 0), 0));
 });
 
-// ---- Avisos que aparecen solos ----
+// ---- Avisos que aparecen de repente. Algunos son "virus": cualquier botón abre dos más (como las bromas de los 2000) ----
 const AVISOS = [["no_despiertes.exe", "¿Recuerdas cómo llegaste aquí?"], ["aviso.exe", "¿Quieres despertar?"], ["sistema", "Tu existencia será borrada."],
   ["recuerdos.exe", "Este lugar te recuerda."], ["error", "No mires atrás."], ["puerta.exe", "La puerta ya estaba abierta."], ["????", "¿Me escuchas?"]];
-function aviso() {
-  const [t, m] = AVISOS[Math.floor(Math.random() * AVISOS.length)], a = $("aviso");
-  $("avisoTit").textContent = t; $("avisoTxt").textContent = m;
-  a.style.left = 20 + Math.random() * 40 + "vw"; a.style.top = 12 + Math.random() * 40 + "vh"; a.style.setProperty("--giro", (Math.random() * 4 - 2).toFixed(1) + "deg");
-  a.classList.add("visible");
-  setTimeout(aviso, 45000 + Math.random() * 45000);
+const VIRUS = [["¡¡GANADOR!!", "Eres el visitante 1.000.000. Haz clic para reclamar tu premio."], ["Antivirus", "Tu PC tiene 37 virus. ¿Limpiar ahora?"], ["sueños.exe", "sueños.exe dejó de funcionar. ¿Reintentar?"],
+  ["RAM gratis", "¿Descargar más RAM?"], ["recuerdos.exe", "Se encontraron 999 recuerdos. ¿Borrarlos?"], ["???", "¿Seguro que quieres despertar?"]];
+const MAX_VIRUS = 14;
+function crearAviso(virus, x, y) {
+  const [t, m] = (virus ? VIRUS : AVISOS)[Math.floor(Math.random() * (virus ? VIRUS : AVISOS).length)], a = document.createElement("div");
+  a.className = "win aviso" + (virus ? " virus" : "");
+  a.innerHTML = `<div class="tb"><span></span><i><b data-x>✕</b></i></div><p><b>${virus ? "☢" : "⚠"}</b><span></span></p><div class="btns"><div class="bt95">${virus ? "Aceptar" : "Sí"}</div><div class="bt95">${virus ? "Cancelar" : "No"}</div></div>`;
+  a.querySelector(".tb span").textContent = t; a.querySelector("p span").textContent = m;
+  a.style.left = (x ?? 15 + Math.random() * 45) + "vw"; a.style.top = (y ?? 10 + Math.random() * 45) + "vh"; a.style.setProperty("--giro", (Math.random() * 4 - 2).toFixed(1) + "deg");
+  a.querySelector("[data-x]").onclick = () => a.remove();
+  a.querySelectorAll(".bt95").forEach(b => b.onclick = () => {
+    a.remove();
+    if (!virus) return;
+    const x0 = parseFloat(a.style.left), y0 = parseFloat(a.style.top);   // se multiplican en cascada
+    for (let k = 0; k < 2 && document.querySelectorAll(".aviso.virus").length < MAX_VIRUS; k++) crearAviso(true, Math.min(70, Math.max(2, x0 + (k ? 4 : -3) + Math.random() * 3)), Math.min(70, Math.max(4, y0 + 5 + k * 3)));
+  });
+  document.body.appendChild(a);
+  setTimeout(() => a.remove(), virus ? 40000 : 15000);   // si nadie los toca, se van solos
 }
-document.querySelectorAll("[data-cerrar]").forEach(b => b.onclick = () => $("aviso").classList.remove("visible"));
-setTimeout(aviso, 20000);
+function avisoAlAzar() { crearAviso(Math.random() < .35); setTimeout(avisoAlAzar, 35000 + Math.random() * 40000); }
+setTimeout(avisoAlAzar, 15000);
 
 // ---- Imagen propia (Biblioteca → Fondo propio): se anima en vez de la escena ----
 let propia = null;
