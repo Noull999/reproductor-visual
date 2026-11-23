@@ -125,10 +125,11 @@ function ojo(x, y, r, t, fase) {   // ojo realista que parpadea y mira
   g.fillStyle = "rgba(255,255,255,.85)"; g.beginPath(); g.arc(mira - r * .12, -r * .14, r * .07, 0, 7); g.fill(); g.restore();
   g.strokeStyle = "#5a2a20"; g.lineWidth = 3; g.beginPath(); g.ellipse(0, 0, r, r * .6, 0, 0, 7); g.stroke(); g.restore();
 }
-function esfera(x, y, r) {   // esfera de cromo que refleja cielo y pasto
-  g.fillStyle = "rgba(0,0,0,.35)"; g.beginPath(); g.ellipse(x + r * .3, HOR + 60 + (y - 200) * .3, r * .9, r * .22, 0, 0, 7); g.fill();
+const NOCHE = ["#1a1d55", "#8a90e0", "#c9d8ff", "#3f9a2a", "#0f3a10"];
+function esfera(x, y, r, pal = NOCHE, sombra = HOR + 60 + (y - 200) * .3) {   // esfera de cromo que refleja lo que la rodea (pal: arriba → abajo)
+  if (sombra) { g.fillStyle = "rgba(0,0,0,.35)"; g.beginPath(); g.ellipse(x + r * .3, sombra, r * .9, r * .22, 0, 0, 7); g.fill(); }
   g.save(); g.beginPath(); g.arc(x, y, r, 0, 7); g.clip();
-  const q = g.createLinearGradient(0, y - r, 0, y + r); q.addColorStop(0, "#1a1d55"); q.addColorStop(.45, "#8a90e0"); q.addColorStop(.5, "#c9d8ff"); q.addColorStop(.53, "#3f9a2a"); q.addColorStop(1, "#0f3a10");
+  const q = g.createLinearGradient(0, y - r, 0, y + r); [0, .45, .5, .53, 1].forEach((k, i) => q.addColorStop(k, pal[i]));
   g.fillStyle = q; g.fillRect(x - r, y - r, r * 2, r * 2);
   const b = g.createRadialGradient(x - r * .4, y - r * .45, 0, x - r * .4, y - r * .45, r * .5); b.addColorStop(0, "rgba(255,255,255,.9)"); b.addColorStop(1, "rgba(255,255,255,0)"); g.fillStyle = b; g.fillRect(x - r, y - r, r * 2, r * 2);
   g.restore();
@@ -137,6 +138,15 @@ const ESTRELLAS = Array.from({ length: 70 }, () => ({ x: rnd() * 1440, y: rnd() 
 // esferas de cromo [x, y, radio, fase]: de las chicas y lejanas a las grandes y cercanas
 const ESFERAS = [[560, 300, 10, 4], [760, 330, 8, 5.2], [150, 360, 12, .7], [620, 90, 14, 2.6], [250, 210, 22, 2.1], [700, 170, 18, 3.9], [430, 230, 30, 1.3], [960, 130, 26, .2], [900, 380, 38, 3.4], [330, 300, 46, 0], [180, 450, 54, 4.6]];
 
+function hongo(x, y, t) {   // hongo rojo con un ojo; (x, y) = centro del sombrero, el pie llega a y + 100
+  const b = Math.sin(t * .9) * .03; g.save(); g.translate(x, y + 100); g.rotate(b); g.translate(-x, -y - 100);
+    g.fillStyle = "rgba(0,0,0,.35)"; g.beginPath(); g.ellipse(x + 10, y + 100, 90, 14, 0, 0, 7); g.fill();
+    const pie = g.createLinearGradient(x - 20, 0, x + 20, 0); pie.addColorStop(0, "#cfc6b0"); pie.addColorStop(1, "#8a7f68"); g.fillStyle = pie; g.fillRect(x - 18, y - 10, 36, 110);
+    const som = g.createRadialGradient(x - 30, y - 70, 10, x, y - 30, 130); som.addColorStop(0, "#ff5a3a"); som.addColorStop(1, "#8a1208"); g.fillStyle = som;
+    g.beginPath(); g.moveTo(x - 120, y); g.bezierCurveTo(x - 120, y - 120, x + 120, y - 120, x + 120, y); g.quadraticCurveTo(x, y + 18, x - 120, y); g.fill();
+    g.fillStyle = "#f5efe4"; [[-80, -30], [-55, -70], [-20, -88], [30, -86], [70, -62], [92, -25], [-95, -8], [55, -18]].forEach(([dx, dy]) => { g.beginPath(); g.ellipse(x + dx, y + dy, 8, 5, 0, 0, 7); g.fill(); });
+    ojo(x, y - 45, 46, t, 0); g.restore();
+}
 function escena(t, bajo) {
   g.save(); g.scale(S, S);
   const cielo = g.createLinearGradient(0, 0, 0, HOR); cielo.addColorStop(0, "#0a0b2e"); cielo.addColorStop(.7, "#2a2a7a"); cielo.addColorStop(1, "#5b5fb8");
@@ -152,14 +162,8 @@ function escena(t, bajo) {
   const bruma = g.createLinearGradient(0, HOR - 10, 0, HOR + 80); bruma.addColorStop(0, "rgba(91,95,184,1)"); bruma.addColorStop(1, "rgba(91,95,184,0)"); g.fillStyle = bruma; g.fillRect(0, HOR - 10, 1440, 90);
   // esferas que flotan
   ESFERAS.forEach(([x, y, r, f]) => esfera(x + Math.sin(t * .3 + f) * r * .5, y + Math.sin(t * .8 + f) * r * .3, r * (1 + bajo * .05)));
-  // hongo con ojo
-  { const x = 640, y = 560, b = Math.sin(t * .9) * .03; g.save(); g.translate(x, y + 100); g.rotate(b); g.translate(-x, -y - 100);
-    g.fillStyle = "rgba(0,0,0,.35)"; g.beginPath(); g.ellipse(x + 10, y + 100, 90, 14, 0, 0, 7); g.fill();
-    const pie = g.createLinearGradient(x - 20, 0, x + 20, 0); pie.addColorStop(0, "#cfc6b0"); pie.addColorStop(1, "#8a7f68"); g.fillStyle = pie; g.fillRect(x - 18, y - 10, 36, 110);
-    const som = g.createRadialGradient(x - 30, y - 70, 10, x, y - 30, 130); som.addColorStop(0, "#ff5a3a"); som.addColorStop(1, "#8a1208"); g.fillStyle = som;
-    g.beginPath(); g.moveTo(x - 120, y); g.bezierCurveTo(x - 120, y - 120, x + 120, y - 120, x + 120, y); g.quadraticCurveTo(x, y + 18, x - 120, y); g.fill();
-    g.fillStyle = "#f5efe4"; [[-80, -30], [-55, -70], [-20, -88], [30, -86], [70, -62], [92, -25], [-95, -8], [55, -18]].forEach(([dx, dy]) => { g.beginPath(); g.ellipse(x + dx, y + dy, 8, 5, 0, 0, 7); g.fill(); });
-    ojo(x, y - 45, 46, t, 0); g.restore(); }
+  hongo(640, 560, t);
+
   // girasol con ojo que se mece
   { const x = 1010, y = 510, b = Math.sin(t * .7 + 1) * .08;
     g.strokeStyle = "#2f6a1a"; g.lineWidth = 8; g.beginPath(); g.moveTo(x - 10, y + 200); g.quadraticCurveTo(x + 20, y + 120, x, y); g.stroke();
@@ -172,6 +176,85 @@ function escena(t, bajo) {
     for (let i = 0; i < 4; i++) g.fillText("¿me escuchas? ¿me escuchas? ¿me escu...".slice(0, 18 + ((t * 6 + i * 7) % 22)), 36, 140 + i * 32); }
   g.restore();
 }
+// ---- Backrooms: pasillo amarillo infinito con el damero verde de suelo, esferas flotando y el hongo que mira ----
+const AMARILLO = ["#6a5a1c", "#e8d890", "#fff6c8", "#7fc04a", "#1f5a16"];
+const ESF_PASILLO = [[-1.6, -.4, 3.5, .5, 0], [1.4, .2, 5, .6, 1.4], [-.4, -.9, 8, .45, 2.6], [1.8, -.6, 11, .55, 3.3], [-1.9, .3, 13, .6, 4.1], [.6, -.2, 16, .5, 5]];
+function escenaBackrooms(t, bajo) {
+  const VX = 640, VY = 380, F = 260, AN = 3, PISO = 1.6, TECHO = -1.6, FONDO = 20, LARGO = 1;
+  const P = (x, y, z) => [VX + x * F / z, VY + y * F / z];
+  const niebla = (c, z) => { const k = Math.min(1, z / FONDO) ** 1.2; return `rgb(${c.map((v, i) => Math.round(v + ([40, 34, 18][i] - v) * k)).join(",")})`; };
+  const quad = (a, b, c, d, col) => { g.fillStyle = col; g.beginPath(); g.moveTo(...a); g.lineTo(...b); g.lineTo(...c); g.lineTo(...d); g.fill(); };
+  g.fillStyle = "#28220f"; g.fillRect(0, 0, 1440, 810);
+  const corre = (t * .6) % (LARGO * 2);
+  for (let i = FONDO; i >= 0; i--) {
+    const z0 = Math.max(.6, i * LARGO - corre + .6), z1 = Math.min(FONDO, z0 + LARGO); if (z1 <= z0) continue;
+    const zm = (z0 + z1) / 2;
+    for (let c = -AN; c < AN; c += .5) quad(P(c, PISO, z0), P(c + .5, PISO, z0), P(c + .5, PISO, z1), P(c, PISO, z1), niebla(((c * 2 + i) & 1) ? [155, 226, 58] : [47, 143, 42], zm));
+    quad(P(-AN, TECHO, z0), P(AN, TECHO, z0), P(AN, TECHO, z1), P(-AN, TECHO, z1), niebla([214, 204, 150], zm));
+    if (i % 2 === 0) { const parpadea = i === 4 && (Math.sin(t * 31) > .7 || bajo > .9) ? .4 : 1;
+      quad(P(-.8, TECHO, zm - .3), P(.8, TECHO, zm - .3), P(.8, TECHO, zm + .3), P(-.8, TECHO, zm + .3), niebla([255, 252, 225].map(v => v * parpadea), zm * .7)); }
+    for (const l of [-1, 1]) {
+      quad(P(l * AN, TECHO, z0), P(l * AN, PISO, z0), P(l * AN, PISO, z1), P(l * AN, TECHO, z1), niebla(i % 2 ? [201, 180, 88] : [190, 170, 80], zm));
+      g.strokeStyle = niebla([120, 100, 40], zm); g.lineWidth = Math.max(1, 5 / zm); g.beginPath(); g.moveTo(...P(l * AN, PISO - .1, z0)); g.lineTo(...P(l * AN, PISO - .1, z1)); g.stroke();
+    }
+  }
+  const [px, py] = P(0, 0, FONDO); g.fillStyle = "rgba(255,240,170,.14)"; g.beginPath(); g.arc(px, py, 90 + bajo * 30, 0, 7); g.fill();   // luz al fondo del pasillo
+  // esferas flotando por el pasillo (se acercan con la cámara)
+  ESF_PASILLO.map(([x, y, z, r, f]) => [x, y, ((z - t * .6) % 18 + 18) % 18 + 1.2, r, f]).sort((a, b) => b[2] - a[2]).forEach(([x, y, z, r, f]) => {
+    const [sx, sy] = P(x + Math.sin(t * .4 + f) * .2, y + Math.sin(t * .9 + f) * .15, z), [, piso] = P(x, PISO, z);
+    esfera(sx, sy, r * F / z * (1 + bajo * .05), AMARILLO, piso);
+  });
+  // el hongo, parado en el pasillo, se acerca y se aleja despacio
+  { const z = 3.2 + Math.sin(t * .15) * .4, [hx, hy] = P(-1.1, PISO, z), k = .9 * 3.2 / z; g.save(); g.translate(hx, hy); g.scale(k, k); hongo(0, -100, t); g.restore(); }
+}
+// ---- Espacio: una isla de damero flotando entre estrellas, esferas que la orbitan y un querubín de porcelana con ojos vacíos ----
+const ESTRELLAS_E = Array.from({ length: 160 }, () => ({ x: rnd() * 1440, y: rnd() * 810, r: .6 + rnd() * 1.8, f: rnd() * 6 }));
+const ESPACIO = ["#05040f", "#3a2a6a", "#d8c8ff", "#3f9a2a", "#0f1a3a"];
+function querubin(x, y, t, bajo) {   // serafín de seis alas con un solo ojo al centro (aleteo lento y simétrico)
+  const aleteo = Math.sin(t * 1.3) * .07, ALAS = [[-1.05, 1.15], [-.28, 1], [.5, .9]];   // [ángulo, largo] de cada ala del lado derecho; el izquierdo es espejo
+  g.save(); g.translate(x, y); g.scale(1 + bajo * .04, 1 + bajo * .04);
+  for (const l of [-1, 1]) for (const [ang, largo] of ALAS) {
+    g.save(); g.scale(l, 1); g.rotate(ang + aleteo * (ang < 0 ? -1 : 1));
+    for (let k = 0; k < 7; k++) {   // plumas largas en abanico, de oscuro a ciruela, con una franja clara
+      const a = (k - 3) * .12, L = 215 * largo * (1 - Math.abs(k - 3) * .08);
+      g.save(); g.rotate(a);
+      const q = g.createLinearGradient(0, 0, L, 0); q.addColorStop(0, "#1c1218"); q.addColorStop(.5, "#4a3040"); q.addColorStop(1, "#7a5a6a");
+      g.fillStyle = q; g.beginPath(); g.ellipse(L / 2 + 20, 0, L / 2, 11 * largo, 0, 0, 7); g.fill();
+      g.fillStyle = "rgba(236,226,200,.75)"; g.beginPath(); g.ellipse(L * .5, 0, L * .1, 7 * largo, 0, 0, 7); g.fill();
+      g.strokeStyle = "rgba(20,12,16,.6)"; g.lineWidth = 1; g.beginPath(); g.moveTo(26, 0); g.lineTo(L + 14, 0); g.stroke();
+      g.restore();
+    }
+    g.restore();
+  }
+  const c = g.createRadialGradient(0, 0, 10, 0, 0, 62); c.addColorStop(0, "#5a4048"); c.addColorStop(1, "#1a1016");   // plumón del centro
+  g.fillStyle = c; g.beginPath(); g.arc(0, 0, 58, 0, 7); g.fill();
+  const brilloOjo = g.createRadialGradient(0, 0, 0, 0, 0, 90); brilloOjo.addColorStop(0, `rgba(255,235,190,${.25 + bajo * .3})`); brilloOjo.addColorStop(1, "rgba(255,235,190,0)");
+  g.fillStyle = brilloOjo; g.fillRect(-90, -90, 180, 180);
+  ojo(0, 0, 40, t, 1.1);
+  g.restore();
+}
+function escenaEspacio(t, bajo) {
+  const q = g.createLinearGradient(0, 0, 0, 810); q.addColorStop(0, "#05040f"); q.addColorStop(1, "#120a2a"); g.fillStyle = q; g.fillRect(0, 0, 1440, 810);
+  for (const [x, y, r, c] of [[300, 250, 420, "rgba(120,60,200,.28)"], [1100, 520, 380, "rgba(40,140,160,.22)"], [760, 120, 300, "rgba(200,80,160,.16)"]]) {
+    const n = g.createRadialGradient(x, y, 0, x, y, r); n.addColorStop(0, c); n.addColorStop(1, "rgba(0,0,0,0)"); g.fillStyle = n; g.fillRect(x - r, y - r, r * 2, r * 2); }
+  for (const e of ESTRELLAS_E) { g.fillStyle = `rgba(230,230,255,${.3 + .6 * Math.max(0, Math.sin(t * 1.5 + e.f))})`; g.fillRect(e.x, e.y, e.r, e.r); }
+  // planeta con anillo, abajo a la izquierda
+  { const p = g.createRadialGradient(150, 640, 20, 200, 700, 230); p.addColorStop(0, "#9be23a"); p.addColorStop(.6, "#2f8f2a"); p.addColorStop(1, "#06200a");
+    g.fillStyle = p; g.beginPath(); g.arc(200, 700, 210, 0, 7); g.fill(); g.strokeStyle = "rgba(200,190,255,.5)"; g.lineWidth = 8; g.beginPath(); g.ellipse(200, 700, 330, 50, -.25, Math.PI * .95, Math.PI * 2.05); g.stroke(); }
+  // isla de damero flotando, girando muy lento
+  const cx = 700, cy = 560 + Math.sin(t * .5) * 10, ang = t * .08, N = 8, L = 46;
+  const P = (i, j) => { const x = (i - N / 2) * L, y = (j - N / 2) * L, c = Math.cos(ang), s = Math.sin(ang); return [cx + (x * c - y * s), cy + (x * s + y * c) * .38]; };
+  const borde = [P(0, 0), P(N, 0), P(N, N), P(0, N)].sort((a, b) => a[1] - b[1]);
+  g.fillStyle = "#14320f"; [P(0, N), P(N, N), P(N, 0), P(0, 0)].forEach(([x, y], k, a) => { const [x2, y2] = a[(k + 1) % 4]; g.beginPath(); g.moveTo(x, y); g.lineTo(x2, y2); g.lineTo(x2, y2 + 40); g.lineTo(x, y + 40); g.fill(); });
+  for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) { g.fillStyle = (i + j) % 2 ? "#9be23a" : "#2f8f2a"; g.beginPath(); g.moveTo(...P(i, j)); g.lineTo(...P(i + 1, j)); g.lineTo(...P(i + 1, j + 1)); g.lineTo(...P(i, j + 1)); g.fill(); }
+  // esferas en órbita: las de atrás antes de la isla no hacen falta; se dibujan por profundidad
+  const orb = [0, 1, 2, 3, 4, 5].map(k => { const a = t * .35 + k * Math.PI / 3, rx = 330 + (k % 2) * 60; return [cx + Math.cos(a) * rx, cy - 120 + Math.sin(a) * rx * .3 - (k % 3) * 40, 22 + (k % 3) * 12, Math.sin(a)]; });
+  orb.sort((a, b) => a[3] - b[3]).forEach(([x, y, r, d]) => esfera(x, y, r * (1 + d * .15) * (1 + bajo * .05), ESPACIO, null));
+  querubin(820, 285 + Math.sin(t * .7) * 16, t, bajo);
+}
+const VARIANTES = { "Damero": escena, "Backrooms": (t, b) => { g.save(); g.scale(S, S); escenaBackrooms(t, b); g.restore(); }, "Espacio": (t, b) => { g.save(); g.scale(S, S); escenaEspacio(t, b); g.restore(); } };
+let variante = "Damero"; try { variante = localStorage.getItem("escena-dreamcore") || "Damero"; } catch (e) {}
+const dibujarEscena = VARIANTES[variante] || escena;
 function imagenPropia(t, bajo) {   // la imagen elegida, flotando: acercamiento lento, ondulación de sueño y pulso con el bajo
   const z = 1.08 + Math.sin(t * .05) * .04 + bajo * .03, iw = propia.width, ih = propia.height, k = Math.max(ANCHO / iw, ALTO / ih) * z;
   const w = iw * k, h = ih * k, x0 = (ANCHO - w) / 2 + Math.sin(t * .07) * ANCHO * .02, y0 = (ALTO - h) / 2 + Math.cos(t * .05) * ALTO * .02;
@@ -205,7 +288,7 @@ R.cadaCuadro((t) => {
   golpe = Math.max(0, golpe - .12);
   raiz.setProperty("--p", (R.progreso() * 100).toFixed(2) + "%");
   const s = Math.floor(R.tiempoActual()); $("osd2").textContent = `SP ${Math.floor(s / 3600)}:${String(Math.floor(s / 60) % 60).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
-  if (propia) imagenPropia(t, suave); else escena(t, suave);
+  if (propia) imagenPropia(t, suave); else dibujarEscena(t, suave);
   if (SUCIO > 0) vhs(t, suave);
   if (cv.width !== innerWidth || cv.height !== innerHeight) { cv.width = innerWidth; cv.height = innerHeight; }
   o.imageSmoothingEnabled = true; o.drawImage(chico, 0, 0, cv.width, cv.height);
