@@ -155,9 +155,26 @@ const R = (() => {
     }
     icono(e.sonando);
   }
+  // Si Windows dice que suena música pero la captura recibe silencio exacto, casi siempre es la salida silenciada
+  // (con la salida en silencio, Windows también entrega silencio a la captura) o música por otra salida.
+  let sinSenalDesde = 0, avisoAudio = null;
+  function avisarSinSenal(hay, dispositivo) {
+    if (!hay) { sinSenalDesde = 0; if (avisoAudio) avisoAudio.hidden = true; return; }
+    if (!sinSenalDesde) sinSenalDesde = performance.now();
+    if (performance.now() - sinSenalDesde < 6000) return;
+    if (!avisoAudio) {
+      avisoAudio = document.createElement("div");
+      avisoAudio.style.cssText = "position:fixed;left:50%;top:12px;transform:translateX(-50%);z-index:9999;max-width:min(640px,90vw);padding:9px 14px;border-radius:8px;" +
+        "font:13px system-ui,sans-serif;color:#fff;background:rgba(150,40,20,.92);border:1px solid rgba(255,255,255,.4);box-shadow:0 4px 16px rgba(0,0,0,.5);text-align:center;pointer-events:none";
+      document.body.appendChild(avisoAudio);
+    }
+    avisoAudio.textContent = `Suena música pero no llega audio a los visuales. Revisa que la salida «${dispositivo || "de Windows"}» no esté silenciada y que sea por donde escuchas.`;
+    avisoAudio.hidden = false;
+  }
   async function escucharPc() {
     const r = await api().pc_espectro();
     pcEspectro = Uint8Array.from(r.espectro);
+    avisarSinSenal(pcEstado.sonando && !pcEspectro.some(v => v > 0), r.dispositivo);
     setTimeout(escucharPc, 33);
   }
   const pcPosicion = () => pcEstado.posicion + (pcEstado.sonando ? (performance.now() - pcVisto) / 1000 : 0);
