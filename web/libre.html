@@ -215,8 +215,9 @@
   body[data-panel=terminal] #lista { font-size: calc(19px * var(--tam, 1)); font-family: "VT323", monospace; }
   body[data-panel=terminal] .fila { border-radius: 0; opacity: .88; } body[data-panel=terminal] .fila img { filter: grayscale(1) contrast(1.15); image-rendering: pixelated; border-radius: 0; }
   body[data-panel=terminal] .fila.sonando { background: var(--acento); color: #00140a; opacity: 1; font-weight: 400; } body[data-panel=terminal] .fila.sonando .nombre::before { content: "> "; }
-  body[data-panel=terminal] .cwrap { background: var(--acento); }   /* la carátula en el color de la plantilla (duotono) */
-  body[data-panel=terminal] .cwrap > img { filter: grayscale(1) contrast(1.2) brightness(1.08); mix-blend-mode: multiply; }
+  body[data-panel=terminal] .cwrap.asc { background: color-mix(in srgb, var(--acento) 6%, #000); }
+  body[data-panel=terminal] .cwrap:not(.asc) { background: var(--acento); }   /* la carátula en el color de la plantilla (duotono) */
+  body[data-panel=terminal] .cwrap:not(.asc) > img { filter: grayscale(1) contrast(1.2) brightness(1.08); mix-blend-mode: multiply; }
   .barra-ascii { width: 100%; display: flex; align-items: center; cursor: pointer; white-space: pre; font: 400 min(92cqh, 3cqw) "VT323", monospace; color: var(--acento); text-shadow: 0 0 9px color-mix(in srgb, var(--acento) 50%, transparent); }
   /* ---- Acabado del fondo ---- */
   #fondoL.ac-cine::after, #fondoL.ac-vhs::after, #fondoL.ac-sueno::after { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 5; }
@@ -553,10 +554,36 @@ function efecto(c, p) {
 // ---- Carátula con efectos ----
 function caratula(p) {
   const forma = val(p, "forma"), efecto = val(p, "efecto"), d = document.createElement("div");
-  d.className = `cwrap f-${forma}${val(p, "borde") ? " borde" : ""}${efecto === "bn" ? " bn" : ""}`;
+  d.className = `cwrap f-${forma}${val(p, "borde") ? " borde" : ""}${efecto === "bn" ? " bn" : ""}${efecto === "ascii" ? " asc" : ""}`;
   const rot = val(p, "inclinacion"); if (rot) d.style.transform = `rotate(${rot}deg)`;
   d.innerHTML = '<img id="caratula" alt="">';
   const img = d.firstChild; img.onerror = () => { img.style.visibility = "hidden"; }; img.onload = () => { img.style.visibility = "visible"; };
+  if (efecto === "ascii") {   // la carátula hecha de caracteres del color del acento; brilla con el bajo y se rehace en cada tema
+    const c = document.createElement("canvas"); c.width = c.height = 420; d.appendChild(c); img.style.display = "none";
+    const g = c.getContext("2d"), RAMPA = " .:-=+*#%@"; let grilla = null, cols = 0, filas = 0, cw = 6.5, ch = 14, ultimo = 0;
+    const fuente = '15px "VT323", "Cascadia Mono", Consolas, monospace', preparar = () => { g.font = fuente; cw = g.measureText("M").width || 6.5; filas = Math.floor(420 / ch); cols = Math.floor(420 / cw); };
+    if (document.fonts && document.fonts.load) document.fonts.load('15px "VT323"').then(preparar).catch(() => {}); preparar();
+    R.alCambiar((q) => cargar(q.caratula, (i) => {
+      if (!i) { grilla = null; img.style.display = ""; return; }
+      try {
+        preparar(); const m = document.createElement("canvas"); m.width = cols; m.height = filas; const mg = m.getContext("2d"); mg.drawImage(i, 0, 0, cols, filas);   // se estira a la cuadrícula: cada celda es más alta que ancha, así la imagen no se deforma
+        const px = mg.getImageData(0, 0, cols, filas).data, lum = new Float32Array(cols * filas); let mn = 1, mx = 0;
+        for (let k = 0; k < lum.length; k++) { const l = (px[k * 4] * .3 + px[k * 4 + 1] * .59 + px[k * 4 + 2] * .11) / 255; lum[k] = l; if (l < mn) mn = l; if (l > mx) mx = l; }
+        for (let k = 0; k < lum.length; k++) lum[k] = (lum[k] - mn) / Math.max(.15, mx - mn);   // se estira el contraste para que siempre se vea
+        grilla = lum; img.style.display = "none";
+      } catch (e) { grilla = null; img.style.display = ""; }   // imagen de otro origen que no se puede leer: se muestra normal
+    }));
+    R.cadaCuadro((t) => {
+      if (!grilla || t - ultimo < 1 / 20) return; ultimo = t;
+      const bajo = Math.min(1, R.energia(R.espectro(), 1, 8) * 1.2), gan = .78 + bajo * .5, cubos = [[], [], [], [], []];
+      g.clearRect(0, 0, 420, 420); g.font = fuente; g.textBaseline = "top";
+      for (let r = 0; r < filas; r++) for (let k = 0; k < cols; k++) {
+        const v = Math.min(1.15, Math.pow(grilla[r * cols + k], 1.15) * gan + (Math.random() - .5) * .05), idx = Math.min(RAMPA.length - 1, Math.floor(v * (RAMPA.length - 1) + .35));
+        if (idx > 0) cubos[Math.min(4, Math.floor(v * 4.6))].push(k * cw, r * ch, RAMPA[idx]);
+      }
+      cubos.forEach((q, nv) => { g.fillStyle = nv === 4 ? "#e8fff0" : `rgba(${acento},${.32 + nv * .17})`; for (let n = 0; n < q.length; n += 3) g.fillText(q[n + 2], q[n], q[n + 1]); });
+    });
+  }
   if (efecto === "pixelada" || efecto === "duotono") {
     const c = document.createElement("canvas"); c.width = c.height = 240; d.appendChild(c); img.style.display = "none";
     R.alCambiar((q) => cargar(q.caratula, (i) => {

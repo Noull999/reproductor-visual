@@ -90,7 +90,7 @@ const Propias = (() => {
   INCLUIDAS.ascii = { nombre: "ASCII", reglas: { requeridas: ["titulo", "botones", "barra"], nota: COMUN },
       fondo: { tipo: "ascii", color: "#020503", brillo: 100, cambio: 26, eventos: true, acabado: "vhs", golpe: "" }, estilo: { panel: "terminal", acento: "#3dff7a", fuente: "VT323" },
       colores: [["Verde", "#3dff7a"], ["Ámbar", "#ffb000"], ["Blanco", "#e6eef0"], ["Magenta", "#ff3fd8"], ["Cian", "#37e6ff"]],
-      piezas: () => armar([["caratula", [3, 8, 21, 37], { forma: "cuadrada", borde: true }],
+      piezas: () => armar([["caratula", [3, 8, 21, 37], { forma: "cuadrada", efecto: "ascii", borde: true }],
         ["panel", [27, 8, 44, 40], {}],
         ["titulo", [29.5, 11, 39, 8], { fuente: "VT323" }], ["artista", [29.5, 19.5, 39, 5], { fuente: "VT323" }],
         ["botones", [29.5, 28, 26, 8], {}], ["tiempo", [57, 29, 12, 5], { fuente: "VT323" }],

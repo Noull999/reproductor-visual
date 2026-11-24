@@ -39,7 +39,7 @@ const ESQUEMA = {
       "espejo": { "t": "bool", "n": "Reflejar hacia arriba", "def": false } } },
     "caratula": { "etiqueta": "Carátula", "rect": [6, 16, 20, 36], "ids": ["caratula"], "opciones": {
       "forma": { "t": "enum", "n": "Forma", "v": { "cuadrada": "Cuadrada", "redondeada": "Redondeada", "circulo": "Círculo", "vinilo": "Vinilo (gira)", "burbuja": "Burbuja de vidrio (flota)" }, "def": "redondeada" },
-      "efecto": { "t": "enum", "n": "Efecto", "v": { "normal": "Normal", "duotono": "Duotono", "pixelada": "Pixelada", "bn": "Blanco y negro" }, "def": "normal" },
+      "efecto": { "t": "enum", "n": "Efecto", "v": { "normal": "Normal", "duotono": "Duotono", "pixelada": "Pixelada", "bn": "Blanco y negro", "ascii": "ASCII (hecha de caracteres)" }, "def": "normal" },
       "inclinacion": { "t": "num", "n": "Inclinación", "min": -20, "max": 20, "def": 0, "u": "°" },
       "borde": { "t": "bool", "n": "Borde del color de acento", "def": false } } },
     "titulo": { "etiqueta": "Título", "rect": [30, 62, 40, 6], "ids": ["titulo"], "opciones": {
