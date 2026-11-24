@@ -1,6 +1,6 @@
 // MilkDrop (los visuales de Winamp) con Butterchurn (MIT, Jordan Berg; ver vendor/LICENSE-butterchurn.txt).
 // Se dibuja con WebGL2 y recibe la onda de nuestro propio analizador (R.ondaAudio), así que no toca el audio de la app.
-// Las librerías (~850 KB) solo se cargan cuando una plantilla usa este fondo.
+// Las librerías (~2,7 MB) solo se cargan cuando una plantilla usa este fondo.
 //   Milkdrop.soportado()                       ¿hay WebGL2?
 //   Milkdrop.montar(lienzo, { cambio, velocidad, tam }) → Promise<{ siguiente }>
 //     cambio: segundos entre un visual y otro · velocidad: 0.2-1.5 (1 = la del visual original) · tam: () => [ancho, alto] fijo (si no, la pantalla)
@@ -9,10 +9,13 @@ const Milkdrop = (() => {
   const soportado = () => { try { return !!document.createElement("canvas").getContext("webgl2"); } catch (e) { return false; } };
   const cargar = (src) => new Promise((ok, no) => { const s = document.createElement("script"); s.src = src; s.onload = ok; s.onerror = () => no(new Error("No se pudo cargar " + src)); document.head.appendChild(s); });
   let listas = null;
-  const librerias = () => listas || (listas = Promise.all([cargar("vendor/butterchurn.min.js"), cargar("vendor/butterchurn-presets.min.js")]).then(() => {
-    const b = window.butterchurn && (window.butterchurn.default || window.butterchurn), p = window.butterchurnPresets && (window.butterchurnPresets.getPresets ? window.butterchurnPresets : window.butterchurnPresets.default);
-    if (!b || !b.createVisualizer || !p || !p.getPresets) throw new Error("MilkDrop no cargó bien.");
-    return { b, presets: p.getPresets() };
+  // 395 visuales distintos: el paquete principal (100) y los extra (146 + 122 + 87, con algunos repetidos), todos MIT. Si un extra no carga, se sigue con los demás.
+  const PAQUETES = [["butterchurn-presets", "butterchurnPresets"], ["butterchurn-presets-extra", "butterchurnPresetsExtra"], ["butterchurn-presets-extra2", "butterchurnPresetsExtra2"], ["butterchurn-presets-md1", "butterchurnPresetsMD1"]];
+  const librerias = () => listas || (listas = Promise.all([cargar("vendor/butterchurn.min.js"), ...PAQUETES.map(([f]) => cargar(`vendor/${f}.min.js`).catch(() => null))]).then(() => {
+    const b = window.butterchurn && (window.butterchurn.default || window.butterchurn), presets = {};
+    for (const [, g] of PAQUETES) { const p = window[g] && (window[g].getPresets ? window[g] : window[g].default); if (p && p.getPresets) Object.assign(presets, p.getPresets()); }
+    if (!b || !b.createVisualizer || !Object.keys(presets).length) throw new Error("MilkDrop no cargó bien.");
+    return { b, presets };
   }));
 
   async function montar(lienzo, op = {}) {
