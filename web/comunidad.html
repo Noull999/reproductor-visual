@@ -81,7 +81,7 @@ function pintar() {
   if (!v.length) return vacio(todas.length ? "Nada coincide con esa búsqueda." : "Todavía no hay plantillas en la comunidad. ¡Sé la primera persona en compartir una!");
   v.forEach(p => {   // todo el texto entra con textContent: nada de lo que viene de internet se interpreta como HTML
     const t = document.createElement("article"); t.className = "tarjeta vidrio";
-    const img = document.createElement("img"); img.alt = ""; img.loading = "lazy"; img.src = `${base}/previas/${p.id}.webp`; img.onerror = () => { img.style.visibility = "hidden"; };
+    const img = document.createElement("img"); img.alt = ""; img.loading = "lazy"; img.src = p.previa; img.onerror = () => { img.style.visibility = "hidden"; };
     const c = document.createElement("div"); c.className = "cuerpo";
     const h = document.createElement("h3"); h.textContent = p.nombre;
     const a = document.createElement("span"); a.className = "autor"; a.textContent = `por ${p.autor}${p.github ? ` · @${p.github}` : ""}`;
@@ -96,7 +96,7 @@ function pintar() {
 async function instalar(p, boton) {
   boton.disabled = true; boton.textContent = "Instalando…";
   let r;
-  try { r = await api().comunidad_instalar(p.id); } catch (e) { r = { ok: false, error: "No se pudo instalar." }; }
+  try { r = await api().comunidad_instalar(p.id, p.fuente); } catch (e) { r = { ok: false, error: "No se pudo instalar." }; }
   if (!r.ok) { boton.disabled = false; boton.textContent = "Instalar"; return aviso(r.error); }
   try {
     if (r.ajustes) Props.aplicarAjustes(r.ajustes);
@@ -114,7 +114,7 @@ async function cargar() {
   todas = r.plantillas; base = r.base; pintar();
 }
 $("buscar").addEventListener("input", pintar);
-$("compartir").onclick = () => api().comunidad_abrir_guia();
+$("compartir").onclick = () => api().comunidad_abrir_envio();
 if (window.pywebview && window.pywebview.api) cargar(); else window.addEventListener("pywebviewready", cargar);
 </script>
 </body>

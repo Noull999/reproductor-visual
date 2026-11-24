@@ -145,7 +145,7 @@
         <a class="enlace" href="guia.html">Guía de imágenes: medidas y qué pedirle al generador →</a>
         <div id="msgProps"></div>
       </div>
-      <div class="acciones"><button class="btn btn-principal" id="usar">Usar esta</button><button class="suave" id="editar" hidden>Editar</button><button class="suave" id="hacerEditable" title="Crea una copia tuya hecha de piezas, con las reglas de esta plantilla">Editar esta plantilla</button><button class="suave" id="exportar" hidden>Exportar</button><button class="suave" id="exportarAjustes" title="Guarda tu variante, tu color y tus ajustes en un archivo para compartirlos">Exportar mis ajustes</button><button class="suave" id="restablecer">Restablecer</button></div>
+      <div class="acciones"><button class="btn btn-principal" id="usar">Usar esta</button><button class="suave" id="editar" hidden>Editar</button><button class="suave" id="hacerEditable" title="Crea una copia tuya hecha de piezas, con las reglas de esta plantilla">Editar esta plantilla</button><button class="suave" id="exportar" hidden>Exportar</button><button class="suave" id="exportarAjustes" title="Guarda tu variante, tu color y tus ajustes en un archivo para compartirlos">Exportar mis ajustes</button><button class="suave" id="compartirComunidad" title="Prepara tu archivo y la captura, y abre la web de la comunidad para enviarlos">Compartir en la comunidad</button><button class="suave" id="restablecer">Restablecer</button></div>
     </section>
   </main>
 </div>
@@ -389,14 +389,38 @@ $("exportar").onclick = async () => {
   if (!r.cancelado) mensaje("Archivo guardado: se puede compartir tal cual.");
 };
 // Los ajustes de una plantilla incluida: variante, color propio, controles, fondo y cuerpo propios (el archivo se valida en Python)
-$("exportarAjustes").onclick = async () => {
+function datosAjustes() {
   const x = elegida[actual.id], p = props;
-  const datos = { plantilla: actual.id, variante: x ? actual.guardar(x) : {},
+  return { plantilla: actual.id, variante: x ? actual.guardar(x) : {},
     props: { intensidad: p.intensidad, velocidad: p.velocidad, lista: p.lista, soloVisual: p.soloVisual, colorLibre: p.colorLibre || "", extra: p.extra || {},
       fondo: p.fondo || "", cuerpo: p.cuerpo ? { imagen: p.cuerpo.imagen, zonas: p.cuerpo.zonas } : null } };
-  const r = await window.pywebview.api.ajustes_exportar(JSON.stringify(datos));
+}
+$("exportarAjustes").onclick = async () => {
+  const r = await window.pywebview.api.ajustes_exportar(JSON.stringify(datosAjustes()));
   if (!r.ok) return mensaje(r.error);
   if (!r.cancelado) mensaje("Archivo guardado: quien lo importe tendrá tus ajustes.");
+};
+// La captura sale de la vista previa en vivo (modo demo, sin música real): se juntan sus lienzos visibles en una imagen 16:9.
+function capturarVista() {
+  try {
+    const doc = $("vistaViva").contentDocument, win = doc.defaultView;
+    const lienzos = [...doc.querySelectorAll("canvas")].filter(c => c.width > 50 && c.height > 50 && win.getComputedStyle(c).display !== "none" && win.getComputedStyle(c).visibility !== "hidden");
+    if (!lienzos.length) return "";
+    const salida = document.createElement("canvas"); salida.width = 1280; salida.height = 720;
+    const g = salida.getContext("2d");
+    for (const c of lienzos) {
+      const esc = Math.max(1280 / c.width, 720 / c.height), w = c.width * esc, h = c.height * esc;
+      g.drawImage(c, (1280 - w) / 2, (720 - h) / 2, w, h);
+    }
+    return salida.toDataURL("image/webp", 0.9);
+  } catch (e) { return ""; }
+}
+$("compartirComunidad").onclick = async () => {
+  const propio = actual.propio;
+  const r = await window.pywebview.api.comunidad_preparar_envio(propio ? "plantilla" : "ajustes", propio ? JSON.stringify(actual.spec) : JSON.stringify(datosAjustes()), capturarVista());
+  if (!r.ok) return mensaje(r.error);
+  mensaje(r.captura ? "Listo: tu archivo y la captura están en la carpeta que se abrió. En la web, entra con GitHub y elígelos."
+                    : "Archivo listo en la carpeta que se abrió. No pude sacar la captura sola: súbela tú en la web.");
 };
 function aplicarAjustes(a) {
   Props.aplicarAjustes(a);

@@ -50,7 +50,8 @@ Cada plantilla se puede hacer de **piezas** que se arrastran y se estiran sobre 
 
 **Compartir y Comunidad**
 - Una plantilla hecha en el Editor se exporta como **un solo archivo `.plantilla`** (configuración + imágenes). Para las incluidas, **«Exportar mis ajustes»** guarda tu variante, tu color, tus controles y tus imágenes. Se importan con el mismo botón. Son solo datos: no llevan código ni tus cuentas.
-- La pestaña **Comunidad** lista, busca e instala las plantillas que comparte la gente, desde [reproductor-comunidad](https://github.com/Noull999/reproductor-comunidad). También hay una [galería web](https://reproductor-comunidad.vercel.app). Para compartir la tuya, mira [CONTRIBUIR.md](https://github.com/Noull999/reproductor-comunidad/blob/main/CONTRIBUIR.md).
+- La pestaña **Comunidad** lista, busca e instala las plantillas que comparte la gente: las del repositorio [reproductor-comunidad](https://github.com/Noull999/reproductor-comunidad) y las que se envían directo en la [web de la comunidad](https://reproductor-comunidad.vercel.app) (ya aprobadas).
+- **Compartir en la comunidad** (en la Biblioteca): prepara tu archivo y una captura de la vista previa, y abre la web para enviarlos entrando con GitHub. Una persona los revisa antes de publicarlos. También se puede por pull request: [CONTRIBUIR.md](https://github.com/Noull999/reproductor-comunidad/blob/main/CONTRIBUIR.md).
 
 ## Cómo instalarlo y usarlo
 
@@ -81,7 +82,7 @@ servidor.py         Servidor local 127.0.0.1 (páginas, música de tus carpetas,
 fuentes/            soundcloud · spotify · musica · pc (controles de Windows + captura del sonido)
 plantillas.py       Exportar/importar .plantilla con validación estricta
 ajustes.py          Exportar/importar los ajustes de una plantilla incluida (mismas reglas)
-comunidad.py        Catálogo de la comunidad: solo desde su repositorio, por HTTPS y con topes
+comunidad.py        Catálogo de la comunidad: solo desde su repositorio y su web, por HTTPS y con topes
 web/                Todas las pantallas (HTML/CSS/JS sin framework)
   nucleo.js           Reproductor compartido: fuentes, lista, volumen, solo visual, modo demo
   propiedades.js      Propiedades por plantilla (intensidad, velocidad, extras…)
@@ -107,7 +108,7 @@ tests/              Pruebas
 | Cuerpo propio de Headspace con editor de zonas | ✅ |
 | Editor de plantillas propias (crear, mezclar, skin libre) y las incluidas editables por piezas con sus reglas | ✅ |
 | Exportar e importar plantillas y ajustes | ✅ |
-| Comunidad: pestaña en la app, repositorio y galería web | ✅ Primera versión (envíos por pull request; subida directa con cuenta de GitHub en camino) |
+| Comunidad: pestaña en la app, repositorio y galería web | ✅ Envíos directo en la web (entrando con GitHub, con cola de aprobación) o por pull request |
 | Visuales con el sonido del PC | ⚠️ Funciona con sonido saliendo por el dispositivo por defecto; con la salida de Windows **silenciada** la captura recibe silencio (la app avisa); falta probarlo con audio real |
 | Nombre definitivo, ícono y ejecutable (.exe) | ⏳ Pendiente |
 | Versión Mac | ⏳ No planificada aún |
@@ -129,7 +130,7 @@ Detalle y decisiones en [PLAN.md](PLAN.md).
 - Los tokens y las claves se guardan en tu carpeta de usuario, nunca en el proyecto. El Client ID de Spotify que viene en el código es público por diseño (acceso con PKCE, sin secreto).
 - El servidor local solo escucha en `127.0.0.1` y solo entrega audio de las carpetas que elegiste y las imágenes de su propia carpeta; rechaza rutas con `..`.
 - Importar una plantilla ajena no ejecuta nada: se rechaza cualquier archivo con contenido inesperado, rutas raras, tamaños abusivos o imágenes falsas (hay pruebas para esos casos).
-- La pestaña Comunidad solo descarga de un repositorio fijo, por HTTPS, sin seguir redirecciones y con tope de tamaño; el catálogo no trae direcciones (la app las arma sola) y todo texto se muestra como texto. Lo que bajas pasa por los mismos revisores que importar un archivo.
+- La pestaña Comunidad solo descarga de dos direcciones fijas (el repositorio y la web de la comunidad), por HTTPS, sin seguir redirecciones y con tope de tamaño; el catálogo no trae direcciones (la app las arma sola) y todo texto se muestra como texto. Lo que bajas pasa por los mismos revisores que importar un archivo.
 - Lo que exportas nunca lleva tus cuentas, tokens ni nombres de canciones: solo una lista cerrada de ajustes y tus imágenes.
 
 ## Desarrollo

@@ -392,12 +392,51 @@ class Api:
         except comunidad.ErrorComunidad as e:
             return {"ok": False, "error": str(e)}
 
-    def comunidad_instalar(self, id_: str) -> dict:
-        """Baja una plantilla del catálogo y la valida igual que "Importar plantilla…"."""
+    def comunidad_instalar(self, id_: str, fuente: str = "repo") -> dict:
+        """Baja una plantilla del catálogo (del repositorio o de la web) y la valida igual que "Importar plantilla…"."""
         try:
-            return self._abrir_plantilla(comunidad.descargar(id_))
+            return self._abrir_plantilla(comunidad.descargar(id_, fuente))
         except (comunidad.ErrorComunidad, plantillas.PlantillaInvalida) as e:
             return {"ok": False, "error": str(e)}
+
+    def comunidad_preparar_envio(self, tipo: str, datos_json: str, captura: str = "") -> dict:
+        """Deja en ~/.visualizador/compartir/ el .plantilla y la captura (WebP) listos para subir, y abre la página de envío de la comunidad.
+        Nada se sube desde aquí: la persona entra con GitHub en la web y elige los dos archivos."""
+        import base64
+        import subprocess
+        import webbrowser
+        try:
+            if tipo == "ajustes":
+                datos, nombre = ajustes.empaquetar(datos_json, servidor.CARPETA_IMAGENES), json.loads(datos_json)["plantilla"] + "-ajustes"
+            elif tipo == "plantilla":
+                datos, nombre = plantillas.empaquetar(datos_json, servidor.CARPETA_IMAGENES), plantillas.validar(json.loads(datos_json), "exportar")["nombre"]
+            else:
+                return {"ok": False, "error": "Tipo de plantilla no válido."}
+            nombre = re.sub(r"[^a-z0-9]+", "-", nombre.lower()).strip("-")[:40] or "plantilla"
+            previa = None
+            if isinstance(captura, str) and captura:
+                try:
+                    previa = comunidad.previa_webp(base64.b64decode(captura.split(",")[-1]))
+                except (comunidad.ErrorComunidad, ValueError):
+                    previa = None   # sin captura automática: la persona sube la suya
+            carpeta = Path.home() / ".visualizador" / "compartir"
+            carpeta.mkdir(parents=True, exist_ok=True)
+            ruta = carpeta / f"{nombre}.plantilla"
+            ruta.write_bytes(datos)
+            if previa:
+                (carpeta / f"{nombre}.webp").write_bytes(previa)
+            webbrowser.open(comunidad.ENVIAR)   # dirección fija
+            subprocess.Popen(["explorer", "/select,", str(ruta)])
+            return {"ok": True, "carpeta": str(carpeta), "captura": bool(previa)}
+        except (plantillas.PlantillaInvalida, KeyError, ValueError) as e:
+            return {"ok": False, "error": str(e) or "La plantilla no es válida."}
+        except OSError as e:
+            return {"ok": False, "error": f"No se pudo preparar el envío: {e.strerror or e}"}
+
+    def comunidad_abrir_envio(self) -> dict:
+        import webbrowser
+        webbrowser.open(comunidad.ENVIAR)   # dirección fija: la página donde se envía una plantilla
+        return {"ok": True}
 
     def comunidad_abrir_guia(self) -> dict:
         import webbrowser

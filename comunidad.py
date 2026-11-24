@@ -1,8 +1,9 @@
 """
-Comunidad: lee el catálogo público de plantillas (github.com/Noull999/reproductor-comunidad) y baja las que
-la persona elige. Solo habla con ese repositorio, por HTTPS y sin seguir redirecciones; el catálogo no trae
-rutas ni direcciones (las URL se arman aquí a partir de un id validado) y lo que se baja pasa por los mismos
-revisores que "Importar plantilla…" (plantillas.py y ajustes.py).
+Comunidad: lee el catálogo público de plantillas y baja las que la persona elige. Hay dos fuentes fijas: el repositorio
+(github.com/Noull999/reproductor-comunidad) y la web de la comunidad (las que se envían directo y ya fueron aprobadas).
+Solo habla con esas dos direcciones, por HTTPS y sin seguir redirecciones; el catálogo no trae rutas ni direcciones (las URL
+se arman aquí a partir de un id validado) y lo que se baja pasa por los mismos revisores que "Importar plantilla…"
+(plantillas.py y ajustes.py).
 """
 import re
 
@@ -10,7 +11,11 @@ import requests
 
 REPO = "Noull999/reproductor-comunidad"
 BASE = f"https://raw.githubusercontent.com/{REPO}/main"
+WEB = "https://reproductor-comunidad.vercel.app"
 GUIA = f"https://github.com/{REPO}/blob/main/CONTRIBUIR.md"
+ENVIAR = f"{WEB}/enviar.html"
+FUENTES = ("repo", "web")
+MAX_PREVIA = 600 * 1024
 MAX_CATALOGO = 512 * 1024
 MAX_PLANTILLA = 10 * 1024 * 1024
 MAX_ENTRADAS = 500
@@ -49,7 +54,7 @@ def _texto(v, maximo):
     return "".join(c for c in v if c.isprintable())[:maximo].strip()
 
 
-def limpiar_catalogo(crudo) -> list:
+def limpiar_catalogo(crudo, fuente="repo") -> list:
     """Deja solo entradas bien formadas, con los campos y largos permitidos; lo raro se descarta."""
     if not isinstance(crudo, dict) or crudo.get("version") != 1 or not isinstance(crudo.get("plantillas"), list):
         raise ErrorComunidad("El catálogo de la comunidad no tiene el formato esperado.")
@@ -65,21 +70,72 @@ def limpiar_catalogo(crudo) -> list:
         gh = e.get("github")
         im = e.get("imagenes")
         im = {"origen": im["origen"], "detalle": _texto(im.get("detalle"), 120)} if isinstance(im, dict) and im.get("origen") in ORIGENES else None
-        salida.append({"id": e["id"], "nombre": nombre, "autor": autor, "descripcion": _texto(e.get("descripcion"), 200), "tipo": tipo, "base": base, "fecha": fecha,
+        salida.append({"id": e["id"], "fuente": fuente, "previa": url_previa(e["id"], fuente), "nombre": nombre, "autor": autor, "descripcion": _texto(e.get("descripcion"), 200), "tipo": tipo, "base": base, "fecha": fecha,
                        "github": gh if isinstance(gh, str) and _LOGIN.match(gh) else "", "imagenes": im})
     return salida
 
 
-def catalogo() -> list:
+def url_plantilla(id_: str, fuente: str) -> str:
+    return f"{BASE}/plantillas/{id_}.plantilla" if fuente == "repo" else f"{WEB}/api/archivo?tipo=plantilla&id={id_}"
+
+
+def url_previa(id_: str, fuente: str) -> str:
+    return f"{BASE}/previas/{id_}.webp" if fuente == "repo" else f"{WEB}/api/archivo?tipo=previa&id={id_}"
+
+
+def _leer(fuente: str) -> list:
     import json
+    url = f"{BASE}/catalogo.json" if fuente == "repo" else f"{WEB}/api/catalogo"
     try:
-        return limpiar_catalogo(json.loads(_pedir(f"{BASE}/catalogo.json", MAX_CATALOGO).decode("utf-8")))
+        return limpiar_catalogo(json.loads(_pedir(url, MAX_CATALOGO).decode("utf-8")), fuente)
     except (ValueError, UnicodeDecodeError) as e:
         raise ErrorComunidad("El catálogo de la comunidad no se pudo leer.") from e
 
 
-def descargar(id_: str) -> bytes:
+def catalogo() -> list:
+    """Las plantillas del repositorio y las de la web, juntas. Si una fuente falla, se muestra la otra; si fallan las dos, el error."""
+    listas, error = [], None
+    for fuente in FUENTES:
+        try:
+            listas.append(_leer(fuente))
+        except ErrorComunidad as e:
+            error = error or e
+    if not listas:
+        raise error
+    salida, vistos = [], set()
+    for e in (x for lista in listas for x in lista):
+        if e["id"] not in vistos:   # si un id se repitiera, gana el del repositorio
+            vistos.add(e["id"])
+            salida.append(e)
+    return salida
+
+
+def descargar(id_: str, fuente: str = "repo") -> bytes:
     """El archivo .plantilla de una entrada. Sin validar todavía: eso lo hace quien lo importa."""
-    if not isinstance(id_, str) or not _ID.match(id_) or len(id_) > 40:
+    if not isinstance(id_, str) or not _ID.match(id_) or len(id_) > 40 or fuente not in FUENTES:
         raise ErrorComunidad("Esa plantilla no es válida.")
-    return _pedir(f"{BASE}/plantillas/{id_}.plantilla", MAX_PLANTILLA)
+    return _pedir(url_plantilla(id_, fuente), MAX_PLANTILLA)
+
+
+def previa_webp(imagen: bytes) -> bytes:
+    """La captura de la vista previa lista para enviar: WebP de 1280×720 (recortada al centro si no es 16:9) y de menos de 600 KB."""
+    import io
+
+    from PIL import Image, UnidentifiedImageError
+    if not imagen or len(imagen) > 20 * 1024 * 1024:
+        raise ErrorComunidad("La captura no es válida.")
+    try:
+        with Image.open(io.BytesIO(imagen)) as im:
+            im = im.convert("RGB")
+            esc = max(1280 / im.width, 720 / im.height)
+            im = im.resize((max(1280, round(im.width * esc)), max(720, round(im.height * esc))), Image.LANCZOS)
+            izq, arr = (im.width - 1280) // 2, (im.height - 720) // 2
+            im = im.crop((izq, arr, izq + 1280, arr + 720))
+    except (UnidentifiedImageError, OSError) as e:
+        raise ErrorComunidad("La captura no es una imagen válida.") from e
+    for calidad in range(90, 20, -10):
+        b = io.BytesIO()
+        im.save(b, "WEBP", quality=calidad)
+        if b.tell() <= MAX_PREVIA:
+            return b.getvalue()
+    raise ErrorComunidad("La captura pesa demasiado incluso comprimida.")

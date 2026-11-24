@@ -97,3 +97,49 @@ def test_usuario_de_github_y_origen_de_las_imagenes():
     assert sal[0]["github"] == "ana-gh" and sal[0]["imagenes"] == {"origen": "ia", "detalle": "Higgsfield"}
     assert sal[1]["github"] == "" and sal[1]["imagenes"] is None      # lo raro se descarta, la entrada se conserva
     assert sal[2]["github"] == "" and sal[2]["imagenes"] is None
+
+
+def test_descargar_de_la_web_y_fuente_invalida(monkeypatch):
+    pedidas = []
+    monkeypatch.setattr(C, "_pedir", lambda url, maximo: pedidas.append(url) or b"zip")
+    assert C.descargar("menta-fresca-0a1b", "web") == b"zip"
+    assert pedidas == [f"{C.WEB}/api/archivo?tipo=plantilla&id=menta-fresca-0a1b"]
+    for mala in ["otra", "", None, "web/../x"]:
+        with pytest.raises(C.ErrorComunidad):
+            C.descargar("x", mala)
+    assert len(pedidas) == 1
+
+
+def test_catalogo_junta_repo_y_web_y_tolera_que_una_falle(monkeypatch):
+    def pedir(url, maximo):
+        if url.startswith(C.WEB):
+            return json.dumps(catalogo(entrada(id="de-la-web-0a1b"), entrada(id="liquido-atardecer"))).encode()
+        return json.dumps(catalogo(entrada())).encode()
+    monkeypatch.setattr(C, "_pedir", pedir)
+    sal = C.catalogo()
+    assert [(e["id"], e["fuente"]) for e in sal] == [("liquido-atardecer", "repo"), ("de-la-web-0a1b", "web")]   # el repetido no se duplica
+    assert sal[1]["previa"] == f"{C.WEB}/api/archivo?tipo=previa&id=de-la-web-0a1b" and sal[0]["previa"] == f"{C.BASE}/previas/liquido-atardecer.webp"
+
+    def web_caida(url, maximo):
+        if url.startswith(C.WEB):
+            raise C.ErrorComunidad("sin web")
+        return json.dumps(catalogo(entrada())).encode()
+    monkeypatch.setattr(C, "_pedir", web_caida)
+    assert [e["id"] for e in C.catalogo()] == ["liquido-atardecer"]
+    monkeypatch.setattr(C, "_pedir", lambda url, maximo: (_ for _ in ()).throw(C.ErrorComunidad("nada")))
+    with pytest.raises(C.ErrorComunidad):
+        C.catalogo()
+
+
+def test_previa_webp_convierte_recorta_y_rechaza_basura():
+    import io
+
+    from PIL import Image
+    b = io.BytesIO()
+    Image.effect_noise((1000, 1000), 80).convert("RGB").save(b, "PNG")   # cuadrada y con ruido: pesa, hay que recortarla y comprimirla
+    r = C.previa_webp(b.getvalue())
+    im = Image.open(io.BytesIO(r))
+    assert im.format == "WEBP" and im.size == (1280, 720) and len(r) <= C.MAX_PREVIA
+    for malo in [b"", b"no es una imagen", b"x" * (21 * 1024 * 1024)]:
+        with pytest.raises(C.ErrorComunidad):
+            C.previa_webp(malo)
