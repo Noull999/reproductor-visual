@@ -149,21 +149,27 @@
   @keyframes deriva { from { transform: scale(1) translate(0, 0); } to { transform: scale(1.08) translate(-2.5%, -1.5%); } }
   @media (prefers-reduced-motion: reduce) { #fondoL .deriva { animation: none; } }
 
-  /* ---- Piel Burbuja: vidrio transparente con reborde arcoíris que cambia de tono, brillo arriba a la izquierda y bordes translúcidos ---- */
-  .pz.piel-burbuja { --rad: 50%; --radp: 50%; --pt: #fff; --borde: 1px solid rgba(255,255,255,.6);
-    --bg: radial-gradient(ellipse at 50% 55%, rgba(255,255,255,0) 52%, rgba(200,240,255,.1) 70%, rgba(255,255,255,.28) 90%, rgba(255,255,255,.55) 99%), radial-gradient(ellipse at 50% 50%, rgba(120,190,255,.10), rgba(120,190,255,.04));
-    --sombra: 0 16px 40px rgba(0,40,100,.22), inset 0 0 28px rgba(255,255,255,.12); }
-  body .pz.piel-burbuja .caja, body .pz.piel-burbuja .bt { position: relative; -webkit-backdrop-filter: blur(3px) saturate(1.35); backdrop-filter: blur(3px) saturate(1.35); text-shadow: 0 1px 3px rgba(0,40,90,.65); }
-  body .pz.piel-burbuja .caja::before, body .pz.piel-burbuja .bt::before, .cwrap.f-burbuja::before {   /* reborde arcoíris (solo el anillo) */
-    content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 2; mix-blend-mode: screen; opacity: .75;
-    background: conic-gradient(from 30deg, #ff9de2, #9be7ff, #b8ff9e, #fff59d, #ffb3a7, #c9a8ff, #ff9de2);
-    -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 7px), #000 calc(100% - 2px)); mask: radial-gradient(farthest-side, transparent calc(100% - 7px), #000 calc(100% - 2px));
-    animation: tornasol 14s linear infinite; }
-  body .pz.piel-burbuja .caja::after, body .pz.piel-burbuja .bt::after, .cwrap.f-burbuja::after {   /* brillo de la burbuja */
-    content: ""; position: absolute; left: 14%; top: 8%; width: 30%; height: 18%; border-radius: 50%; pointer-events: none; z-index: 2;
-    background: radial-gradient(ellipse, rgba(255,255,255,.85), rgba(255,255,255,0) 70%); transform: rotate(-28deg); }
-  @keyframes tornasol { to { filter: hue-rotate(360deg); } }
-  body .pz.piel-burbuja .caja { padding: 16cqh 16cqw; }   /* en % del alto y del ancho de la burbuja: el contenido cabe dentro de la curva */                       /* la lista va en el rectángulo que cabe dentro de la burbuja */
+  /* ---- Piel Burbuja: pompa de jabón. Cuerpo transparente con sombreado interior, película arcoíris suave en el borde, reflejo de ventana
+         arriba a la izquierda, destello abajo a la derecha, y una forma que ondula un poco, como una burbuja de verdad ---- */
+  .pz.piel-burbuja { --rad: 50%; --radp: 50%; --pt: #fff; --borde: none; --sombra: none; --bg: none; }
+  body .pz.piel-burbuja .caja, body .pz.piel-burbuja .bt { position: relative; border: none; background: radial-gradient(ellipse farthest-side at 50% 50%, rgba(255,255,255,0) 54%, rgba(185,235,255,.10) 72%, rgba(255,255,255,.2) 90%, rgba(255,255,255,.46) 100%);
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.32), inset 0 0 34px rgba(255,255,255,.13), inset 0 -24px 44px rgba(40,150,230,.24), inset 12px 14px 34px rgba(255,255,255,.13), 0 26px 36px -22px rgba(0,50,110,.42);
+    -webkit-backdrop-filter: blur(1.5px) saturate(1.5) brightness(1.07); backdrop-filter: blur(1.5px) saturate(1.5) brightness(1.07); text-shadow: 0 1px 3px rgba(0,40,90,.65); }
+  body .pz.piel-burbuja .caja { border-radius: 50% 49% 51% 50% / 51% 50% 50% 49%; animation: ondular 11s ease-in-out infinite; }
+  @keyframes ondular { 0%, 100% { border-radius: 50% 49% 51% 50% / 51% 50% 50% 49%; } 50% { border-radius: 49% 51% 50% 50% / 50% 51% 49% 50%; } }
+  /* película arcoíris: un anillo ancho y difuminado que gira de tono despacio */
+  body .pz.piel-burbuja .caja::before, body .pz.piel-burbuja .bt::before, .cwrap.f-burbuja::before { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 2; mix-blend-mode: screen; opacity: .85;
+    background: conic-gradient(from 20deg, rgba(255,130,215,0), rgba(255,140,222,.8) 7%, rgba(130,232,255,.75) 17%, rgba(150,255,172,.65) 28%, rgba(255,242,130,.65) 39%, rgba(255,152,132,.7) 51%, rgba(190,140,255,.75) 63%, rgba(110,202,255,.75) 76%, rgba(255,140,222,.8) 91%, rgba(255,130,215,0));
+    -webkit-mask: radial-gradient(ellipse farthest-side at 50% 50%, transparent 78%, #000 93%, transparent 100%); mask: radial-gradient(ellipse farthest-side at 50% 50%, transparent 78%, #000 93%, transparent 100%);
+    filter: blur(.8px); animation: tornasol 18s linear infinite; }
+  @keyframes tornasol { from { filter: blur(.8px) hue-rotate(0deg); } to { filter: blur(.8px) hue-rotate(360deg); } }
+  /* reflejos: la ventana (un arco fino y dos manchas arriba a la izquierda) y un destello abajo a la derecha */
+  body .pz.piel-burbuja .caja::after, body .pz.piel-burbuja .bt::after, .cwrap.f-burbuja::after { content: ""; position: absolute; inset: 2.5%; border-radius: inherit; pointer-events: none; z-index: 3;
+    background: radial-gradient(ellipse 15% 9% at 25% 16%, rgba(255,255,255,.95), rgba(255,255,255,0)), radial-gradient(ellipse 5% 3.2% at 36% 10%, rgba(255,255,255,.9), rgba(255,255,255,0)),
+      radial-gradient(ellipse farthest-side at 50% 50%, transparent 90.5%, rgba(255,255,255,.9) 93%, transparent 96.5%), radial-gradient(ellipse 18% 9% at 76% 88%, rgba(215,246,255,.6), rgba(215,246,255,0));
+    -webkit-mask: linear-gradient(135deg, #000 0%, transparent 46%), linear-gradient(315deg, #000 0%, transparent 24%); mask: linear-gradient(135deg, #000 0%, transparent 46%), linear-gradient(315deg, #000 0%, transparent 24%); }
+  .cwrap.f-burbuja::before, .cwrap.f-burbuja::after { inset: auto; height: 100%; aspect-ratio: 1; border-radius: 50%; }
+  body .pz.piel-burbuja .caja { padding: 16cqh 16cqw; }   /* en % del alto y del ancho de la burbuja: el contenido cabe dentro de la curva */
   body .pz.piel-burbuja #lista { scrollbar-width: none; }
   body .pz.piel-burbuja .fila { border-radius: 999px; }
   body .pz.piel-burbuja .fila.sonando { background: linear-gradient(180deg, rgba(255,255,255,.55), rgba(160,225,255,.35) 50%, rgba(80,170,240,.4) 51%, rgba(170,230,255,.55)); color: #fff; box-shadow: inset 0 0 0 1px rgba(255,255,255,.7); }
@@ -173,13 +179,24 @@
   body .pz.piel-burbuja #volumen { background: linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,0) 55%), linear-gradient(90deg, #a9f0ff 0, var(--acento) var(--v), rgba(255,255,255,.12) var(--v)); }
   body .pz.piel-burbuja input[type=range]::-webkit-slider-thumb { width: 24px; height: 24px; border-radius: 50%; border: 1px solid rgba(255,255,255,.95); box-shadow: 0 3px 8px rgba(0,40,100,.4);
     background: radial-gradient(circle at 34% 28%, rgba(255,255,255,.95) 0 13%, transparent 22%), radial-gradient(circle, rgba(190,235,255,.3) 0 56%, transparent 66%), conic-gradient(from 30deg, #ff9de2, #9be7ff, #b8ff9e, #fff59d, #ffb3a7, #c9a8ff, #ff9de2); }
-  /* carátula en burbuja: la imagen redonda con el reborde y el brillo encima, flotando */
+  /* carátula en burbuja: la imagen redonda con la misma película y los mismos reflejos encima, flotando */
   .cwrap.f-burbuja { animation: flotar 7s ease-in-out infinite; } .cwrap.f-burbuja > * { border-radius: 50%; box-shadow: 0 16px 40px rgba(0,40,100,.3), inset 0 0 0 1px rgba(255,255,255,.6); }
   .cwrap.f-burbuja::before, .cwrap.f-burbuja::after { position: absolute; }
-  .cwrap.f-burbuja::before { inset: auto; height: 100%; aspect-ratio: 1; border-radius: 50%; }
-  .cwrap.f-burbuja::after { left: auto; top: auto; width: 34%; height: 18%; transform: translate(-48%, -150%) rotate(-28deg); }
   @keyframes flotar { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2.5%); } }
-  @media (prefers-reduced-motion: reduce) { .cwrap.f-burbuja, body .pz.piel-burbuja .caja::before, body .pz.piel-burbuja .bt::before, .cwrap.f-burbuja::before { animation: none; } }
+  @media (prefers-reduced-motion: reduce) { .cwrap.f-burbuja, body .pz.piel-burbuja .caja, body .pz.piel-burbuja .caja::before, body .pz.piel-burbuja .bt::before, .cwrap.f-burbuja::before { animation: none; } }
+  /* texto burbuja: gel/vidrio brillante, reflejo blanco arriba, cuerpo celeste translúcido, un toque tornasol y borde claro */
+  .burbujaTxt, body .pz.piel-burbuja .fila .nombre, body .pz.piel-burbuja .fila .dur, body .pz.piel-burbuja .fila .n {
+    color: transparent !important; -webkit-background-clip: text; background-clip: text; text-shadow: none !important;
+    background-image: linear-gradient(90deg, rgba(255,157,226,.22), rgba(155,231,255,0) 50%, rgba(184,255,158,.22)),
+      linear-gradient(180deg, #fff 0%, rgba(255,255,255,.96) 30%, rgba(125,208,255,.95) 46%, rgba(20,112,218,.98) 72%, rgba(60,160,240,.98) 88%, rgba(205,245,255,.98) 100%);
+    -webkit-text-stroke: max(.7px, .03em) rgba(255,255,255,.92); paint-order: stroke fill;
+    filter: drop-shadow(0 1px 1px rgba(0,40,100,.75)) drop-shadow(0 2px 5px rgba(0,60,140,.5)); }
+  /* en la lista la letra es chica: cuerpo claro con contorno azul oscuro fino, para que se lea sobre el cielo y sobre el pasto */
+  body .pz.piel-burbuja .fila .nombre, body .pz.piel-burbuja .fila .dur, body .pz.piel-burbuja .fila .n {
+    background-image: linear-gradient(180deg, #fff 0%, #fff 42%, #c6ecff 54%, #8dd2ff 100%); -webkit-text-stroke: 0;
+    filter: drop-shadow(0 0 .6px #04306e) drop-shadow(0 0 .6px #04306e) drop-shadow(0 1px 2px rgba(0,30,90,.75)); }
+  body .pz.piel-burbuja .fila .nombre { font-weight: 700; }
+  body .pz.piel-burbuja .fila.sonando .nombre, body .pz.piel-burbuja .fila.sonando .dur, body .pz.piel-burbuja .fila.sonando .n { filter: drop-shadow(0 0 8px rgba(255,255,255,.75)); }
   /* ---- Acabado del fondo ---- */
   #fondoL.ac-cine::after, #fondoL.ac-vhs::after, #fondoL.ac-sueno::after { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 5; }
   #fondoL.ac-cine::after { background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,.6)), url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .5 0 0 0 0 .5 0 0 0 0 .5 0 0 0 .55 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"); mix-blend-mode: overlay; animation: grano .4s steps(4) infinite; }
@@ -207,6 +224,7 @@
 <script src="milkdrop.js"></script>
 <script src="cromo.js"></script>
 <script src="adornos.js"></script>
+<script src="burbujas.js"></script>
 <script src="haz.js"></script>
 <script src="nucleo.js"></script>
 <script src="modulos.js"></script>
@@ -354,6 +372,10 @@ function dibujarFondo(tipo, c, segunda = false) {
     Milkdrop.montar(lienzo, { cambio: mdCambio(), velocidad: mdVelocidad() }).catch(() => { lienzo.remove(); capa(fv("color")); }); return;
   }
 
+  if (tipo === "pompas") {   // pompas de jabón que se reventan al tocarlas (burbujas.js)
+    if (!segunda) capa(fv("color"));
+    Burbujas.montar(c, { cantidad: fv("pompas"), sonido: fv("sonidoPompas") }); return;
+  }
   if (tipo === "liquida") {   // tu imagen deformada como metal que fluye (cromo.js); sin imagen o sin WebGL, la imagen quieta
     const lienzo = document.createElement("canvas"); c.appendChild(lienzo);
     if (!fv("imagen") || !Cromo.imagen(lienzo, fv("imagen"))) { lienzo.remove(); capa(`${fv("color")} ${fv("imagen") ? `url("${fv("imagen")}")` : ""} center / cover`); }
@@ -564,6 +586,7 @@ function pieza(p, caja) {
   };
   function efectoTexto(x) {
     if (val(p, "efecto") === "cromo") return x.classList.add("cromo");   // metal pulido: degradado recortado a la letra
+    if (val(p, "efecto") === "burbuja") return x.classList.add("burbujaTxt");   // gel brillante, como las burbujas
     const ef = EFECTOS_TEXTO[val(p, "efecto")]; if (!ef) return;
     x.style.textShadow = ef[0]; if (ef[1]) { x.style.webkitTextStroke = ef[1]; x.style.paintOrder = "stroke fill"; }
   }

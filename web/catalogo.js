@@ -38,7 +38,7 @@ const PLANTILLAS = [
     guardar: (x) => ({ "color-psicodelico": x.color }),
     grupos: [{ titulo: "Color", items: Propias.INCLUIDAS.psicodelico.colores.map(([n, c]) => v(n, c, `psicodelico-${n.toLowerCase()}`, { color: c })) }] },
   { id: "aero", nombre: "Frutiger Aero", pagina: "libre.html?plantilla=aero", predeterminada: "Colinas",
-    desc: "La estética de Windows Vista y los 2000: colinas verdes bajo un cielo azul intenso, con burbujas que suben y un destello en cada bombo. La carátula, el reproductor y la lista van dentro de burbujas de vidrio con reflejos arcoíris.",
+    desc: "La estética de Windows Vista y los 2000: colinas verdes bajo un cielo azul intenso, con burbujas que suben y un destello en cada bombo. Hay pompas de jabón que puedes reventar tocándolas, y la carátula va dentro de una burbuja de vidrio.",
     guardar: (x) => ({ "escena-aero": x.nombre }),
     grupos: [{ titulo: "Escena", items: Propias.INCLUIDAS.aero.escenas.map(([n, , c]) => v(n, c, `aero-${n.toLowerCase()}`)) }] },
   { id: "cromo", nombre: "Cromo líquido", pagina: "libre.html?plantilla=cromo", predeterminada: "Rosa",

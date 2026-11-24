@@ -3,7 +3,7 @@
 // Debe seguir siendo JSON válido después de "const ESQUEMA = " (comillas dobles, sin comentarios dentro).
 // Cada opción: { "t": "enum"|"num"|"bool"|"color"|"imagen", "n": etiqueta, "v": {valor: etiqueta}, "min", "max", "def", "u": unidad, "vacio": true }
 const ESQUEMA = {
-  "fondos": { "haz": "Haz de luz", "tunel": "Túnel psicodélico", "burbujas": "Burbujas", "luces": "Luces suaves", "estrellas": "Estrellas de píxel", "caratula": "Carátula desenfocada", "degradado": "Degradado", "color": "Color liso", "imagen": "Imagen propia", "columnas": "Columnas de luz (PS2)", "agujero": "Agujero negro (retro)", "visu2000": "Visualización 2000 (WMP)", "nuevos": "Psicodélico (ojo, espiral, fractal)", "milkdrop": "MilkDrop (visuales de Winamp)", "aero": "Aero (cielo, aurora y burbujas)", "cromo": "Cromo líquido", "liquida": "Tu imagen, líquida" },
+  "fondos": { "haz": "Haz de luz", "tunel": "Túnel psicodélico", "burbujas": "Burbujas", "luces": "Luces suaves", "estrellas": "Estrellas de píxel", "caratula": "Carátula desenfocada", "degradado": "Degradado", "color": "Color liso", "imagen": "Imagen propia", "columnas": "Columnas de luz (PS2)", "agujero": "Agujero negro (retro)", "visu2000": "Visualización 2000 (WMP)", "nuevos": "Psicodélico (ojo, espiral, fractal)", "milkdrop": "MilkDrop (visuales de Winamp)", "aero": "Aero (cielo, aurora y burbujas)", "cromo": "Cromo líquido", "liquida": "Tu imagen, líquida", "pompas": "Pompas de jabón (se revientan al tocarlas)" },
   "fondo": {
     "color": { "t": "color", "n": "Color de base", "def": "#08080a" },
     "color2": { "t": "color", "n": "Segundo color (degradado)", "def": "#2a1030" },
@@ -13,10 +13,12 @@ const ESQUEMA = {
     "tinte": { "t": "color", "n": "Tinte del agujero negro", "def": "", "vacio": true },
     "velocidad": { "t": "num", "n": "Velocidad (visualización 2000 y MilkDrop)", "min": 20, "max": 150, "def": 100, "u": " %" },
     "cambio": { "t": "num", "n": "Cambio de visual (MilkDrop)", "min": 8, "max": 120, "def": 40, "u": " s" },
+    "pompas": { "t": "num", "n": "Cantidad de pompas", "min": 6, "max": 40, "def": 20, "u": "" },
+    "sonidoPompas": { "t": "bool", "n": "Sonido al reventar una pompa", "def": true },
     "deriva": { "t": "bool", "n": "La imagen se mueve lento (zoom y paneo)", "def": false },
     "golpe": { "t": "enum", "n": "Reacción al golpe (bombo)", "v": { "": "No", "destello": "Destello", "zoom": "Zoom", "ambos": "Destello y zoom" }, "def": "" },
-    "capa2": { "t": "enum", "n": "Segunda capa encima", "v": { "": "Ninguna", "burbujas": "Burbujas", "estrellas": "Estrellas de píxel", "luces": "Luces suaves", "haz": "Haz de luz", "tunel": "Túnel psicodélico", "columnas": "Columnas de luz", "agujero": "Agujero negro", "visu2000": "Visualización 2000", "nuevos": "Psicodélico", "milkdrop": "MilkDrop", "cromo": "Cromo líquido" }, "def": "" },
-    "mezcla2": { "t": "enum", "n": "Cómo se mezcla la segunda capa", "v": { "screen": "Aclarar (pantalla)", "overlay": "Superponer", "lighten": "Solo lo más claro", "multiply": "Oscurecer" }, "def": "screen" },
+    "capa2": { "t": "enum", "n": "Segunda capa encima", "v": { "": "Ninguna", "burbujas": "Burbujas", "estrellas": "Estrellas de píxel", "luces": "Luces suaves", "haz": "Haz de luz", "tunel": "Túnel psicodélico", "columnas": "Columnas de luz", "agujero": "Agujero negro", "visu2000": "Visualización 2000", "nuevos": "Psicodélico", "milkdrop": "MilkDrop", "cromo": "Cromo líquido", "pompas": "Pompas de jabón (se revientan)" }, "def": "" },
+    "mezcla2": { "t": "enum", "n": "Cómo se mezcla la segunda capa", "v": { "normal": "Normal", "screen": "Aclarar (pantalla)", "overlay": "Superponer", "lighten": "Solo lo más claro", "multiply": "Oscurecer" }, "def": "screen" },
     "opacidad2": { "t": "num", "n": "Opacidad de la segunda capa", "min": 10, "max": 100, "def": 70, "u": " %" },
     "acabado": { "t": "enum", "n": "Acabado del fondo", "v": { "": "Ninguno", "cine": "Cine (grano y viñeta)", "sueno": "Sueño (suave y saturado)", "vhs": "VHS (líneas)", "vivo": "Vivo (más contraste y color)" }, "def": "" },
     "imagen": { "t": "imagen" }
@@ -45,7 +47,7 @@ const ESQUEMA = {
       "mayusculas": { "t": "bool", "n": "Todo en mayúsculas", "def": false },
       "fuente": { "t": "enum", "n": "Letra propia", "v": { "": "La de la plantilla", "Geist": "Geist", "Fredoka": "Fredoka", "Instrument Serif": "Instrument Serif", "Silkscreen": "Silkscreen", "VT323": "VT323", "Michroma": "Michroma", "Orbitron": "Orbitron", "Audiowide": "Audiowide", "Zen Dots": "Zen Dots", "Syncopate": "Syncopate", "Quantico": "Quantico", "Bebas Neue": "Bebas Neue", "Baloo 2": "Baloo 2" }, "def": "" },
       "color": { "t": "color", "n": "Color", "def": "", "vacio": true },
-      "efecto": { "t": "enum", "n": "Efecto del texto", "v": { "ninguno": "Ninguno", "sombra": "Sombra", "brillo": "Brillo", "contorno": "Contorno", "neon": "Neón", "cromo": "Cromo" }, "def": "ninguno" },
+      "efecto": { "t": "enum", "n": "Efecto del texto", "v": { "ninguno": "Ninguno", "sombra": "Sombra", "brillo": "Brillo", "contorno": "Contorno", "neon": "Neón", "cromo": "Cromo", "burbuja": "Burbuja (gel brillante)" }, "def": "ninguno" },
       "marquesina": { "t": "bool", "n": "Si no cabe, que se desplace", "def": true } } },
     "artista": { "etiqueta": "Artista", "rect": [30, 69, 40, 4], "ids": ["artista"], "opciones": {
       "tam": { "t": "num", "n": "Tamaño", "min": 40, "max": 220, "def": 100, "u": " %" },
@@ -53,7 +55,7 @@ const ESQUEMA = {
       "mayusculas": { "t": "bool", "n": "Todo en mayúsculas", "def": false },
       "fuente": { "t": "enum", "n": "Letra propia", "v": { "": "La de la plantilla", "Geist": "Geist", "Fredoka": "Fredoka", "Instrument Serif": "Instrument Serif", "Silkscreen": "Silkscreen", "VT323": "VT323", "Michroma": "Michroma", "Orbitron": "Orbitron", "Audiowide": "Audiowide", "Zen Dots": "Zen Dots", "Syncopate": "Syncopate", "Quantico": "Quantico", "Bebas Neue": "Bebas Neue", "Baloo 2": "Baloo 2" }, "def": "" },
       "color": { "t": "color", "n": "Color", "def": "", "vacio": true },
-      "efecto": { "t": "enum", "n": "Efecto del texto", "v": { "ninguno": "Ninguno", "sombra": "Sombra", "brillo": "Brillo", "contorno": "Contorno", "neon": "Neón", "cromo": "Cromo" }, "def": "ninguno" } } },
+      "efecto": { "t": "enum", "n": "Efecto del texto", "v": { "ninguno": "Ninguno", "sombra": "Sombra", "brillo": "Brillo", "contorno": "Contorno", "neon": "Neón", "cromo": "Cromo", "burbuja": "Burbuja (gel brillante)" }, "def": "ninguno" } } },
     "botones": { "etiqueta": "Botones", "rect": [34, 78, 32, 9], "ids": ["bAnt", "bPlay", "bSig"], "opciones": {
       "tam": { "t": "num", "n": "Tamaño", "min": 50, "max": 160, "def": 100, "u": " %" },
       "separacion": { "t": "num", "n": "Separación", "min": 0, "max": 30, "def": 6, "u": "" },
@@ -68,7 +70,7 @@ const ESQUEMA = {
     "tiempo": { "etiqueta": "Tiempo", "rect": [84, 86, 12, 4], "ids": ["tiempo"], "opciones": {
       "tam": { "t": "num", "n": "Tamaño", "min": 40, "max": 220, "def": 100, "u": " %" },
       "color": { "t": "color", "n": "Color", "def": "", "vacio": true },
-      "efecto": { "t": "enum", "n": "Efecto del texto", "v": { "ninguno": "Ninguno", "sombra": "Sombra", "brillo": "Brillo", "contorno": "Contorno", "neon": "Neón", "cromo": "Cromo" }, "def": "ninguno" } } },
+      "efecto": { "t": "enum", "n": "Efecto del texto", "v": { "ninguno": "Ninguno", "sombra": "Sombra", "brillo": "Brillo", "contorno": "Contorno", "neon": "Neón", "cromo": "Cromo", "burbuja": "Burbuja (gel brillante)" }, "def": "ninguno" } } },
     "volumen": { "etiqueta": "Volumen", "rect": [76, 78, 20, 6], "ids": ["volumen", "iconoVol"], "opciones": {
       "acento": { "t": "color", "n": "Color propio del volumen", "def": "", "vacio": true },
       "piel": { "t": "enum", "n": "Piel de los controles", "v": { "": "La del estilo general", "gel": "Gel Y2K", "aero": "Aero (vidrio celeste)", "cromo": "Cromo", "neon": "Neón", "win98": "Windows 98", "xp": "Windows XP", "vidrio": "Vidrio", "arcilla": "Arcilla (inflada)", "relieve": "Relieve suave", "pixel": "Píxel", "burbuja": "Burbuja de vidrio" }, "def": "" } } },
@@ -122,6 +124,6 @@ const ESQUEMA = {
     "opacidad": { "t": "num", "n": "Opacidad", "min": 10, "max": 100, "def": 100, "u": " %" }
   },
   "bases": ["liquido", "headspace", "dosmil", "ambiente", "pixel", "anime", "psicodelico", "aero", "cromo"],
-  "imagenesIncluidas": ["img/aero/agua.webp", "img/aero/colinas.webp", "img/aero/orbes.webp"],
+  "imagenesIncluidas": ["img/aero/agua.webp", "img/aero/colinas.webp"],
   "maxPiezas": 30
 };
