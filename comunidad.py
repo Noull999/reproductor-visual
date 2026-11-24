@@ -18,6 +18,8 @@ TIEMPO = 15
 _ID = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 _BASE = re.compile(r"^[A-Za-z0-9]{0,24}$")
 _FECHA = re.compile(r"^(\d{4}-\d{2}-\d{2})?$")
+_LOGIN = re.compile(r"^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})$")
+ORIGENES = ("propio", "ia", "libre")
 TIPOS = ("plantilla", "ajustes")
 
 
@@ -60,7 +62,11 @@ def limpiar_catalogo(crudo) -> list:
         if not nombre or not autor or tipo not in TIPOS or not isinstance(base, str) or not _BASE.match(base) or not isinstance(fecha, str) or not _FECHA.match(fecha):
             continue
         vistos.add(e["id"])
-        salida.append({"id": e["id"], "nombre": nombre, "autor": autor, "descripcion": _texto(e.get("descripcion"), 200), "tipo": tipo, "base": base, "fecha": fecha})
+        gh = e.get("github")
+        im = e.get("imagenes")
+        im = {"origen": im["origen"], "detalle": _texto(im.get("detalle"), 120)} if isinstance(im, dict) and im.get("origen") in ORIGENES else None
+        salida.append({"id": e["id"], "nombre": nombre, "autor": autor, "descripcion": _texto(e.get("descripcion"), 200), "tipo": tipo, "base": base, "fecha": fecha,
+                       "github": gh if isinstance(gh, str) and _LOGIN.match(gh) else "", "imagenes": im})
     return salida
 
 

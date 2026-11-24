@@ -1,16 +1,28 @@
 # Reproductor visual
 
-> Nombre provisional. Un reproductor de música para Windows que pone **pantallas que reaccionan al sonido**, con plantillas que puedes **personalizar, crear y compartir**.
+> Nombre provisional. Un reproductor de música para Windows que pone **pantallas que reaccionan al sonido**, con plantillas que puedes **personalizar, crear y compartir**: una especie de Wallpaper Engine para tu música.
 
 Escuchas lo de siempre (Spotify, SoundCloud, tus carpetas, o cualquier cosa que suene en el PC) y la app lo muestra con la pantalla que elijas: un haz de luz que late con el bajo, una cabeza Y2K con el reproductor adentro, un equipo de metal con pantalla LCD, píxeles de 8 bits… o la que armes tú.
 
-| | |
-|---|---|
-| ![Líquido](docs/img/liquido-rojo.png) **Líquido**: vidrio líquido sobre un haz de luz | ![Headspace](docs/img/headspace-y2k-lima.png) **Headspace**: cabeza Y2K con lista que sale del costado |
-| ![2000s](docs/img/dosmil-plata.png) **2000s**: metal, pantalla LCD y visualizaciones estilo Windows Media Player | ![Ambiente](docs/img/ambiente-noche.png) **Ambiente**: la carátula manda, en duotono |
-| ![Pixel](docs/img/pixel-game-boy.png) **Pixel**: 8 bits con paletas (aquí, Game Boy) | |
+<table>
+<tr>
+<td align="center"><img src="web/img/previas/liquido-rojo.webp" width="300"><br><b>Líquido</b><br><sub>vidrio líquido sobre un haz que late con el bajo</sub></td>
+<td align="center"><img src="web/img/previas/headspace-y2k-lima.webp" width="300"><br><b>Headspace</b><br><sub>cabeza Y2K con el reproductor adentro</sub></td>
+<td align="center"><img src="web/img/previas/dosmil-plata.webp" width="300"><br><b>2000s</b><br><sub>metal, pantalla LCD y visuales tipo Windows Media Player</sub></td>
+</tr>
+<tr>
+<td align="center"><img src="web/img/previas/ambiente-noche.webp" width="300"><br><b>Ambiente</b><br><sub>la carátula manda, en duotono</sub></td>
+<td align="center"><img src="web/img/previas/pixel-game-boy.webp" width="300"><br><b>Pixel</b><br><sub>8 bits con paletas (aquí, Game Boy)</sub></td>
+<td align="center"><img src="web/img/previas/anime-winamp.webp" width="300"><br><b>Winamp</b><br><sub>skins clásicos de Winamp que tú eliges</sub></td>
+</tr>
+<tr>
+<td align="center"><img src="web/img/previas/psicodelico-violeta.webp" width="300"><br><b>Psicodélico</b><br><sub>un ojo pixel art sobre un caleidoscopio</sub></td>
+<td align="center"><img src="web/img/previas/neoy2k-acido.webp" width="300"><br><b>Neo Y2K</b><br><sub>portada de rap con cromo, destellos y japonés vertical</sub></td>
+<td align="center"><img src="web/img/previas/dreamcore-damero.webp" width="300"><br><b>Dreamcore</b><br><sub>VHS, ventanas de Windows 95 y popups de «virus»</sub></td>
+</tr>
+</table>
 
-*(Las carátulas de las capturas están pixeladas a propósito.)*
+*(Las carátulas de las capturas son inventadas: así se ven con la música de demostración de la Biblioteca.)*
 
 ## Qué puede hacer
 
@@ -20,21 +32,25 @@ Escuchas lo de siempre (Spotify, SoundCloud, tus carpetas, o cualquier cosa que 
 - **Mi música**: tus carpetas del PC; cada subcarpeta es una lista, con carátulas y etiquetas.
 - **Otra app**: lo que suene en el PC (navegador, etc.): título, carátula y botones de Windows.
 
-**Plantillas** (5 incluidas, con 31 variantes de color)
-Líquido · Headspace · 2000s · Ambiente · Neo Y2K · Dreamcore · Winamp · Psicodélico · Pixel. Todas tienen lista de temas, ajustes de intensidad y velocidad, y un modo "solo visual" (los controles se esconden tras 3 s sin mover el mouse; la tecla **H** lo activa o desactiva).
+**Plantillas** (9 incluidas, con más de 40 variantes de color y de escena)
+Líquido · Headspace · 2000s · Ambiente · Pixel · Winamp · Psicodélico · Neo Y2K · Dreamcore. Todas tienen lista de temas, ajustes de intensidad y velocidad, y un modo "solo visual" (los controles se esconden tras 3 s sin mover el mouse; la tecla **H** lo activa o desactiva).
+- **Neo Y2K**: 4 variantes, cada una con su figura de cromo y sus partículas (estrella y estelas, corazón y mariposas, carátula que se congela, corona de púas y brasas).
+- **Dreamcore**: escenas Damero, Backrooms y Espacio, con efecto VHS (ajustable), lista y reproductor en ventanas de Windows 95, y avisos que aparecen solos; algunos son «virus» que se multiplican al tocarlos.
+- **Psicodélico**: un ojo pixel art sobre un caleidoscopio, una espiral y un fractal; 8 colores.
 
 **Biblioteca** (estilo Wallpaper Engine)
-Cuadrícula de plantillas con **vista previa en vivo**: la plantilla real corriendo con música inventada. Ahí cambias colores, intensidad, velocidad, mostrar u ocultar la lista, y pones tus propias imágenes (fondo; y en Headspace, un **cuerpo propio** con un editor de zonas).
+Cuadrícula de plantillas con **vista previa en vivo**: la plantilla real corriendo con música inventada. Ahí cambias la variante, **eliges un color propio** (cualquier color; cada plantilla arma su variante «Propio»), la intensidad, la velocidad, mostrar u ocultar la lista, y pones tus propias imágenes: un **fondo propio** (imagen o video corto) y, en Headspace, un **cuerpo propio** con un editor de zonas.
 
 **Editor y plantillas propias**
 Cada plantilla se puede hacer de **piezas** que se arrastran y se estiran sobre una vista previa en vivo.
 - **Skins de Winamp:** el reproductor dibuja skins clásicos de Winamp 2 (.wsz): ventana, ecualizador y lista. Se importan en la Biblioteca pegando el link de un skin de [skins.webamp.org](https://skins.webamp.org) o eligiendo un archivo .wsz. Los skins son arte de sus autores: quedan **solo en tu PC** (`~/.visualizador/skins`) y nunca se suben ni se reparten con la app. Sin skins se usa uno clásico propio.
-- **Editar una de las 5 incluidas:** "Editar esta plantilla" crea tu versión hecha de piezas (Líquido, Headspace, 2000s, Ambiente y Pixel). Cada una trae sus **reglas**: por ejemplo, Headspace exige su cabeza (que ya trae título, botones y barra adentro) y las demás exigen título, botones y barra de avance. Lo que no está bloqueado se puede mover, cambiar o quitar, y una pieza no puede cumplir la misma función que otra.
+- **Editar una incluida:** "Editar esta plantilla" crea tu versión hecha de piezas (Líquido, Headspace, 2000s, Ambiente, Pixel, Winamp y Psicodélico). Cada una trae sus **reglas**: por ejemplo, Headspace exige su cabeza (que ya trae título, botones y barra adentro) y las demás exigen título, botones y barra de avance. Lo que no está bloqueado se puede mover, cambiar o quitar, y una pieza no puede cumplir la misma función que otra.
 - **Crear una libre:** parte de una base (en blanco, reproductor central, con lista) y agrega lo que quieras.
 - **Personalización:** fondo (haz, túnel, burbujas, luces, estrellas de píxel, carátula desenfocada, degradado, color o imagen), visuales (barras, bloques de píxel, segmentos LCD, onda, círculo, con opción de reflejo e intensidad), estilo de paneles (vidrio, metal, gel, píxel, liso) con deformación del vidrio opcional, acento fijo o tomado de la carátula, y 6 letras. Cada pieza tiene sus opciones: carátula (cuadrada, redondeada, círculo, vinilo que gira; efecto normal, duotono, pixelada o blanco y negro; inclinación), título y artista (tamaño, alineación, mayúsculas, letra y color propios), barra (línea, onda real del tema o segmentos), botones, lista (con o sin carátulas y números) y opacidad.
 
-**Compartir**
-Una plantilla propia se exporta como **un solo archivo `.plantilla`** (configuración + imágenes) y se importa en otro equipo. Son solo datos: no lleva código.
+**Compartir y Comunidad**
+- Una plantilla hecha en el Editor se exporta como **un solo archivo `.plantilla`** (configuración + imágenes). Para las incluidas, **«Exportar mis ajustes»** guarda tu variante, tu color, tus controles y tus imágenes. Se importan con el mismo botón. Son solo datos: no llevan código ni tus cuentas.
+- La pestaña **Comunidad** lista, busca e instala las plantillas que comparte la gente, desde [reproductor-comunidad](https://github.com/Noull999/reproductor-comunidad). También hay una [galería web](https://reproductor-comunidad.vercel.app). Para compartir la tuya, mira [CONTRIBUIR.md](https://github.com/Noull999/reproductor-comunidad/blob/main/CONTRIBUIR.md).
 
 ## Cómo instalarlo y usarlo
 
@@ -64,11 +80,14 @@ app.py              Ventana (pywebview) y la clase Api que llama la página
 servidor.py         Servidor local 127.0.0.1 (páginas, música de tus carpetas, imágenes propias)
 fuentes/            soundcloud · spotify · musica · pc (controles de Windows + captura del sonido)
 plantillas.py       Exportar/importar .plantilla con validación estricta
+ajustes.py          Exportar/importar los ajustes de una plantilla incluida (mismas reglas)
+comunidad.py        Catálogo de la comunidad: solo desde su repositorio, por HTTPS y con topes
 web/                Todas las pantallas (HTML/CSS/JS sin framework)
   nucleo.js           Reproductor compartido: fuentes, lista, volumen, solo visual, modo demo
   propiedades.js      Propiedades por plantilla (intensidad, velocidad, extras…)
   esquema.js          Qué puede contener una plantilla (única fuente de verdad: motor, editor y validador)
   plantillas-propias.js, libre.html, modulos.js, editor.html   Motor, módulos (cabeza y equipo) y editor de plantillas propias
+  neoy2k.html, dreamcore.html, comunidad.html   Plantillas Neo Y2K y Dreamcore y la pestaña Comunidad
 tools/              Generador de las vistas previas
 tests/              Pruebas
 ```
@@ -82,15 +101,15 @@ tests/              Pruebas
 | Área | Estado |
 |---|---|
 | Fuentes: Spotify, SoundCloud, Mi música, otra app | ✅ Funcionan (Spotify con límites, ver abajo) |
-| 5 plantillas con variantes y lista de temas | ✅ |
+| 9 plantillas con variantes y lista de temas | ✅ |
 | Cuentas y carpetas desde la app (Ajustes) | ✅ (sin probar el selector de carpetas a mano) |
-| Biblioteca con vista previa en vivo y personalización | ✅ |
+| Biblioteca con vista previa en vivo, personalización y color propio | ✅ |
 | Cuerpo propio de Headspace con editor de zonas | ✅ |
-| Editor de plantillas propias (crear, mezclar, skin libre) y las 5 incluidas editables por piezas con sus reglas | ✅ |
-| Exportar e importar plantillas | ✅ |
-| Visuales con Spotify (captura del sonido) | ⚠️ Funciona con sonido saliendo por el dispositivo por defecto; se vuelve a detectar si cambias de parlantes |
+| Editor de plantillas propias (crear, mezclar, skin libre) y las incluidas editables por piezas con sus reglas | ✅ |
+| Exportar e importar plantillas y ajustes | ✅ |
+| Comunidad: pestaña en la app, repositorio y galería web | ✅ Primera versión (envíos por pull request; subida directa con cuenta de GitHub en camino) |
+| Visuales con el sonido del PC | ⚠️ Funciona con sonido saliendo por el dispositivo por defecto; con la salida de Windows **silenciada** la captura recibe silencio (la app avisa); falta probarlo con audio real |
 | Nombre definitivo, ícono y ejecutable (.exe) | ⏳ Pendiente |
-| Comunidad (catálogo de plantillas de otras personas) | ⏳ Pendiente |
 | Versión Mac | ⏳ No planificada aún |
 
 Detalle y decisiones en [PLAN.md](PLAN.md).
@@ -100,6 +119,8 @@ Detalle y decisiones en [PLAN.md](PLAN.md).
 - **Solo Windows** por ahora (controles multimedia y captura de sonido).
 - **Spotify en modo desarrollo**: la app solo la pueden usar las cuentas que su dueño autorice (hasta 5), exige Premium y tiene una cuota baja de peticiones: si se agota, Spotify pide esperar (la app lo avisa y no insiste). De las playlists, Spotify solo deja leer las **tuyas o colaborativas**. SoundCloud y Mi música no tienen estos límites.
 - Spotify no entrega el audio ni su análisis a apps nuevas; por eso los visuales usan la captura del sonido del PC.
+- **SoundCloud** se usa con tu propia sesión y con el Client ID público de su web (no es una API oficial aprobada): sirve para uso personal, pero no para repartir la app comercialmente tal cual.
+- Dreamcore (el efecto VHS y algunas escenas) dibuja mucho: si va lento, baja el «Efecto VHS» en los ajustes de la plantilla.
 - Las plantillas incluidas siguen siendo páginas con su propio código; "Editar esta plantilla" crea una versión equivalente hecha de piezas en el motor de datos (muy parecida, no idéntica pixel a pixel).
 - La cabeza de Headspace y el equipo de 2000s son piezas indivisibles: se mueven, se agrandan y cambian de cuerpo, color o skin, pero no se desarman.
 
@@ -108,6 +129,8 @@ Detalle y decisiones en [PLAN.md](PLAN.md).
 - Los tokens y las claves se guardan en tu carpeta de usuario, nunca en el proyecto. El Client ID de Spotify que viene en el código es público por diseño (acceso con PKCE, sin secreto).
 - El servidor local solo escucha en `127.0.0.1` y solo entrega audio de las carpetas que elegiste y las imágenes de su propia carpeta; rechaza rutas con `..`.
 - Importar una plantilla ajena no ejecuta nada: se rechaza cualquier archivo con contenido inesperado, rutas raras, tamaños abusivos o imágenes falsas (hay pruebas para esos casos).
+- La pestaña Comunidad solo descarga de un repositorio fijo, por HTTPS, sin seguir redirecciones y con tope de tamaño; el catálogo no trae direcciones (la app las arma sola) y todo texto se muestra como texto. Lo que bajas pasa por los mismos revisores que importar un archivo.
+- Lo que exportas nunca lleva tus cuentas, tokens ni nombres de canciones: solo una lista cerrada de ajustes y tus imágenes.
 
 ## Desarrollo
 

@@ -29,7 +29,7 @@
   .tarjeta h3 { margin: 0; font-size: 16px; font-weight: 600; }
   .tarjeta .autor { color: var(--suave); font-size: 12.5px; }
   .tarjeta p { margin: 0; color: var(--suave); font-size: 13px; line-height: 1.45; flex: 1; }
-  .tarjeta .pie { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 6px; }
+  .tarjeta .pie { display: flex; align-items: center; gap: 8px; margin-top: 6px; flex-wrap: wrap; } .tarjeta .pie .btn { margin-left: auto; }
   .etiqueta { font: 11px "Geist Mono", monospace; letter-spacing: .04em; color: var(--suave); border: .8px solid var(--borde); border-radius: 999px; padding: 3px 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
   .btn { padding: 8px 18px; font-size: 13px; } .btn[disabled] { opacity: .5; pointer-events: none; }
   .vacio { color: var(--suave); text-align: center; padding: 60px 10px; line-height: 1.7; }
@@ -84,11 +84,12 @@ function pintar() {
     const img = document.createElement("img"); img.alt = ""; img.loading = "lazy"; img.src = `${base}/previas/${p.id}.webp`; img.onerror = () => { img.style.visibility = "hidden"; };
     const c = document.createElement("div"); c.className = "cuerpo";
     const h = document.createElement("h3"); h.textContent = p.nombre;
-    const a = document.createElement("span"); a.className = "autor"; a.textContent = `por ${p.autor}`;
+    const a = document.createElement("span"); a.className = "autor"; a.textContent = `por ${p.autor}${p.github ? ` · @${p.github}` : ""}`;
     const d = document.createElement("p"); d.textContent = p.descripcion;
     const pie = document.createElement("div"); pie.className = "pie";
     const e = document.createElement("span"); e.className = "etiqueta"; e.textContent = p.tipo === "ajustes" ? `Ajustes · ${NOMBRES[p.base] || p.base}` : "Plantilla del Editor";
     const b = document.createElement("button"); b.className = "btn btn-principal"; b.textContent = "Instalar"; b.onclick = () => instalar(p, b);
+    if (p.imagenes) { const o = document.createElement("span"); o.className = "etiqueta"; o.textContent = `Imágenes ${{ propio: "propias", ia: "hechas con IA", libre: "de licencia libre" }[p.imagenes.origen]}`; o.title = p.imagenes.detalle; pie.append(o); }
     pie.append(e, b); c.append(h, a, d, pie); t.append(img, c); caja.appendChild(t);
   });
 }

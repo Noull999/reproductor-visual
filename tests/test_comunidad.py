@@ -89,3 +89,11 @@ def test_pedir_tope_de_tamano_estado_y_red(monkeypatch):
     monkeypatch.setattr(C.requests, "get", sin_red)
     with pytest.raises(C.ErrorComunidad, match="conectar"):
         C._pedir("https://x", 10)
+
+
+def test_usuario_de_github_y_origen_de_las_imagenes():
+    sal = C.limpiar_catalogo(catalogo(entrada(github="ana-gh", imagenes={"origen": "ia", "detalle": "Higgsfield"}),
+                                      entrada(id="b", github="<script>", imagenes={"origen": "robado"}), entrada(id="c")))
+    assert sal[0]["github"] == "ana-gh" and sal[0]["imagenes"] == {"origen": "ia", "detalle": "Higgsfield"}
+    assert sal[1]["github"] == "" and sal[1]["imagenes"] is None      # lo raro se descarta, la entrada se conserva
+    assert sal[2]["github"] == "" and sal[2]["imagenes"] is None
