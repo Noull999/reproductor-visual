@@ -41,6 +41,12 @@ const Props = (() => {
       const n = (location.pathname.split("/").pop() || "").replace(".html", ""), q = new URLSearchParams(location.search).get("plantilla");
       return n === "libre" ? (["anime", "psicodelico"].includes(q) ? q : "libre-" + q) : n;
     },
+    // Aplica los ajustes de una plantilla incluida (de un archivo o de la comunidad): su variante, sus propiedades y la deja elegida en la Biblioteca
+    aplicarAjustes(a) {
+      try { Object.entries(a.variante).forEach(([k, val]) => localStorage.setItem(k, val)); localStorage.setItem("biblioteca-plantilla", a.plantilla); } catch (e) {}
+      const q = a.props;
+      api.guardar(a.plantilla, { ...DEFECTO, intensidad: q.intensidad, velocidad: q.velocidad, lista: q.lista, soloVisual: q.soloVisual, colorLibre: q.colorLibre, extra: q.extra, fondo: q.fondo || "", cuerpo: q.cuerpo || null });
+    },
     // Color propio de la persona (un "#rrggbb") o null; con él cada plantilla arma su variante "Propio"
     colorLibre: (id) => { const c = api.leer(id).colorLibre; return /^#[0-9a-f]{6}$/i.test(c || "") ? c.toLowerCase() : null; },
     tonoDe: (hex) => {   // [tono 0-360, saturación 0-1, luz 0-1]

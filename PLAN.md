@@ -128,7 +128,9 @@ Una plantilla propia es un objeto JSON (`plantillas-propias.js`): fondo, estilo 
 - [x] Las 5 plantillas incluidas como **bases editables** por piezas, con reglas (`plantillas-propias.js`): Líquido, Ambiente y Pixel con piezas estándar; Headspace y 2000s con los módulos "cabeza" y "equipo" (`modulos.js`). "Editar esta plantilla" en la Biblioteca.
 - [x] Más personalización: esquema único (`esquema.js`) con opciones por pieza (carátula con formas y efectos, título/artista con letra y color propios, barra de onda real, lista, opacidad…), fondos nuevos (carátula desenfocada, degradado), acento desde la carátula y deformación del vidrio.
 - [ ] **Plantilla Anime / PS2** (idea del 21-11): estética de menú de juego de los 2000, personaje como imagen propia que reacciona al bajo (pulso, vibración, aberración de color, líneas de velocidad). Requiere: estilo de panel nuevo, fondo de columnas de luz y efecto de reacción para imágenes.
-- [ ] **Comunidad**: repositorio público con `catalogo.json` + archivos `.plantilla`, que la app lee desde GitHub (pestaña Comunidad); envío por pull request con validación automática (`plantillas.py`).
+- [x] **Comunidad** (primera versión): repo público [reproductor-comunidad](https://github.com/Noull999/reproductor-comunidad) con `catalogo.json`, plantillas de ejemplo y revisor de envíos; la pestaña Comunidad de la app (`comunidad.py`, `comunidad.html`) lista, busca e instala (mismas validaciones que Importar).
+- [ ] Comunidad: activar las dos automatizaciones del repo (validar envíos en cada pull request y regenerar `catalogo.json`); falta el permiso `workflow` de `gh` (`gh auth refresh -h github.com -s workflow`); están guardadas en `D:\Proyectos\_flujos_comunidad`.
+- [ ] Comunidad: galería web (Vercel o Cloudflare Pages) generada desde el catálogo; subida directa solo si hay usuarios.
 - [ ] Más visuales y fondos; piezas con colores y tamaños de letra propios; deshacer; alinear a una cuadrícula.
 - [ ] Visuales programables en un entorno aislado (modo avanzado), más adelante.
 

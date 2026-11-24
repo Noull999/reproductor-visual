@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Comunidad</title>
+<link rel="stylesheet" href="vidrio-liquido.css">
+<link rel="stylesheet" href="tema-claro.css">
+<script src="tema.js"></script>
+<style>
+  [hidden] { display: none !important; }
+  body { overflow: auto; }
+  .capa { position: relative; z-index: 1; min-height: 100%; display: flex; flex-direction: column; padding: 18px 28px 28px; box-sizing: border-box; gap: 16px; }
+  nav { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px 10px 20px; }
+  nav b { display: flex; align-items: center; gap: 10px; font-weight: 600; }
+  nav .tabs { display: flex; gap: 6px; }
+  nav .tabs a, nav .tabs span { padding: 7px 16px; border-radius: 999px; font-size: 14px; text-decoration: none; color: var(--suave); }
+  nav .tabs a:hover { color: var(--texto); }
+  nav .tabs .actual { background: rgba(255,255,255,.1); color: var(--texto); }
+  .barra { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .barra input { flex: 1; min-width: 240px; max-width: 420px; padding: 10px 18px; border-radius: 999px; border: .8px solid var(--borde); background: rgba(255,255,255,.06);
+    color: var(--texto); font: 14px Geist, system-ui, sans-serif; outline: none; }
+  .barra input:focus { border-color: var(--rojo); }
+  #aviso { color: var(--suave); font-size: 13px; }
+  .lista { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; align-content: start; }
+  .tarjeta { border-radius: 18px; overflow: hidden; border: .8px solid var(--borde); background: rgba(255,255,255,.04); display: flex; flex-direction: column; }
+  .tarjeta img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; display: block; background: #120a0c; }
+  .tarjeta .cuerpo { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+  .tarjeta h3 { margin: 0; font-size: 16px; font-weight: 600; }
+  .tarjeta .autor { color: var(--suave); font-size: 12.5px; }
+  .tarjeta p { margin: 0; color: var(--suave); font-size: 13px; line-height: 1.45; flex: 1; }
+  .tarjeta .pie { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 6px; }
+  .etiqueta { font: 11px "Geist Mono", monospace; letter-spacing: .04em; color: var(--suave); border: .8px solid var(--borde); border-radius: 999px; padding: 3px 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+  .btn { padding: 8px 18px; font-size: 13px; } .btn[disabled] { opacity: .5; pointer-events: none; }
+  .vacio { color: var(--suave); text-align: center; padding: 60px 10px; line-height: 1.7; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute"><filter id="liquido" x="0%" y="0%" width="100%" height="100%" color-interpolation-filters="sRGB">
+  <feTurbulence type="fractalNoise" baseFrequency="0.006 0.009" numOctaves="2" seed="11" result="ruido"/>
+  <feGaussianBlur in="ruido" stdDeviation="2.5" result="suave"/>
+  <feDisplacementMap in="SourceGraphic" in2="suave" scale="70" xChannelSelector="R" yChannelSelector="G"/>
+</filter></svg>
+<canvas id="haz"></canvas>
+<div class="capa">
+  <nav class="vidrio pastilla">
+    <b><span class="punto"></span>Reproductor</b>
+    <span class="tabs"><a href="index.html">Biblioteca</a><a href="editor.html?base=central">Editor</a><span class="actual">Comunidad</span></span>
+    <a class="btn vidrio pastilla" href="ajustes.html" style="padding:8px 16px">Ajustes</a>
+  </nav>
+  <div class="barra">
+    <input id="buscar" type="search" placeholder="Buscar por nombre, autor o estilo…" aria-label="Buscar plantillas" autocomplete="off">
+    <span id="aviso" role="status"></span>
+    <button class="btn vidrio pastilla" id="compartir" style="margin-left:auto">Compartir la tuya</button>
+  </div>
+  <div class="lista" id="lista"></div>
+  <div class="vacio" id="vacio" hidden></div>
+</div>
+<script src="agujero.js"></script>
+<script src="fondo-app.js"></script>
+<script src="propiedades.js"></script>
+<script src="esquema.js"></script>
+<script src="plantillas-propias.js"></script>
+<script>
+"use strict";
+fondoApp();   // la galaxia desenfocada (fondo-app.js)
+const $ = (id) => document.getElementById(id);
+const api = () => window.pywebview.api;
+const NOMBRES = { liquido: "Líquido", headspace: "Headspace", dosmil: "2000s", ambiente: "Ambiente", pixel: "Pixel", neoy2k: "Neo Y2K", psicodelico: "Psicodélico", dreamcore: "Dreamcore", anime: "Anime" };
+let todas = [], base = "";
+const aviso = (t) => { $("aviso").textContent = t; if (t) setTimeout(() => { if ($("aviso").textContent === t) $("aviso").textContent = ""; }, 6000); };
+
+function vacio(texto, reintentar) {
+  const v = $("vacio"); v.hidden = false; v.replaceChildren(document.createTextNode(texto));
+  if (reintentar) { v.appendChild(document.createElement("br")); const b = document.createElement("button"); b.className = "btn vidrio pastilla"; b.textContent = "Reintentar"; b.onclick = cargar; v.appendChild(b); }
+}
+function pintar() {
+  const q = $("buscar").value.trim().toLowerCase(), caja = $("lista");
+  caja.replaceChildren(); $("vacio").hidden = true;
+  const v = todas.filter(p => !q || `${p.nombre} ${p.autor} ${p.descripcion} ${NOMBRES[p.base] || ""}`.toLowerCase().includes(q));
+  if (!v.length) return vacio(todas.length ? "Nada coincide con esa búsqueda." : "Todavía no hay plantillas en la comunidad. ¡Sé la primera persona en compartir una!");
+  v.forEach(p => {   // todo el texto entra con textContent: nada de lo que viene de internet se interpreta como HTML
+    const t = document.createElement("article"); t.className = "tarjeta vidrio";
+    const img = document.createElement("img"); img.alt = ""; img.loading = "lazy"; img.src = `${base}/previas/${p.id}.webp`; img.onerror = () => { img.style.visibility = "hidden"; };
+    const c = document.createElement("div"); c.className = "cuerpo";
+    const h = document.createElement("h3"); h.textContent = p.nombre;
+    const a = document.createElement("span"); a.className = "autor"; a.textContent = `por ${p.autor}`;
+    const d = document.createElement("p"); d.textContent = p.descripcion;
+    const pie = document.createElement("div"); pie.className = "pie";
+    const e = document.createElement("span"); e.className = "etiqueta"; e.textContent = p.tipo === "ajustes" ? `Ajustes · ${NOMBRES[p.base] || p.base}` : "Plantilla del Editor";
+    const b = document.createElement("button"); b.className = "btn btn-principal"; b.textContent = "Instalar"; b.onclick = () => instalar(p, b);
+    pie.append(e, b); c.append(h, a, d, pie); t.append(img, c); caja.appendChild(t);
+  });
+}
+async function instalar(p, boton) {
+  boton.disabled = true; boton.textContent = "Instalando…";
+  let r;
+  try { r = await api().comunidad_instalar(p.id); } catch (e) { r = { ok: false, error: "No se pudo instalar." }; }
+  if (!r.ok) { boton.disabled = false; boton.textContent = "Instalar"; return aviso(r.error); }
+  try {
+    if (r.ajustes) Props.aplicarAjustes(r.ajustes);
+    else { Propias.guardar(r.spec); localStorage.setItem("biblioteca-plantilla", "libre-" + r.spec.id); }
+    sessionStorage.setItem("aviso-importar", `«${p.nombre}» instalada.`);
+  } catch (e) { return aviso("No se pudo guardar la plantilla."); }
+  location.href = "index.html";
+}
+async function cargar() {
+  $("vacio").hidden = true; aviso("Cargando…");
+  let r;
+  try { r = await api().comunidad_catalogo(); } catch (e) { r = { ok: false, error: "No se pudo conectar con la comunidad." }; }
+  aviso("");
+  if (!r.ok) { todas = []; $("lista").replaceChildren(); return vacio(r.error, true); }
+  todas = r.plantillas; base = r.base; pintar();
+}
+$("buscar").addEventListener("input", pintar);
+$("compartir").onclick = () => api().comunidad_abrir_guia();
+if (window.pywebview && window.pywebview.api) cargar(); else window.addEventListener("pywebviewready", cargar);
+</script>
+</body>
+</html>

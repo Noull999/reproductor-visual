@@ -19,6 +19,7 @@ import webview
 
 import config
 import ajustes
+import comunidad
 import plantillas
 import servidor
 import skins
@@ -371,15 +372,37 @@ class Api:
             ruta = Path(elegido[0])
             if ruta.stat().st_size > plantillas.MAX_ZIP:
                 raise plantillas.PlantillaInvalida("El archivo es demasiado grande.")
-            datos = ruta.read_bytes()
-            if ajustes.es_de_ajustes(datos):
-                return {"ok": True, "ajustes": ajustes.desempaquetar(datos, servidor.CARPETA_IMAGENES)}
-            nuevo_id = "p" + format(int(time.time() * 1000), "x") + secrets.token_hex(2)
-            return {"ok": True, "spec": plantillas.desempaquetar(datos, nuevo_id, servidor.CARPETA_IMAGENES)}
+            return self._abrir_plantilla(ruta.read_bytes())
         except plantillas.PlantillaInvalida as e:
             return {"ok": False, "error": str(e)}
         except OSError as e:
             return {"ok": False, "error": f"No se pudo leer el archivo: {e.strerror or e}"}
+
+    def _abrir_plantilla(self, datos: bytes) -> dict:
+        """Un .plantilla (del Editor o los ajustes de una incluida), venga de un archivo o de la comunidad: se valida entero."""
+        if ajustes.es_de_ajustes(datos):
+            return {"ok": True, "ajustes": ajustes.desempaquetar(datos, servidor.CARPETA_IMAGENES)}
+        nuevo_id = "p" + format(int(time.time() * 1000), "x") + secrets.token_hex(2)
+        return {"ok": True, "spec": plantillas.desempaquetar(datos, nuevo_id, servidor.CARPETA_IMAGENES)}
+
+    # ---- Comunidad: plantillas que comparte la gente (repositorio público) ----
+    def comunidad_catalogo(self) -> dict:
+        try:
+            return {"ok": True, "plantillas": comunidad.catalogo(), "base": comunidad.BASE}
+        except comunidad.ErrorComunidad as e:
+            return {"ok": False, "error": str(e)}
+
+    def comunidad_instalar(self, id_: str) -> dict:
+        """Baja una plantilla del catálogo y la valida igual que "Importar plantilla…"."""
+        try:
+            return self._abrir_plantilla(comunidad.descargar(id_))
+        except (comunidad.ErrorComunidad, plantillas.PlantillaInvalida) as e:
+            return {"ok": False, "error": str(e)}
+
+    def comunidad_abrir_guia(self) -> dict:
+        import webbrowser
+        webbrowser.open(comunidad.GUIA)   # dirección fija: la guía para compartir una plantilla
+        return {"ok": True}
 
     # ---- Mi música ----
     def musica_listas(self) -> list:

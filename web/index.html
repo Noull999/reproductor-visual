@@ -120,7 +120,7 @@
 <div class="capa">
   <nav class="vidrio pastilla">
     <b><span class="punto"></span>Reproductor</b>
-    <span class="tabs"><span class="actual">Biblioteca</span><a href="editor.html?base=central" title="Crea tu propia plantilla">Editor</a><span class="pronto" title="Próximamente">Comunidad</span></span>
+    <span class="tabs"><span class="actual">Biblioteca</span><a href="editor.html?base=central" title="Crea tu propia plantilla">Editor</a><a href="comunidad.html" title="Plantillas que comparte la gente">Comunidad</a></span>
     <a class="btn vidrio pastilla" href="ajustes.html" style="padding:8px 16px">Ajustes</a>
   </nav>
   <div class="barra-fuente mono"><span>Fuente: <b id="nombreFuente"></b></span><div id="carpetas"></div>
@@ -399,10 +399,8 @@ $("exportarAjustes").onclick = async () => {
   if (!r.cancelado) mensaje("Archivo guardado: quien lo importe tendrá tus ajustes.");
 };
 function aplicarAjustes(a) {
-  try { Object.entries(a.variante).forEach(([k, val]) => localStorage.setItem(k, val)); } catch (e) {}
-  const q = a.props;
-  Props.guardar(a.plantilla, { ...Props.DEFECTO, intensidad: q.intensidad, velocidad: q.velocidad, lista: q.lista, soloVisual: q.soloVisual, colorLibre: q.colorLibre, extra: q.extra, fondo: q.fondo || "", cuerpo: q.cuerpo || null });
-  try { localStorage.setItem("biblioteca-plantilla", a.plantilla); sessionStorage.setItem("aviso-importar", `Ajustes de ${PLANTILLAS.find(x => x.id === a.plantilla).nombre} aplicados.`); } catch (e) {}
+  Props.aplicarAjustes(a);
+  try { sessionStorage.setItem("aviso-importar", `Ajustes de ${PLANTILLAS.find(x => x.id === a.plantilla).nombre} aplicados.`); } catch (e) {}
   location.reload();
 }
 try { const m = sessionStorage.getItem("aviso-importar"); if (m) { sessionStorage.removeItem("aviso-importar"); avisoGeneral(m); } } catch (e) {}
