@@ -86,6 +86,16 @@ const Propias = (() => {
         ["botones", [6, 77, 17, 9], { piel: "aero", redondos: true }], ["tiempo", [26, 78, 20, 5], { efecto: "sombra" }],
         ["volumen", [26, 84, 20, 3.2], { piel: "aero" }], ["barra", [6, 90.6, 40, 2.6], { piel: "aero" }],
         ["lista", [73, 6, 24, 70], { piel: "aero" }]]) };
+  // ASCII: una mezcla de terminal (la interfaz) y arte ASCII que reacciona a la música (el fondo); cambia de escena y tiene eventos con el tiempo
+  INCLUIDAS.ascii = { nombre: "ASCII", reglas: { requeridas: ["titulo", "botones", "barra"], nota: COMUN },
+      fondo: { tipo: "ascii", color: "#020503", brillo: 100, cambio: 26, eventos: true, acabado: "vhs", golpe: "" }, estilo: { panel: "terminal", acento: "#3dff7a", fuente: "VT323" },
+      colores: [["Verde", "#3dff7a"], ["Ámbar", "#ffb000"], ["Blanco", "#e6eef0"], ["Magenta", "#ff3fd8"], ["Cian", "#37e6ff"]],
+      piezas: () => armar([["caratula", [3, 8, 21, 37], { forma: "cuadrada", borde: true }],
+        ["panel", [27, 8, 44, 40], {}],
+        ["titulo", [29.5, 11, 39, 8], { fuente: "VT323" }], ["artista", [29.5, 19.5, 39, 5], { fuente: "VT323" }],
+        ["botones", [29.5, 28, 26, 8], {}], ["tiempo", [57, 29, 12, 5], { fuente: "VT323" }],
+        ["volumen", [29.5, 39.5, 22, 3.4], {}], ["lista", [74, 8, 23, 76], {}],
+        ["barra", [3, 90, 94, 4], { modo: "ascii" }]]) };
   // Cromo líquido: metal derretido que se sacude con el bombo; todo en cromo y letras metálicas
   INCLUIDAS.cromo = { nombre: "Cromo líquido", reglas: { requeridas: ["titulo", "botones", "barra"], nota: COMUN },
       fondo: { tipo: "cromo", color: "#05060a", brillo: 72, golpe: "zoom", acabado: "cine" }, estilo: { panel: "liso", acento: "#ff3fd8", fuente: "Orbitron" },
@@ -95,7 +105,7 @@ const Propias = (() => {
         ["botones", [32, 42, 20, 10], { piel: "cromo", redondos: true }], ["tiempo", [54, 44, 14, 5], { efecto: "cromo" }],
         ["volumen", [5, 62, 24, 4], { piel: "cromo" }], ["lista", [75, 8, 22, 72], { piel: "cromo" }],
         ["barra", [5, 89, 90, 2.8], { piel: "cromo" }]]) };
-  const SOLAS = ["anime", "psicodelico", "aero", "cromo"];
+  const SOLAS = ["anime", "psicodelico", "aero", "cromo", "ascii"];
   // el color que se eligió en la Biblioteca (solo Psicodélico tiene colores)
   const colorElegido = (id) => { try { return localStorage.getItem(`color-${id}`) || INCLUIDAS[id].estilo.acento; } catch (e) { return INCLUIDAS[id].estilo.acento; } };
   function desdeBase(id) {

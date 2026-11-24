@@ -46,7 +46,7 @@ const Props = (() => {
     // las incluidas que también viven en libre.html (Anime, Psicodélico) usan su id a secas, como las ve la Biblioteca
     plantillaActual: () => {
       const n = (location.pathname.split("/").pop() || "").replace(".html", ""), q = new URLSearchParams(location.search).get("plantilla");
-      return n === "libre" ? (["anime", "psicodelico", "aero", "cromo"].includes(q) ? q : "libre-" + q) : n;
+      return n === "libre" ? (["anime", "psicodelico", "aero", "cromo", "ascii"].includes(q) ? q : "libre-" + q) : n;
     },
     // Aplica los ajustes de una plantilla incluida (de un archivo o de la comunidad): su variante, sus propiedades y la deja elegida en la Biblioteca
     aplicarAjustes(a) {

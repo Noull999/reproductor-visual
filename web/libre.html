@@ -197,6 +197,27 @@
     filter: drop-shadow(0 0 .6px #04306e) drop-shadow(0 0 .6px #04306e) drop-shadow(0 1px 2px rgba(0,30,90,.75)); }
   body .pz.piel-burbuja .fila .nombre { font-weight: 700; }
   body .pz.piel-burbuja .fila.sonando .nombre, body .pz.piel-burbuja .fila.sonando .dur, body .pz.piel-burbuja .fila.sonando .n { filter: drop-shadow(0 0 8px rgba(255,255,255,.75)); }
+
+  /* ---- Estilo Terminal (plantilla ASCII): cajas con borde del color, texto como en una consola, botones [<<] [>] [>>], lista tipo ls ---- */
+  body[data-panel=terminal] { --bg: color-mix(in srgb, var(--acento) 7%, rgba(2,4,3,.88)); --borde: 1px solid color-mix(in srgb, var(--acento) 75%, transparent); --rad: 0; --radp: 0; --pt: var(--acento);
+    --sombra: 0 0 16px color-mix(in srgb, var(--acento) 26%, transparent), inset 0 0 24px rgba(0,0,0,.55); }
+  body[data-panel=terminal] .tit, body[data-panel=terminal] .art, body[data-panel=terminal] .tiempo { color: var(--acento); text-shadow: 0 0 9px color-mix(in srgb, var(--acento) 55%, transparent); }
+  body[data-panel=terminal] .tit::before { content: "> "; opacity: .6; } body[data-panel=terminal] .art::before { content: "# "; opacity: .5; } body[data-panel=terminal] .tiempo::before { content: "t+ "; opacity: .55; }
+  body[data-panel=terminal] .tit::after { content: "\2588"; margin-left: .12em; animation: parp 1s steps(2) infinite; } @keyframes parp { 50% { opacity: 0; } }
+  body[data-panel=terminal] .art { opacity: .8; }
+  body[data-panel=terminal] .bt { font-size: 0; aspect-ratio: auto; max-width: none; width: auto; padding: 0 .5em; background: transparent; box-shadow: none; border: 1px solid color-mix(in srgb, var(--acento) 70%, transparent); border-radius: 0; opacity: 1; flex: 1; }
+  body[data-panel=terminal] .bt::before { font: 400 min(54cqh, 8cqw) "VT323", monospace; color: var(--acento); text-shadow: 0 0 8px color-mix(in srgb, var(--acento) 55%, transparent); }
+  body[data-panel=terminal] #bAnt::before { content: "[<<]"; } body[data-panel=terminal] #bSig::before { content: "[>>]"; } body[data-panel=terminal] #bPlay::before { content: "[>]"; } body[data-panel=terminal].sonando #bPlay::before { content: "[||]"; }
+  body[data-panel=terminal] .bt:hover { background: var(--acento); } body[data-panel=terminal] .bt:hover::before { color: #00140a; text-shadow: none; }
+  body[data-panel=terminal] input[type=range] { border-radius: 0; background: repeating-linear-gradient(90deg, transparent 0 6px, #000 6px 8px), linear-gradient(90deg, var(--acento) var(--p), color-mix(in srgb, var(--acento) 14%, #000) var(--p)); }
+  body[data-panel=terminal] #volumen { background: repeating-linear-gradient(90deg, transparent 0 6px, #000 6px 8px), linear-gradient(90deg, var(--acento) var(--v), color-mix(in srgb, var(--acento) 14%, #000) var(--v)); }
+  body[data-panel=terminal] input[type=range]::-webkit-slider-thumb { border-radius: 0; width: 8px; height: 18px; background: #e8fff0; box-shadow: 0 0 8px var(--acento); }
+  body[data-panel=terminal] #lista { font-size: calc(19px * var(--tam, 1)); font-family: "VT323", monospace; }
+  body[data-panel=terminal] .fila { border-radius: 0; opacity: .88; } body[data-panel=terminal] .fila img { filter: grayscale(1) contrast(1.15); image-rendering: pixelated; border-radius: 0; }
+  body[data-panel=terminal] .fila.sonando { background: var(--acento); color: #00140a; opacity: 1; font-weight: 400; } body[data-panel=terminal] .fila.sonando .nombre::before { content: "> "; }
+  body[data-panel=terminal] .cwrap { background: var(--acento); }   /* la carátula en el color de la plantilla (duotono) */
+  body[data-panel=terminal] .cwrap > img { filter: grayscale(1) contrast(1.2) brightness(1.08); mix-blend-mode: multiply; }
+  .barra-ascii { width: 100%; display: flex; align-items: center; cursor: pointer; white-space: pre; font: 400 min(92cqh, 3cqw) "VT323", monospace; color: var(--acento); text-shadow: 0 0 9px color-mix(in srgb, var(--acento) 50%, transparent); }
   /* ---- Acabado del fondo ---- */
   #fondoL.ac-cine::after, #fondoL.ac-vhs::after, #fondoL.ac-sueno::after { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 5; }
   #fondoL.ac-cine::after { background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,.6)), url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .5 0 0 0 0 .5 0 0 0 0 .5 0 0 0 .55 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"); mix-blend-mode: overlay; animation: grano .4s steps(4) infinite; }
@@ -225,6 +246,7 @@
 <script src="cromo.js"></script>
 <script src="adornos.js"></script>
 <script src="burbujas.js"></script>
+<script src="ascii.js"></script>
 <script src="haz.js"></script>
 <script src="nucleo.js"></script>
 <script src="modulos.js"></script>
@@ -289,7 +311,7 @@ function construir(s) {
     document.body.classList.toggle("sonando", (document.getElementById("bPlay") || {}).textContent === "❚❚");
   });
   if (s.piezas.some(p => p.tipo === "winamp")) puntosSkins();   // un punto por cada skin importado
-  if (Propias.INCLUIDAS[s.id] && Propias.INCLUIDAS[s.id].colores && ["psicodelico", "aero", "cromo"].includes(s.id)) { const mio = Props.colorLibre(s.id), cols = Propias.INCLUIDAS[s.id].colores; puntosColores(mio ? [...cols, ["Propio", mio]] : cols, s.id); }
+  if (Propias.INCLUIDAS[s.id] && Propias.INCLUIDAS[s.id].colores && ["psicodelico", "aero", "cromo", "ascii"].includes(s.id)) { const mio = Props.colorLibre(s.id), cols = Propias.INCLUIDAS[s.id].colores; puntosColores(mio ? [...cols, ["Propio", mio]] : cols, s.id); }
   const vol = document.getElementById("volumen");
   if (vol) vol.addEventListener("input", () => raiz.setProperty("--v", vol.value + "%"));
 }
@@ -372,6 +394,10 @@ function dibujarFondo(tipo, c, segunda = false) {
     Milkdrop.montar(lienzo, { cambio: mdCambio(), velocidad: mdVelocidad() }).catch(() => { lienzo.remove(); capa(fv("color")); }); return;
   }
 
+  if (tipo === "ascii") {   // caracteres que reaccionan a la música y cambian con el tiempo (ascii.js)
+    if (!segunda) capa(fv("color"));
+    Ascii.montar(c, { color: () => acento, cambio: fv("cambio"), eventos: fv("eventos") }); return;
+  }
   if (tipo === "pompas") {   // pompas de jabón que se reventan al tocarlas (burbujas.js)
     if (!segunda) capa(fv("color"));
     Burbujas.montar(c, { cantidad: fv("pompas"), sonido: fv("sonidoPompas") }); return;
@@ -548,6 +574,16 @@ function caratula(p) {
 // ---- Barra de avance: línea, onda real del tema o segmentos ----
 function barra(p) {
   const modo = val(p, "modo"), grosor = val(p, "grosor"), propio = val(p, "acento") ? rgb(val(p, "acento")) : null;
+  if (modo === "ascii") {   // [#####>-----] 47%  (clic para adelantar)
+    const d = document.createElement("div"); d.className = "barra-ascii"; d.innerHTML = '<input id="barra" type="range" min="0" max="1000" value="0" style="display:none"><span></span>';
+    const sp = d.querySelector("span"), medidor = document.createElement("canvas").getContext("2d");
+    d.addEventListener("click", (e) => { const r = d.getBoundingClientRect(); R.saltarA(Math.max(0, Math.min(1, (e.clientX - r.left) / r.width))); });
+    R.cadaCuadro(() => {
+      medidor.font = getComputedStyle(d).font; const cw = medidor.measureText("#").width || 8, celdas = Math.max(8, Math.floor(d.clientWidth / cw) - 9), p = R.progreso(), n = Math.round(p * celdas);
+      sp.textContent = "[" + "#".repeat(Math.max(0, n - 1)) + (n > 0 && n < celdas ? ">" : n >= celdas ? "#" : "") + "-".repeat(Math.max(0, celdas - n)) + "] " + String(Math.round(p * 100)).padStart(3, " ") + "%";
+    });
+    return d;
+  }
   if (modo === "linea") { const i = document.createElement("input"); i.id = "barra"; i.type = "range"; i.min = 0; i.max = 1000; i.value = 0; i.title = "Avance"; i.style.setProperty("--grosor", grosor + "px"); return i; }
   const d = document.createElement("div"); d.className = "barra-c"; d.innerHTML = '<input id="barra" type="range" min="0" max="1000" value="0"><canvas></canvas>';
   const c = d.querySelector("canvas"); let onda = [];

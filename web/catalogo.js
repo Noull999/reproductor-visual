@@ -45,13 +45,17 @@ const PLANTILLAS = [
     desc: "Metal derretido que fluye y se sacude con cada bombo, con reflejos de tu color. Botones, barras y lista de cromo pulido y el título en letras metálicas.",
     guardar: (x) => ({ "color-cromo": x.color }),
     grupos: [{ titulo: "Color", items: Propias.INCLUIDAS.cromo.colores.map(([n, c]) => v(n, c, `cromo-${n.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")}`, { color: c })) }] },
+  { id: "ascii", nombre: "ASCII", pagina: "libre.html?plantilla=ascii", predeterminada: "Verde",
+    desc: "Una terminal con arte ASCII que late con la música: lluvia de caracteres, ondas, un túnel y tu carátula hecha de letras. Cambia de escena sola y cada tanto pasa algo (glitch, alertas, un barrido de escaneo).",
+    guardar: (x) => ({ "color-ascii": x.color }),
+    grupos: [{ titulo: "Color", items: Propias.INCLUIDAS.ascii.colores.map(([n, c]) => v(n, c, `ascii-${n.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")}`, { color: c })) }] },
   { id: "pixel", nombre: "Pixel", pagina: "pixel.html", predeterminada: "Sangre",
     desc: "8 bits: espectro en bloques y carátula pixelada, con paletas de color a elegir.",
     guardar: (x) => ({ "paleta-pixel": x.nombre }),
     grupos: [{ titulo: "Paleta", items: [v("Sangre", "#e8452c", "pixel-sangre"), v("Game Boy", "#9bbc0f", "pixel-game-boy"), v("NES", "#e40058", "pixel-nes"), v("Vaporwave", "#ff71ce", "pixel-vaporwave"), v("Matrix", "#39ff6a", "pixel-matrix"), v("Hielo", "#8fe3ff", "pixel-hielo"), v("Ámbar", "#ffb000", "pixel-ambar")] }] },
 ];
 // Headspace suma un grupo "Cuerpo propio" cuando la persona subió uno
-const CON_COLOR_LIBRE = ["liquido", "headspace", "dosmil", "ambiente", "pixel", "neoy2k", "psicodelico", "cromo"];   // las que arman una variante desde un solo color
+const CON_COLOR_LIBRE = ["liquido", "headspace", "dosmil", "ambiente", "pixel", "neoy2k", "psicodelico", "cromo", "ascii"];   // las que arman una variante desde un solo color
 const gruposDe = (p) => {
   let g = p.grupos;
   if (p.id === "headspace" && Props.leer("headspace").cuerpo) {

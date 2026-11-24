@@ -66,7 +66,7 @@
 fondoApp();   // la galaxia desenfocada (fondo-app.js)
 const $ = (id) => document.getElementById(id);
 const api = () => window.pywebview.api;
-const NOMBRES = { liquido: "Líquido", headspace: "Headspace", dosmil: "2000s", ambiente: "Ambiente", pixel: "Pixel", neoy2k: "Neo Y2K", psicodelico: "Psicodélico", aero: "Frutiger Aero", cromo: "Cromo líquido", dreamcore: "Dreamcore", anime: "Winamp" };
+const NOMBRES = { liquido: "Líquido", headspace: "Headspace", dosmil: "2000s", ambiente: "Ambiente", pixel: "Pixel", neoy2k: "Neo Y2K", psicodelico: "Psicodélico", aero: "Frutiger Aero", cromo: "Cromo líquido", ascii: "ASCII", dreamcore: "Dreamcore", anime: "Winamp" };
 let todas = [], base = "";
 const aviso = (t) => { $("aviso").textContent = t; if (t) setTimeout(() => { if ($("aviso").textContent === t) $("aviso").textContent = ""; }, 6000); };
 
