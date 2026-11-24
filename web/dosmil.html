@@ -165,7 +165,9 @@ document.getElementById("tunel").style.filter = `brightness(${Props.extra("dosmi
 document.getElementById("tunel").onclick = () => visu.siguiente();
 let tonoSkin = 210;
 visu.intervalo([20, 45, 90, 0][Props.extra("dosmil", "cambio")] ?? 45);
-R.alCambiar(() => visu.siguiente());
+// El efecto cambia solo por tiempo o con un clic; por canción solo si se eligió «solo al cambiar de canción» (y una vez por canción, no cada vez que llega la onda)
+let ultimaPista = "";
+R.alCambiar((p) => { const k = `${p.titulo}|${p.artista}`; if (k === ultimaPista) return; const habia = ultimaPista; ultimaPista = k; if (habia && Props.extra("dosmil", "cambio") === 3) visu.siguiente(); });
 const $ = (id) => document.getElementById(id);
 const raiz = document.documentElement.style;
 const SKINS = {

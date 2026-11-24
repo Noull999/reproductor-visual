@@ -233,7 +233,10 @@ const fondo = $("fondo"), visu = crearVisu2000(fondo);
 visu.grupo(["caleido", "lava", "agua", "remolino"]); visu.velocidad(.7);
 visu.intervalo([20, 45, 90, 0][Props.extra("headspace", "cambio")] ?? 45);
 fondo.style.filter = `brightness(${Props.extra("headspace", "brillo") / 100})`;
-fondo.onclick = () => visu.siguiente(); R.alCambiar(() => visu.siguiente());
+fondo.onclick = () => visu.siguiente();
+// Cambia solo por tiempo o con un clic; por canción solo si se eligió «solo al cambiar de canción» (una vez por canción)
+let ultimaPista = "";
+R.alCambiar((p) => { const k = `${p.titulo}|${p.artista}`; if (k === ultimaPista) return; const habia = ultimaPista; ultimaPista = k; if (habia && Props.extra("headspace", "cambio") === 3) visu.siguiente(); });
 const tonoDe = (hex) => { const [r, g, b] = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16) / 255), mx = Math.max(r, g, b), d = mx - Math.min(r, g, b);
   return !d ? 210 : mx === r ? 60 * (((g - b) / d) % 6) : mx === g ? 60 * ((b - r) / d + 2) : 60 * ((r - g) / d + 4); };
 
