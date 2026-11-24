@@ -13,6 +13,7 @@ const ESQUEMA = {
     "tinte": { "t": "color", "n": "Tinte del agujero negro", "def": "", "vacio": true },
     "velocidad": { "t": "num", "n": "Velocidad (visualización 2000 y MilkDrop)", "min": 20, "max": 150, "def": 100, "u": " %" },
     "cambio": { "t": "num", "n": "Cambio de visual (MilkDrop)", "min": 8, "max": 120, "def": 40, "u": " s" },
+    "deriva": { "t": "bool", "n": "La imagen se mueve lento (zoom y paneo)", "def": false },
     "golpe": { "t": "enum", "n": "Reacción al golpe (bombo)", "v": { "": "No", "destello": "Destello", "zoom": "Zoom", "ambos": "Destello y zoom" }, "def": "" },
     "capa2": { "t": "enum", "n": "Segunda capa encima", "v": { "": "Ninguna", "burbujas": "Burbujas", "estrellas": "Estrellas de píxel", "luces": "Luces suaves", "haz": "Haz de luz", "tunel": "Túnel psicodélico", "columnas": "Columnas de luz", "agujero": "Agujero negro", "visu2000": "Visualización 2000", "nuevos": "Psicodélico", "milkdrop": "MilkDrop", "cromo": "Cromo líquido" }, "def": "" },
     "mezcla2": { "t": "enum", "n": "Cómo se mezcla la segunda capa", "v": { "screen": "Aclarar (pantalla)", "overlay": "Superponer", "lighten": "Solo lo más claro", "multiply": "Oscurecer" }, "def": "screen" },
@@ -121,6 +122,6 @@ const ESQUEMA = {
     "opacidad": { "t": "num", "n": "Opacidad", "min": 10, "max": 100, "def": 100, "u": " %" }
   },
   "bases": ["liquido", "headspace", "dosmil", "ambiente", "pixel", "anime", "psicodelico", "aero", "cromo"],
-  "imagenesIncluidas": [],
+  "imagenesIncluidas": ["img/aero/agua.webp", "img/aero/colinas.webp", "img/aero/orbes.webp"],
   "maxPiezas": 30
 };

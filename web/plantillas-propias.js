@@ -74,14 +74,16 @@ const Propias = (() => {
       colores: [["Rojo", "#ff2a2a"], ["Naranja", "#ff8a1f"], ["Lima", "#9be22a"], ["Verde", "#1fe07a"], ["Cian", "#1fd5ff"], ["Azul", "#2f5bff"], ["Violeta", "#b04bff"], ["Rosa", "#ff3fa8"]],
       piezas: () => armar([["lista", [74, 6, 24, 78]], ["panel", [0, 88, 100, 12]], ["titulo", [3, 89.5, 30, 5]], ["artista", [3, 94.5, 30, 3.5]], ["botones", [36, 89, 18, 9]],
         ["barra", [57, 92.2, 24, 2.4]], ["tiempo", [82, 90, 7, 6]], ["volumen", [90, 91, 8, 5]]]) };
-  // Frutiger Aero: cielo con aurora, colina y burbujas; todo en vidrio celeste (piel "aero")
+  // Frutiger Aero: tres escenas (fondos generados con IA por el usuario) con movimiento por código encima, y todo en vidrio celeste (piel "aero")
   INCLUIDAS.aero = { nombre: "Frutiger Aero", reglas: { requeridas: ["titulo", "botones", "barra"], nota: COMUN },
-      fondo: { tipo: "aero", color: "#2f97df", brillo: 92 }, estilo: { panel: "vidrio", acento: "#1e90e6", fuente: "Geist" },
-      colores: [["Cielo", "#1e90e6"], ["Menta", "#16b884"], ["Lavanda", "#7d6bff"], ["Coral", "#ff6f61"]],
-      piezas: () => armar([["panel", [3, 62, 50, 34], { piel: "aero" }], ["caratula", [5, 65, 13, 24], { forma: "redondeada", borde: true }],
-        ["titulo", [20, 66, 31, 7], { efecto: "sombra" }], ["artista", [20, 74, 31, 4], { efecto: "sombra" }], ["botones", [20, 80, 18, 8], { piel: "aero", redondos: true }],
-        ["volumen", [40, 82, 11, 4], { piel: "aero" }], ["tiempo", [41, 75, 10, 5], { efecto: "sombra" }], ["barra", [5, 91.5, 46, 2.4], { piel: "aero" }],
-        ["lista", [72, 6, 25, 74], { piel: "aero" }]]) };
+      fondo: { tipo: "imagen", color: "#0a4a86", brillo: 96, imagen: "img/aero/agua.webp", deriva: true, capa2: "burbujas", mezcla2: "screen", opacidad2: 45, golpe: "destello" },
+      estilo: { panel: "vidrio", acento: "#2fb6ff", fuente: "Geist" },
+      escenas: [["Agua", "img/aero/agua.webp", "#2fb6ff"], ["Colinas", "img/aero/colinas.webp", "#3fcf5a"], ["Orbes", "img/aero/orbes.webp", "#4a8dff"]],
+      piezas: () => armar([["panel", [3, 63, 45, 33], { piel: "aero" }], ["caratula", [5, 66.5, 12, 24.5], { forma: "redondeada", borde: true }],
+        ["titulo", [19, 67.5, 27, 6], { efecto: "sombra" }], ["artista", [19, 74.5, 27, 4], { efecto: "sombra" }],
+        ["botones", [19, 80.5, 16, 9], { piel: "aero", redondos: true }], ["tiempo", [35.5, 80, 11, 5], { efecto: "sombra" }],
+        ["volumen", [35.5, 86, 11, 3.2], { piel: "aero" }], ["barra", [5, 92.6, 41, 2.6], { piel: "aero" }],
+        ["lista", [73, 6, 24, 70], { piel: "aero" }]]) };
   // Cromo líquido: metal derretido que se sacude con el bombo; todo en cromo y letras metálicas
   INCLUIDAS.cromo = { nombre: "Cromo líquido", reglas: { requeridas: ["titulo", "botones", "barra"], nota: COMUN },
       fondo: { tipo: "cromo", color: "#05060a", brillo: 72, golpe: "zoom", acabado: "cine" }, estilo: { panel: "liso", acento: "#ff3fd8", fuente: "Orbitron" },
@@ -105,7 +107,11 @@ const Propias = (() => {
   // ---- Almacén ----
   function guardar(spec) { const l = leer(), i = l.findIndex(x => x.id === spec.id); if (i < 0) l.push(spec); else l[i] = spec; escribir(l); }
   // "anime" y "psicodelico" (ids de plantillas incluidas) se arman solas: la Biblioteca la abre en libre.html sin copiarla a localStorage
-  const obtener = (id) => leer().find(x => x.id === id) || (SOLAS.includes(id) ? { id, nombre: INCLUIDAS[id].nombre, base: id, fondo: INCLUIDAS[id].fondo, estilo: { ...INCLUIDAS[id].estilo, acento: colorElegido(id) }, piezas: INCLUIDAS[id].piezas() } : null);
+  // la escena elegida en la Biblioteca (las incluidas que traen escenas: Frutiger Aero) pone su fondo y su color
+  const escenaElegida = (id) => { const e = INCLUIDAS[id].escenas; if (!e) return null; let n = ""; try { n = localStorage.getItem(`escena-${id}`) || ""; } catch (x) {} return e.find(x => x[0] === n) || e[0]; };
+  const obtener = (id) => leer().find(x => x.id === id) || (SOLAS.includes(id) ? (() => { const es = escenaElegida(id);
+    return { id, nombre: INCLUIDAS[id].nombre, base: id, fondo: es ? { ...INCLUIDAS[id].fondo, imagen: es[1] } : INCLUIDAS[id].fondo,
+      estilo: { ...INCLUIDAS[id].estilo, acento: es ? es[2] : colorElegido(id) }, piezas: INCLUIDAS[id].piezas() }; })() : null);
   const borrar = (id) => escribir(leer().filter(x => x.id !== id));
   function duplicar(id) {
     const o = obtener(id); if (!o) return null;

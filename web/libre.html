@@ -105,8 +105,6 @@
   /* ---- Pieles: cada pieza (botones, barra, volumen, lista, panel) puede llevar su propio estilo de controles ---- */
   .pz.piel-gel { --bg: linear-gradient(180deg,rgba(255,255,255,.85),rgba(255,255,255,.22) 48%,transparent 52%), radial-gradient(120% 90% at 50% 110%, color-mix(in srgb, var(--acento) 70%, #fff), var(--acento) 70%); --borde: 1px solid rgba(0,0,0,.32); --rad: 999px; --radp: 26px; --pt: #fff; --sombra: inset 0 -4px 8px rgba(0,0,0,.22), 0 5px 14px rgba(0,0,0,.4);
     --pista: rgba(255,255,255,.25); --spista: inset 0 1px 3px rgba(0,0,0,.4); --tw: 18px; --th: 18px; --tbg: radial-gradient(circle at 35% 30%, #fff, var(--acento) 60%, color-mix(in srgb, var(--acento) 60%, #000)); --tsh: 0 2px 6px rgba(0,0,0,.5); }
-  .pz.piel-aero { --bg: linear-gradient(180deg,rgba(255,255,255,.78),rgba(220,242,255,.38) 49%,rgba(120,195,245,.42) 51%,rgba(185,230,255,.6)); --borde: 1px solid rgba(255,255,255,.85); --rad: 12px; --radp: 16px; --pt: #0b3a66; --sombra: 0 0 0 1px rgba(30,100,170,.35), 0 8px 22px rgba(0,70,140,.28), inset 0 1px 0 #fff;
-    --pista: rgba(255,255,255,.5); --spista: inset 0 1px 2px rgba(0,50,100,.35), 0 0 0 1px rgba(255,255,255,.7); --tw: 18px; --th: 18px; --tbg: radial-gradient(circle at 35% 30%, #fff, #9fd8ff 55%, #2b86d6); --tsh: 0 2px 5px rgba(0,60,120,.45); }
   .pz.piel-cromo { --bg: linear-gradient(180deg,#fdfdff 0%,#cfd6e2 28%,#69728a 50%,#eef2fa 68%,#9ca6b8 100%); --borde: 1px solid #262b35; --rad: 12px; --radp: 14px; --pt: #161a22; --sombra: inset 0 1px 0 #fff, inset 0 -2px 3px rgba(0,0,0,.35), 0 6px 16px rgba(0,0,0,.5);
     --pista: #2a2f3a; --spista: inset 0 1px 2px #000, 0 1px 0 rgba(255,255,255,.4); --tw: 22px; --th: 14px; --tr: 4px; --tbg: linear-gradient(180deg,#fff,#aab3c4 50%,#5f6880 51%,#e3e8f2); --tsh: 0 2px 4px rgba(0,0,0,.6); }
   .pz.piel-neon { --bg: rgba(4,2,10,.6); --borde: 1.5px solid var(--acento); --rad: 10px; --radp: 14px; --pt: var(--acento); --sombra: 0 0 14px color-mix(in srgb, var(--acento) 70%, transparent), inset 0 0 12px color-mix(in srgb, var(--acento) 35%, transparent);
@@ -130,7 +128,26 @@
   .pz.piel-aero .caja, .pz.piel-aero .bt, .pz.piel-vidrio .caja, .pz.piel-vidrio .bt { -webkit-backdrop-filter: blur(10px) saturate(1.3); backdrop-filter: blur(10px) saturate(1.3); }
   .pz.piel-gel .bt { text-shadow: 0 1px 2px rgba(0,0,0,.45); } .pz.piel-neon .bt { text-shadow: 0 0 8px var(--acento); }
   body .pz.piel-win98 .fila.sonando { background: #000080; color: #fff; } body .pz.piel-xp .fila.sonando { background: #316ac5; color: #fff; }
-  body .pz.piel-aero .fila.sonando { background: linear-gradient(180deg, rgba(255,255,255,.7), rgba(120,200,255,.55)); color: #062a4d; }
+
+  /* ---- Piel Aero (Frutiger Aero, estilo propio): vidrio celeste, barras de gel con brillo arriba, perillas y botones como burbujas ---- */
+  .pz.piel-aero { --bg: linear-gradient(180deg, rgba(255,255,255,.42), rgba(170,222,255,.16) 46%, rgba(30,110,200,.22) 54%, rgba(120,200,255,.3)); --borde: 1px solid rgba(255,255,255,.78); --rad: 50%; --radp: 18px; --pt: #fff;
+    --sombra: inset 0 1px 0 rgba(255,255,255,.95), inset 0 -10px 22px rgba(0,60,140,.18), 0 10px 28px rgba(0,40,100,.35), 0 0 0 1px rgba(20,80,160,.25); }
+  .pz.piel-aero .caja { -webkit-backdrop-filter: blur(14px) saturate(1.4); backdrop-filter: blur(14px) saturate(1.4); text-shadow: 0 1px 2px rgba(0,40,90,.6); }
+  body .pz.piel-aero .bt { -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); text-shadow: 0 1px 3px rgba(0,50,110,.7); color: #fff;
+    background: radial-gradient(circle at 34% 26%, rgba(255,255,255,.95) 0 9%, rgba(255,255,255,.35) 18%, rgba(150,220,255,.22) 45%, rgba(30,130,225,.55) 78%, rgba(220,245,255,.85) 96%); border: 1px solid rgba(255,255,255,.85); }
+  body .pz.piel-aero input[type=range] { height: min(100cqh, var(--grosor, 14px)); border-radius: 999px; border: 1px solid rgba(255,255,255,.75);
+    background: linear-gradient(180deg, rgba(255,255,255,.6), rgba(255,255,255,0) 55%), linear-gradient(90deg, #7fe7ff 0, var(--acento) var(--p), rgba(6,40,85,.5) var(--p));
+    box-shadow: inset 0 1px 3px rgba(0,30,70,.55), 0 0 12px color-mix(in srgb, var(--acento) 45%, transparent); }
+  body .pz.piel-aero #volumen { background: linear-gradient(180deg, rgba(255,255,255,.6), rgba(255,255,255,0) 55%), linear-gradient(90deg, #7fe7ff 0, var(--acento) var(--v), rgba(6,40,85,.5) var(--v)); }
+  body .pz.piel-aero input[type=range]::-webkit-slider-thumb { width: 22px; height: 22px; border-radius: 50%; border: 1px solid rgba(255,255,255,.95); box-shadow: 0 2px 6px rgba(0,40,100,.5);
+    background: radial-gradient(circle at 34% 28%, #fff 0 13%, rgba(255,255,255,.5) 20%, rgba(150,225,255,.35) 46%, rgba(40,140,230,.7) 78%, rgba(225,245,255,.95) 95%); }
+  body .pz.piel-aero .fila { border-bottom: 1px solid rgba(255,255,255,.14); opacity: .92; }
+  body .pz.piel-aero .fila:hover { background: rgba(255,255,255,.14); }
+  body .pz.piel-aero .fila.sonando { margin: 2px 8px; border-radius: 10px; color: #03284a; text-shadow: none; border-bottom-color: transparent;
+    background: linear-gradient(180deg, rgba(255,255,255,.85), rgba(150,220,255,.6) 50%, color-mix(in srgb, var(--acento) 70%, #fff) 51%, rgba(150,225,255,.8)); box-shadow: 0 0 12px rgba(120,210,255,.5); }
+  #fondoL .deriva { inset: -6%; width: 112%; height: 112%; animation: deriva 46s ease-in-out infinite alternate; }
+  @keyframes deriva { from { transform: scale(1) translate(0, 0); } to { transform: scale(1.08) translate(-2.5%, -1.5%); } }
+  @media (prefers-reduced-motion: reduce) { #fondoL .deriva { animation: none; } }
   /* ---- Acabado del fondo ---- */
   #fondoL.ac-cine::after, #fondoL.ac-vhs::after, #fondoL.ac-sueno::after { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 5; }
   #fondoL.ac-cine::after { background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,.6)), url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .5 0 0 0 0 .5 0 0 0 0 .5 0 0 0 .55 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"); mix-blend-mode: overlay; animation: grano .4s steps(4) infinite; }
@@ -266,7 +283,7 @@ function fondo() {
   if (t2 === "milkdrop" && (!Milkdrop.soportado() || tipo === "milkdrop")) t2 = "";
   if (t2 && t2 !== tipo) {
     const d = document.createElement("div"); d.className = "capa2"; d.style.mixBlendMode = fv("mezcla2"); d.style.opacity = fv("opacidad2") / 100; c.appendChild(d);
-    dibujarFondo(t2, d);
+    dibujarFondo(t2, d, true);
   }
 }
 // El bombo sacude el fondo: un destello del color de acento, un zoom corto o los dos (GOLPE lo calcula el detector de golpes)
@@ -278,11 +295,11 @@ function golpeFondo(c) {
     if (modo !== "zoom") { fl.style.background = `radial-gradient(ellipse at center, rgba(${acento},.5), rgba(255,255,255,.12) 62%, transparent 85%)`; fl.style.opacity = (GOLPE * .65).toFixed(3); }
   });
 }
-function dibujarFondo(tipo, c) {
+function dibujarFondo(tipo, c, segunda = false) {
   const capa = (css) => { const d = document.createElement("div"); d.style.background = css; c.appendChild(d); return d; };
   if (tipo === "color") return capa(fv("color"));
   if (tipo === "degradado") return capa(`linear-gradient(${fv("angulo")}deg, ${fv("color")}, ${fv("color2")})`);
-  if (tipo === "imagen") return capa(`${fv("color")} ${fv("imagen") ? `url("${fv("imagen")}")` : ""} center / cover`);
+  if (tipo === "imagen") { const d = capa(`${fv("color")} ${fv("imagen") ? `url("${fv("imagen")}")` : ""} center / cover`); if (fv("deriva")) d.classList.add("deriva"); return d; }
   if (tipo === "columnas") {
     capa(`radial-gradient(ellipse at 50% 110%, ${fv("color2")}, ${fv("color")} 70%)`);
     const lienzo = document.createElement("canvas"); c.appendChild(lienzo);
@@ -361,7 +378,7 @@ function dibujarFondo(tipo, c) {
     R.alCambiar((p) => { d.style.backgroundImage = p.caratula ? `url("${p.caratula}")` : "none"; });
     R.cadaCuadro(() => { d.style.transform = `scale(${(1 + R.energia(R.espectro(), 1, 8) * 0.08).toFixed(3)})`; }); return;
   }
-  capa(fv("color"));
+  if (!segunda) capa(fv("color"));   // la segunda capa no tapa la primera con su color de base
   const lienzo = document.createElement("canvas"); c.appendChild(lienzo);
   if (tipo === "haz") {
     iniciarHaz(lienzo, () => { const d = R.espectro(); return { bajo: Math.min(1, R.energia(d, 1, 10) * 1.2), medio: R.energia(d, 10, 60), agudo: R.energia(d, 60, 200) }; }, () => acento);
