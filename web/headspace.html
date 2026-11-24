@@ -47,6 +47,13 @@
   #titulo.largo { animation: pasar 9s ease-in-out 1.5s infinite alternate; }
   @keyframes pasar { to { transform: translateX(var(--mov)); } }
   #artista { font-size: 8.5cqh; opacity: .75; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  /* "solo la canción y el tiempo": sin barras, la carátula y el título bajan al centro y el tiempo va debajo */
+  #pantalla.soloCancion #visor { display: none; }
+  #pantalla.soloCancion .cab { top: 50%; transform: translateY(-62%); }
+  #pantalla.soloCancion #tiempo { top: auto; bottom: 10%; right: 6%; font-size: 9cqh; }
+  #pantalla.soloCancion #caratula { width: 42cqh; height: 42cqh; }
+  #pantalla.soloCancion #titulo { font-size: 17cqh; }
+  #pantalla.soloCancion #artista { font-size: 12cqh; }
   #tiempo { position: absolute; right: 6%; top: 40%; font-size: 7.5cqh; color: var(--led); opacity: .8; }
 
   #botones { display: flex; justify-content: space-between; align-items: center; padding: 0 3%; }
@@ -242,6 +249,7 @@ const tonoDe = (hex) => { const [r, g, b] = [1, 3, 5].map(i => parseInt(hex.slic
 
 // ---- Pantalla: barras LED con picos ----
 const visor = $("visor"), vg = visor.getContext("2d"), picos = new Array(30).fill(0);
+if (Props.extra("headspace", "pantalla") === 1) $("pantalla").classList.add("soloCancion");
 function dibujarPantalla(d) {
   const r = visor.getBoundingClientRect();
   if (visor.width !== Math.round(r.width) || visor.height !== Math.round(r.height)) { visor.width = Math.round(r.width); visor.height = Math.round(r.height); }

@@ -13,7 +13,8 @@ const Props = (() => {
   const EXTRAS = {
     liquido: [{ id: "deformacion", nombre: "Fuerza de la deformación del vidrio", min: 0, max: 140, def: 70, unidad: "" }],
     headspace: [{ id: "brillo", nombre: "Brillo del fondo", min: 20, max: 130, def: 80, unidad: " %" },
-      { id: "cambio", nombre: "Cambiar de visualización", min: 0, max: 3, def: 1, etiquetas: ["cada 20 s", "cada 45 s", "cada 90 s", "solo al cambiar de canción"] }],
+      { id: "cambio", nombre: "Cambiar de visualización", min: 0, max: 3, def: 1, etiquetas: ["cada 20 s", "cada 45 s", "cada 90 s", "solo al cambiar de canción"] },
+      { id: "pantalla", nombre: "En la pantalla", min: 0, max: 1, def: 0, etiquetas: ["canción, tiempo y visual", "solo la canción y el tiempo"] }],
     dosmil: [{ id: "tunel", nombre: "Brillo de la visualización de fondo", min: 20, max: 130, def: 70, unidad: " %" },
       { id: "cambio", nombre: "Cambiar de visualización", min: 0, max: 3, def: 1, etiquetas: ["cada 20 s", "cada 45 s", "cada 90 s", "solo al cambiar de canción"] }],
     ambiente: [{ id: "desenfoque", nombre: "Desenfoque del fondo", min: 10, max: 140, def: 70, unidad: " px" }],
