@@ -22,7 +22,8 @@ const Props = (() => {
     anime: [{ id: "milkdrop", nombre: "Visuales MilkDrop", min: 0, max: 2, def: 1, etiquetas: ["apagados (visualización clásica)", "de fondo", "en una ventana del reproductor"] },
       { id: "cambio", nombre: "Cambiar de visual", min: 0, max: 3, def: 1, etiquetas: ["cada 20 s", "cada 40 s", "cada 90 s", "solo con un clic"] },
       { id: "ritmo", nombre: "Velocidad de los visuales", min: 20, max: 150, def: 55, unidad: " %" },
-      { id: "brillo", nombre: "Brillo del reproductor (baja los blancos fuertes)", min: 50, max: 110, def: 90, unidad: " %" }],
+      { id: "brillo", nombre: "Brillo del reproductor (baja los blancos fuertes)", min: 50, max: 110, def: 90, unidad: " %" },
+      { id: "botones", nombre: "Botones encima del skin", min: 0, max: 2, def: 2, etiquetas: ["nunca", "solo los que casi no se ven", "siempre (más visibles)"] }],
   };
   const api = {
     DEFECTO, ZONAS_HEADSPACE, EXTRAS,

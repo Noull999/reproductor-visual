@@ -5,6 +5,7 @@
 //   Winamp.montar(caja, { ambiente }) — la pieza "winamp" de las plantillas
 "use strict";
 const Winamp = (() => {
+  const XS_EQ = [21, 78, 96, 114, 132, 150, 168, 186, 204, 222, 240];   // preamp y las 10 bandas, en la ventana del ecualizador
   const AN = 275, MAIN = 116, EQ = 116, PL = MAIN + EQ, ANCHO = AN * 2, ALTO = MAIN + EQ, S = 2;   // principal + ecualizador a la izquierda, lista a la derecha; S: el lienzo va al doble para que el texto se lea nítido
   const VIS_WINAMP = [[0,0,0],[24,33,41],[239,49,16],[206,41,16],[214,90,0],[214,102,0],[214,115,0],[198,123,8],[222,165,24],[214,181,33],[189,222,41],[148,222,33],[41,206,16],[50,190,16],[57,181,16],[49,156,8],[41,148,0],[24,132,8],[255,255,255],[214,214,222],[181,189,189],[160,170,175],[148,156,165],[150,150,150]];
   const FUENTE = { '"': [0, 26], "@": [0, 27], " ": [0, 30], "…": [1, 10], ".": [1, 11], ":": [1, 12], "(": [1, 13], ")": [1, 14], "-": [1, 15], "'": [1, 16], "!": [1, 17], "_": [1, 18], "+": [1, 19], "\\": [1, 20], "/": [1, 21], "[": [1, 22], "]": [1, 23], "^": [1, 24], "&": [1, 25], "%": [1, 26], ",": [1, 27], "=": [1, 28], "$": [1, 29], "#": [1, 30], "Å": [2, 0], "Ö": [2, 1], "Ä": [2, 2], "?": [2, 3], "*": [2, 4], "<": [1, 13], ">": [1, 14], "{": [1, 22], "}": [1, 23] };
@@ -117,12 +118,15 @@ const Winamp = (() => {
       g.save(); g.translate(0, MAIN);
       if (listo("eqmain")) { g.drawImage(img.eqmain, 0, 0, AN, EQ, 0, 0, AN, EQ); pieza("eqmain", 0, 134, 275, 14, 0, 0); pieza("eqmain", 0, 294, 113, 19, 86, 17); }
       else { caja3d(0, 0, AN, EQ, "#262a3e", "#565c7c", "#0e1018"); g.fillStyle = "#3a4268"; g.fillRect(0, 0, AN, 14); }
-      // los deslizadores bailan con la música (como un analizador)
-      const xs = [21, ...Array.from({ length: 10 }, (_, i) => 78 + i * 18)];
-      xs.forEach((x, i) => {
-        const v = i ? banda(d, i - 1, 10) : .5, n = Math.max(0, Math.min(27, Math.round(v * 27)));
-        if (listo("eqmain")) { pieza("eqmain", 13 + (n % 14) * 15, 164 + Math.floor(n / 14) * 65, 14, 63, x, 38); pieza("eqmain", 0, 164, 11, 11, x + 1, 38 + Math.round((1 - v) * 51)); }
-        else { g.fillStyle = "#0c0e18"; g.fillRect(x + 5, 38, 4, 63); g.fillStyle = "#5ef0ff"; g.fillRect(x + 1, 38 + Math.round((1 - v) * 51), 11, 11); }
+      // ON: ecualizador real (los deslizadores se arrastran y cambian el sonido); apagado: los deslizadores bailan con la música
+      const E = R.ecualizador, real = !!(E && E.estado.activo && E.disponible());
+      if (listo("eqmain")) pieza("eqmain", real ? 69 : 10, 119, 26, 12, 14, 18);
+      else { caja3d(14, 18, 26, 12, real ? `rgb(${colorAcento})` : "#3a4060", "#7a82a8", "#141624"); g.fillStyle = real ? "#000" : "#cfd6ff"; g.font = "bold 7px Arial"; g.fillText("ON", 21, 27); }
+      XS_EQ.forEach((x, i) => {
+        const v = real ? (E.MAX + (i ? E.estado.bandas[i - 1] : E.estado.pre)) / (2 * E.MAX) : i ? banda(d, i - 1, 10) : .5, n = Math.max(0, Math.min(27, Math.round(v * 27)));
+        const y = 38 + Math.round((1 - v) * 51), agarrado = arrastre === "eq" + i;
+        if (listo("eqmain")) { pieza("eqmain", 13 + (n % 14) * 15, 164 + Math.floor(n / 14) * 65, 14, 63, x, 38); pieza("eqmain", 0, agarrado ? 176 : 164, 11, 11, x + 1, y); }
+        else { g.fillStyle = "#0c0e18"; g.fillRect(x + 5, 38, 4, 63); g.fillStyle = agarrado ? "#fff" : "#5ef0ff"; g.fillRect(x + 1, y, 11, 11); }
       });
       g.restore();
     }
@@ -167,9 +171,9 @@ const Winamp = (() => {
     }
 
     // ---- ayuda encima del skin: íconos donde el botón casi no se ve, y resalte + nombre al pasar el mouse ----
-    const ZONAS = { shuf: [164, 89, 46, 15, "Aleatorio"], rep: [210, 89, 28, 15, "Repetir la lista"], eject: [136, 89, 22, 16, "Cambiar de skin"], ant: [16, 88, 23, 18, "Anterior"], play: [39, 88, 23, 18, "Play"], pausa: [62, 88, 23, 18, "Pausa"], stop: [85, 88, 23, 18, "Detener"], sig: [108, 88, 22, 18, "Siguiente"],
+    const ZONAS = { eqon: [14, MAIN + 18, 26, 12, "Ecualizador: encender o apagar"], shuf: [164, 89, 46, 15, "Aleatorio"], rep: [210, 89, 28, 15, "Repetir la lista"], eject: [136, 89, 22, 16, "Cambiar de skin"], ant: [16, 88, 23, 18, "Anterior"], play: [39, 88, 23, 18, "Play"], pausa: [62, 88, 23, 18, "Pausa"], stop: [85, 88, 23, 18, "Detener"], sig: [108, 88, 22, 18, "Siguiente"],
       pos: [16, 72, 248, 10, "Avance (arrastra para adelantar)"], vol: [107, 57, 68, 13, "Volumen"] };
-    const ICONOS = { ant: "⏮", play: "▶", pausa: "⏸", stop: "■", sig: "⏭" };
+    const ICONOS = { ant: "⏮", play: "▶", pausa: "⏸", stop: "■", sig: "⏭" }, ICONOS_EXTRA = { shuf: "⇄", rep: "↻", eject: "⏏" };
     function medirContraste() {   // botón del skin vs. el dibujo que tiene detrás: si se parecen mucho, el botón no se entiende
       if (!listo("main")) return null;
       const m = document.createElement("canvas"); m.width = AN; m.height = MAIN; const mg = m.getContext("2d"); mg.drawImage(img.main, 0, 0);
@@ -193,9 +197,13 @@ const Winamp = (() => {
       g.save(); g.textAlign = "center"; g.textBaseline = "middle";
       for (const [k, [x, y, w, h]] of Object.entries(ZONAS)) {
         if (hover === k || arrastre === k) { g.fillStyle = `rgba(${colorAcento},.22)`; g.fillRect(x, y, w, h); g.strokeStyle = `rgba(${colorAcento},.95)`; g.lineWidth = 1; g.strokeRect(x + .5, y + .5, w - 1, h - 1); }
-        if (poco && poco[k]) {
-          g.font = "bold 10px Arial"; g.fillStyle = "rgba(0,0,0,.65)"; g.fillText(ICONOS[k] + "︎", x + w / 2 + .6, y + h / 2 + 1.1);
-          g.fillStyle = hover === k ? `rgb(${colorAcento})` : "rgba(255,255,255,.92)"; g.fillText(ICONOS[k] + "︎", x + w / 2, y + h / 2 + .5);
+        // botones encima: 0 nunca, 1 solo los que casi no se ven en el skin, 2 siempre (con un fondo oscuro para que se lean en cualquier skin)
+        const siempre = op.botones === 2, icono = ICONOS[k] || (siempre && ICONOS_EXTRA[k]);
+        if (icono && op.botones !== 0 && (siempre || (poco && poco[k]))) {
+          const encendido = (k === "shuf" && R.modo.aleatorio) || (k === "rep" && R.modo.repetir);
+          if (siempre) { g.fillStyle = "rgba(0,0,0,.58)"; g.beginPath(); g.roundRect(x + 1.5, y + 1.5, w - 3, h - 3, 3); g.fill(); g.strokeStyle = `rgba(${colorAcento},${encendido ? .95 : .4})`; g.lineWidth = .8; g.stroke(); }
+          g.font = `bold ${siempre && h < 15 ? 9 : 11}px Arial`; g.fillStyle = "rgba(0,0,0,.65)"; g.fillText(icono + "︎", x + w / 2 + .6, y + h / 2 + 1.1);
+          g.fillStyle = hover === k || encendido ? `rgb(${colorAcento})` : "rgba(255,255,255,.95)"; g.fillText(icono + "︎", x + w / 2, y + h / 2 + .5);
         }
       }
       g.restore();
@@ -208,10 +216,14 @@ const Winamp = (() => {
     // ---- ratón: botones, barras y lista ----
     const punto = (e) => { const r = c.getBoundingClientRect(); return [(e.clientX - r.left) / r.width * AW, (e.clientY - r.top) / r.height * ALTO]; };
     const boton = (x, y) => y >= 89 && y < 105 && x >= 136 && x < 238 ? (x < 158 ? "eject" : x >= 164 && x < 210 ? "shuf" : x >= 210 ? "rep" : "") : y >= 88 && y < 106 ? (x >= 16 && x < 39 ? "ant" : x < 62 ? "play" : x < 85 ? "pausa" : x < 108 ? "stop" : x < 130 ? "sig" : "") : "";
+    const ponerEq = (i, y) => { const db = Math.round(((1 - (y - MAIN - 43) / 51) * 2 - 1) * R.ecualizador.MAX * 2) / 2; R.ecualizador.poner(i ? { banda: [i - 1, db] } : { pre: db }); };   // medio dB por paso
     const ponerVol = (x) => { vol.value = Math.round(Math.max(0, Math.min(1, (x - 114) / 54)) * 100); vol.dispatchEvent(new Event("input")); };
     c.addEventListener("pointerdown", (e) => {
       const [x, y] = punto(e); c.setPointerCapture(e.pointerId);
-      if (x < AN && y < MAIN) {
+      const eqI = x < AN && y >= MAIN + 38 && y < MAIN + 101 ? XS_EQ.findIndex(sx => x >= sx - 1 && x < sx + 15) : -1;
+      if (eqI >= 0 && R.ecualizador && R.ecualizador.estado.activo && R.ecualizador.disponible()) { arrastre = "eq" + eqI; ponerEq(eqI, y); }
+      else if (x < AN && y >= MAIN + 18 && y < MAIN + 30 && x >= 14 && x < 40) apretado = "eqon";
+      else if (x < AN && y < MAIN) {
         apretado = boton(x, y);
         if (y >= 72 && y < 82 && x >= 16 && x < 264) { arrastre = "pos"; R.saltarA(Math.max(0, Math.min(1, (x - 30) / 219))); }
         else if (y >= 57 && y < 70 && x >= 107 && x < 175) { arrastre = "vol"; ponerVol(x); }
@@ -223,10 +235,14 @@ const Winamp = (() => {
     c.addEventListener("pointermove", (e) => {
       const [x, y] = punto(e), z = zona(x, y);
       if (z !== hover) { hover = z; c.title = (ZONAS[z] && ZONAS[z][4]) || NOMBRES[z] || ""; c.style.cursor = z ? "pointer" : "default"; }
-      if (arrastre === "vol") ponerVol(x); else if (arrastre === "pos") R.saltarA(Math.max(0, Math.min(1, (x - 30) / 219)));
+      if (arrastre.startsWith("eq")) ponerEq(+arrastre.slice(2), y); else if (arrastre === "vol") ponerVol(x); else if (arrastre === "pos") R.saltarA(Math.max(0, Math.min(1, (x - 30) / 219)));
     });
     c.addEventListener("pointerup", (e) => {
       const [x, y] = punto(e), b = x < AN ? boton(x, y) : "";
+      if (apretado === "eqon" && x < 40 && x >= 14 && y >= MAIN + 18 && y < MAIN + 30 && R.ecualizador) {
+        if (R.ecualizador.disponible()) R.ecualizador.poner({ activo: !R.ecualizador.estado.activo });
+        else c.title = "El ecualizador funciona con tu música y SoundCloud; Spotify y PC suenan fuera de la app";
+      }
       if (b && b === apretado) {
         const n = R.pistas.length;
         if (b === "shuf") R.modo.aleatorio = !R.modo.aleatorio;

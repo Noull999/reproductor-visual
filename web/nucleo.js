@@ -38,6 +38,29 @@ const R = (() => {
   const pistas = [];
   let volumenActual = 0.8, salida = null;
   let actual = 0, hls = null, ctx = null, analizador = null, frec = null, onda = null, pedido = 0;
+  // Ecualizador de 10 bandas (las de Winamp) + preamp, en dB (±12). Va antes del analizador: los visuales ven la música ecualizada.
+  // Solo actúa sobre el audio que suena en la app (tu música, SoundCloud); Spotify y PC suenan fuera.
+  const EQ_HZ = [60, 170, 310, 600, 1000, 3000, 6000, 12000, 14000, 16000], EQ_MAX = 12;
+  const eq = { activo: false, pre: 0, bandas: new Array(10).fill(0) };
+  try { const g = JSON.parse(localStorage.getItem("ecualizador") || "null"); if (g && Array.isArray(g.bandas) && g.bandas.length === 10) Object.assign(eq, { activo: !!g.activo, pre: +g.pre || 0, bandas: g.bandas.map(x => +x || 0) }); } catch (e) {}
+  let preEq = null, filtrosEq = [];
+  const limitarDb = (x) => Math.max(-EQ_MAX, Math.min(EQ_MAX, +x || 0));
+  function aplicarEq() {
+    if (!preEq) return;
+    preEq.gain.value = eq.activo ? Math.pow(10, eq.pre / 20) : 1;
+    filtrosEq.forEach((f, i) => { f.gain.value = eq.activo ? eq.bandas[i] : 0; });
+  }
+  const ecualizador = {
+    HZ: EQ_HZ, MAX: EQ_MAX, get estado() { return eq; },
+    disponible: () => !remoto,
+    poner(cambios) {
+      if (cambios.activo !== undefined) eq.activo = !!cambios.activo;
+      if (cambios.pre !== undefined) eq.pre = limitarDb(cambios.pre);
+      if (cambios.banda) eq.bandas[cambios.banda[0]] = limitarDb(cambios.banda[1]);
+      try { localStorage.setItem("ecualizador", JSON.stringify(eq)); } catch (e) {}
+      aplicarEq();
+    },
+  };
   let listaLista;   // se cumple cuando la lista de temas terminó de cargar
   const listo = new Promise(r => { listaLista = r; });
   const avisos = [];
@@ -65,7 +88,11 @@ const R = (() => {
     analizador.smoothingTimeConstant = 0.8;
     // El volumen va DESPUÉS del analizador: así los visuales siguen viendo la música completa aunque la silencies
     salida = ctx.createGain(); salida.gain.value = mudoForzado ? 0 : volumenActual;
-    fuenteAudio.connect(analizador); analizador.connect(salida); salida.connect(ctx.destination);
+    preEq = ctx.createGain();
+    filtrosEq = EQ_HZ.map((hz, i) => { const f = ctx.createBiquadFilter(); f.type = i === 0 ? "lowshelf" : i === EQ_HZ.length - 1 ? "highshelf" : "peaking"; f.frequency.value = hz; f.Q.value = 1.4; return f; });
+    [fuenteAudio, preEq, ...filtrosEq].reduce((a, b) => { a.connect(b); return b; }).connect(analizador);
+    analizador.connect(salida); salida.connect(ctx.destination);
+    aplicarEq();
     frec = new Uint8Array(analizador.frequencyBinCount);
     onda = new Uint8Array(analizador.fftSize);
   }
@@ -402,7 +429,7 @@ const R = (() => {
   else window.addEventListener("pywebviewready", arrancar);
 
   return {
-    audio, pistas, fuente, cargar, modo, velocidad: factorV, alternar, espectro, ondaAudio, energia, fmt, progreso, tiempoActual, saltarA,
+    audio, pistas, fuente, cargar, modo, ecualizador, velocidad: factorV, alternar, espectro, ondaAudio, energia, fmt, progreso, tiempoActual, saltarA,
     get actual() { return actual; },
     alCambiar: (fn) => avisos.push(fn),
     cadaCuadro,
