@@ -35,7 +35,7 @@ const ESQUEMA = {
       "intensidad": { "t": "num", "n": "Intensidad", "min": 20, "max": 200, "def": 100, "u": " %" },
       "espejo": { "t": "bool", "n": "Reflejar hacia arriba", "def": false } } },
     "caratula": { "etiqueta": "Carátula", "rect": [6, 16, 20, 36], "ids": ["caratula"], "opciones": {
-      "forma": { "t": "enum", "n": "Forma", "v": { "cuadrada": "Cuadrada", "redondeada": "Redondeada", "circulo": "Círculo", "vinilo": "Vinilo (gira)" }, "def": "redondeada" },
+      "forma": { "t": "enum", "n": "Forma", "v": { "cuadrada": "Cuadrada", "redondeada": "Redondeada", "circulo": "Círculo", "vinilo": "Vinilo (gira)", "burbuja": "Burbuja de vidrio (flota)" }, "def": "redondeada" },
       "efecto": { "t": "enum", "n": "Efecto", "v": { "normal": "Normal", "duotono": "Duotono", "pixelada": "Pixelada", "bn": "Blanco y negro" }, "def": "normal" },
       "inclinacion": { "t": "num", "n": "Inclinación", "min": -20, "max": 20, "def": 0, "u": "°" },
       "borde": { "t": "bool", "n": "Borde del color de acento", "def": false } } },
@@ -59,29 +59,29 @@ const ESQUEMA = {
       "separacion": { "t": "num", "n": "Separación", "min": 0, "max": 30, "def": 6, "u": "" },
       "redondos": { "t": "bool", "n": "Botones redondos", "def": false },
       "acento": { "t": "color", "n": "Color propio de los botones", "def": "", "vacio": true },
-      "piel": { "t": "enum", "n": "Piel de los controles", "v": { "": "La del estilo general", "gel": "Gel Y2K", "aero": "Aero (vidrio celeste)", "cromo": "Cromo", "neon": "Neón", "win98": "Windows 98", "xp": "Windows XP", "vidrio": "Vidrio", "arcilla": "Arcilla (inflada)", "relieve": "Relieve suave", "pixel": "Píxel" }, "def": "" } } },
+      "piel": { "t": "enum", "n": "Piel de los controles", "v": { "": "La del estilo general", "gel": "Gel Y2K", "aero": "Aero (vidrio celeste)", "cromo": "Cromo", "neon": "Neón", "win98": "Windows 98", "xp": "Windows XP", "vidrio": "Vidrio", "arcilla": "Arcilla (inflada)", "relieve": "Relieve suave", "pixel": "Píxel", "burbuja": "Burbuja de vidrio" }, "def": "" } } },
     "barra": { "etiqueta": "Barra de avance", "rect": [10, 92, 80, 2.4], "ids": ["barra"], "opciones": {
       "modo": { "t": "enum", "n": "Tipo", "v": { "linea": "Línea", "onda": "Onda real del tema", "segmentos": "Segmentos" }, "def": "linea" },
       "grosor": { "t": "num", "n": "Grosor", "min": 3, "max": 30, "def": 12, "u": " px" },
       "acento": { "t": "color", "n": "Color propio de la barra", "def": "", "vacio": true },
-      "piel": { "t": "enum", "n": "Piel de los controles", "v": { "": "La del estilo general", "gel": "Gel Y2K", "aero": "Aero (vidrio celeste)", "cromo": "Cromo", "neon": "Neón", "win98": "Windows 98", "xp": "Windows XP", "vidrio": "Vidrio", "arcilla": "Arcilla (inflada)", "relieve": "Relieve suave", "pixel": "Píxel" }, "def": "" } } },
+      "piel": { "t": "enum", "n": "Piel de los controles", "v": { "": "La del estilo general", "gel": "Gel Y2K", "aero": "Aero (vidrio celeste)", "cromo": "Cromo", "neon": "Neón", "win98": "Windows 98", "xp": "Windows XP", "vidrio": "Vidrio", "arcilla": "Arcilla (inflada)", "relieve": "Relieve suave", "pixel": "Píxel", "burbuja": "Burbuja de vidrio" }, "def": "" } } },
     "tiempo": { "etiqueta": "Tiempo", "rect": [84, 86, 12, 4], "ids": ["tiempo"], "opciones": {
       "tam": { "t": "num", "n": "Tamaño", "min": 40, "max": 220, "def": 100, "u": " %" },
       "color": { "t": "color", "n": "Color", "def": "", "vacio": true },
       "efecto": { "t": "enum", "n": "Efecto del texto", "v": { "ninguno": "Ninguno", "sombra": "Sombra", "brillo": "Brillo", "contorno": "Contorno", "neon": "Neón", "cromo": "Cromo" }, "def": "ninguno" } } },
     "volumen": { "etiqueta": "Volumen", "rect": [76, 78, 20, 6], "ids": ["volumen", "iconoVol"], "opciones": {
       "acento": { "t": "color", "n": "Color propio del volumen", "def": "", "vacio": true },
-      "piel": { "t": "enum", "n": "Piel de los controles", "v": { "": "La del estilo general", "gel": "Gel Y2K", "aero": "Aero (vidrio celeste)", "cromo": "Cromo", "neon": "Neón", "win98": "Windows 98", "xp": "Windows XP", "vidrio": "Vidrio", "arcilla": "Arcilla (inflada)", "relieve": "Relieve suave", "pixel": "Píxel" }, "def": "" } } },
+      "piel": { "t": "enum", "n": "Piel de los controles", "v": { "": "La del estilo general", "gel": "Gel Y2K", "aero": "Aero (vidrio celeste)", "cromo": "Cromo", "neon": "Neón", "win98": "Windows 98", "xp": "Windows XP", "vidrio": "Vidrio", "arcilla": "Arcilla (inflada)", "relieve": "Relieve suave", "pixel": "Píxel", "burbuja": "Burbuja de vidrio" }, "def": "" } } },
     "lista": { "etiqueta": "Lista de temas", "rect": [72, 8, 24, 62], "ids": ["lista"], "opciones": {
       "miniaturas": { "t": "bool", "n": "Mostrar carátulas", "def": true },
       "numeros": { "t": "bool", "n": "Mostrar números", "def": true },
       "tam": { "t": "num", "n": "Tamaño del texto", "min": 70, "max": 150, "def": 100, "u": " %" },
       "acento": { "t": "color", "n": "Color propio de la lista (tema que suena)", "def": "", "vacio": true },
-      "piel": { "t": "enum", "n": "Piel de los controles", "v": { "": "La del estilo general", "gel": "Gel Y2K", "aero": "Aero (vidrio celeste)", "cromo": "Cromo", "neon": "Neón", "win98": "Windows 98", "xp": "Windows XP", "vidrio": "Vidrio", "arcilla": "Arcilla (inflada)", "relieve": "Relieve suave", "pixel": "Píxel" }, "def": "" } } },
+      "piel": { "t": "enum", "n": "Piel de los controles", "v": { "": "La del estilo general", "gel": "Gel Y2K", "aero": "Aero (vidrio celeste)", "cromo": "Cromo", "neon": "Neón", "win98": "Windows 98", "xp": "Windows XP", "vidrio": "Vidrio", "arcilla": "Arcilla (inflada)", "relieve": "Relieve suave", "pixel": "Píxel", "burbuja": "Burbuja de vidrio" }, "def": "" } } },
     "panel": { "etiqueta": "Panel", "rect": [8, 8, 26, 40], "ids": [], "repetible": true, "opciones": {
       "borde": { "t": "bool", "n": "Con borde", "def": true },
       "color": { "t": "color", "n": "Color propio", "def": "", "vacio": true },
-      "piel": { "t": "enum", "n": "Piel de los controles", "v": { "": "La del estilo general", "gel": "Gel Y2K", "aero": "Aero (vidrio celeste)", "cromo": "Cromo", "neon": "Neón", "win98": "Windows 98", "xp": "Windows XP", "vidrio": "Vidrio", "arcilla": "Arcilla (inflada)", "relieve": "Relieve suave", "pixel": "Píxel" }, "def": "" } } },
+      "piel": { "t": "enum", "n": "Piel de los controles", "v": { "": "La del estilo general", "gel": "Gel Y2K", "aero": "Aero (vidrio celeste)", "cromo": "Cromo", "neon": "Neón", "win98": "Windows 98", "xp": "Windows XP", "vidrio": "Vidrio", "arcilla": "Arcilla (inflada)", "relieve": "Relieve suave", "pixel": "Píxel", "burbuja": "Burbuja de vidrio" }, "def": "" } } },
     "imagen": { "etiqueta": "Imagen", "rect": [36, 8, 28, 50], "ids": [], "repetible": true, "opciones": {
       "ajuste": { "t": "enum", "n": "Ajuste", "v": { "contener": "Contener", "cubrir": "Cubrir" }, "def": "contener" },
       "reaccion": { "t": "enum", "n": "Reacciona a la música", "v": { "ninguna": "No", "pulso": "Pulso", "golpe": "Golpe (con sacudida)", "flotar": "Flota" }, "def": "ninguna" },

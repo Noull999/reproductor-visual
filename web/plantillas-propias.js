@@ -74,16 +74,18 @@ const Propias = (() => {
       colores: [["Rojo", "#ff2a2a"], ["Naranja", "#ff8a1f"], ["Lima", "#9be22a"], ["Verde", "#1fe07a"], ["Cian", "#1fd5ff"], ["Azul", "#2f5bff"], ["Violeta", "#b04bff"], ["Rosa", "#ff3fa8"]],
       piezas: () => armar([["lista", [74, 6, 24, 78]], ["panel", [0, 88, 100, 12]], ["titulo", [3, 89.5, 30, 5]], ["artista", [3, 94.5, 30, 3.5]], ["botones", [36, 89, 18, 9]],
         ["barra", [57, 92.2, 24, 2.4]], ["tiempo", [82, 90, 7, 6]], ["volumen", [90, 91, 8, 5]]]) };
-  // Frutiger Aero: tres escenas (fondos generados con IA por el usuario) con movimiento por código encima, y todo en vidrio celeste (piel "aero")
+  // Frutiger Aero: el fondo Colinas (elegido por el usuario; Agua y Orbes quedan como escenas) y toda la interfaz en burbujas de vidrio:
+  // la carátula en una burbuja que flota, el reproductor (título, botones, tiempo, barras) en otra y la lista en otra
   INCLUIDAS.aero = { nombre: "Frutiger Aero", reglas: { requeridas: ["titulo", "botones", "barra"], nota: COMUN },
-      fondo: { tipo: "imagen", color: "#0a4a86", brillo: 96, imagen: "img/aero/agua.webp", deriva: true, capa2: "burbujas", mezcla2: "screen", opacidad2: 45, golpe: "destello" },
-      estilo: { panel: "vidrio", acento: "#2fb6ff", fuente: "Geist" },
-      escenas: [["Agua", "img/aero/agua.webp", "#2fb6ff"], ["Colinas", "img/aero/colinas.webp", "#3fcf5a"], ["Orbes", "img/aero/orbes.webp", "#4a8dff"]],
-      piezas: () => armar([["panel", [3, 63, 45, 33], { piel: "aero" }], ["caratula", [5, 66.5, 12, 24.5], { forma: "redondeada", borde: true }],
-        ["titulo", [19, 67.5, 27, 6], { efecto: "sombra" }], ["artista", [19, 74.5, 27, 4], { efecto: "sombra" }],
-        ["botones", [19, 80.5, 16, 9], { piel: "aero", redondos: true }], ["tiempo", [35.5, 80, 11, 5], { efecto: "sombra" }],
-        ["volumen", [35.5, 86, 11, 3.2], { piel: "aero" }], ["barra", [5, 92.6, 41, 2.6], { piel: "aero" }],
-        ["lista", [73, 6, 24, 70], { piel: "aero" }]]) };
+      fondo: { tipo: "imagen", color: "#0a4a86", brillo: 96, imagen: "img/aero/colinas.webp", deriva: true, capa2: "burbujas", mezcla2: "screen", opacidad2: 40, golpe: "destello" },
+      estilo: { panel: "vidrio", acento: "#36c8ff", fuente: "Geist" },
+      escenas: [["Colinas", "img/aero/colinas.webp", "#36c8ff"], ["Agua", "img/aero/agua.webp", "#2fb6ff"], ["Orbes", "img/aero/orbes.webp", "#4a8dff"]],
+      piezas: () => armar([["caratula", [6, 10, 21, 37], { forma: "burbuja" }],
+        ["panel", [4, 50, 50, 46], { piel: "burbuja" }],
+        ["titulo", [13, 59, 32, 6], { efecto: "sombra", alineacion: "centro" }], ["artista", [13, 65.5, 32, 4], { efecto: "sombra", alineacion: "centro" }],
+        ["botones", [19, 71, 20, 9], { piel: "burbuja", redondos: true }], ["tiempo", [19, 80.5, 20, 4.5], { efecto: "sombra" }],
+        ["barra", [12, 86.5, 34, 2.4], { piel: "burbuja" }], ["volumen", [21, 90.5, 16, 3], { piel: "burbuja" }],
+        ["lista", [64, 4, 33, 92], { piel: "burbuja" }]]) };
   // Cromo líquido: metal derretido que se sacude con el bombo; todo en cromo y letras metálicas
   INCLUIDAS.cromo = { nombre: "Cromo líquido", reglas: { requeridas: ["titulo", "botones", "barra"], nota: COMUN },
       fondo: { tipo: "cromo", color: "#05060a", brillo: 72, golpe: "zoom", acabado: "cine" }, estilo: { panel: "liso", acento: "#ff3fd8", fuente: "Orbitron" },
