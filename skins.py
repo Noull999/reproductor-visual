@@ -19,7 +19,7 @@ CARPETA = Path.home() / ".visualizador" / "skins"
 MAX_ZIP = 8 * 1024 * 1024
 MAX_PIEZA = 4 * 1024 * 1024
 PIEZAS = {"main", "titlebar", "cbuttons", "numbers", "nums_ex", "text", "playpaus", "posbar", "volume", "balance",
-          "monoster", "shufrep", "eqmain", "pledit"}
+          "monoster", "shufrep", "eqmain", "pledit", "gen"}   # gen: el marco de ventana genérica (donde Winamp mostraba MilkDrop)
 URL_MUSEO = re.compile(r"^https://skins\.webamp\.org/skin/([0-9a-f]{32})/([^/?#]+?)(?:\.wsz)?/?$", re.I)
 ID = re.compile(r"^[0-9a-f]{16}$")
 HEX = re.compile(r"^#?([0-9a-f]{6})$", re.I)

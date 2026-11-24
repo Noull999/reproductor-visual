@@ -78,3 +78,8 @@ def test_borrar_ignora_ids_raros(carpeta):
     skins.borrar("../..")
     skins.borrar(m["id"])
     assert not (carpeta / m["id"]).exists()
+
+
+def test_guarda_el_marco_generico_gen(carpeta):
+    m = skins.importar(wsz({"main.bmp": bmp(), "GEN.BMP": bmp(194, 109)}), "Con marco")
+    assert m["piezas"] == ["gen", "main"] and (carpeta / m["id"] / "gen.png").exists()
