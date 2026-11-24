@@ -82,7 +82,16 @@ const Propias = (() => {
         ["titulo", [20, 66, 31, 7], { efecto: "sombra" }], ["artista", [20, 74, 31, 4], { efecto: "sombra" }], ["botones", [20, 80, 18, 8], { piel: "aero", redondos: true }],
         ["volumen", [40, 82, 11, 4], { piel: "aero" }], ["tiempo", [41, 75, 10, 5], { efecto: "sombra" }], ["barra", [5, 91.5, 46, 2.4], { piel: "aero" }],
         ["lista", [72, 6, 25, 74], { piel: "aero" }]]) };
-  const SOLAS = ["anime", "psicodelico", "aero"];
+  // Cromo líquido: metal derretido que se sacude con el bombo; todo en cromo y letras metálicas
+  INCLUIDAS.cromo = { nombre: "Cromo líquido", reglas: { requeridas: ["titulo", "botones", "barra"], nota: COMUN },
+      fondo: { tipo: "cromo", color: "#05060a", brillo: 72, golpe: "zoom", acabado: "cine" }, estilo: { panel: "liso", acento: "#ff3fd8", fuente: "Orbitron" },
+      colores: [["Rosa", "#ff3fd8"], ["Plata", "#9fb6e0"], ["Ácido", "#b6ff3c"], ["Hielo", "#5fd8ff"], ["Fuego", "#ff6a2b"]],
+      piezas: () => armar([["panel", [3, 10, 69, 50], { piel: "neon" }], ["caratula", [5, 14, 24, 42], { forma: "circulo", borde: true }],
+        ["titulo", [32, 24, 40, 9], { efecto: "cromo", mayusculas: true }], ["artista", [32, 34, 40, 5], { efecto: "sombra" }],
+        ["botones", [32, 42, 20, 10], { piel: "cromo", redondos: true }], ["tiempo", [54, 44, 14, 5], { efecto: "cromo" }],
+        ["volumen", [5, 62, 24, 4], { piel: "cromo" }], ["lista", [75, 8, 22, 72], { piel: "cromo" }],
+        ["barra", [5, 89, 90, 2.8], { piel: "cromo" }]]) };
+  const SOLAS = ["anime", "psicodelico", "aero", "cromo"];
   // el color que se eligió en la Biblioteca (solo Psicodélico tiene colores)
   const colorElegido = (id) => { try { return localStorage.getItem(`color-${id}`) || INCLUIDAS[id].estilo.acento; } catch (e) { return INCLUIDAS[id].estilo.acento; } };
   function desdeBase(id) {

@@ -220,7 +220,7 @@ function construir(s) {
     document.body.classList.toggle("sonando", (document.getElementById("bPlay") || {}).textContent === "❚❚");
   });
   if (s.piezas.some(p => p.tipo === "winamp")) puntosSkins();   // un punto por cada skin importado
-  if (Propias.INCLUIDAS[s.id] && Propias.INCLUIDAS[s.id].colores && ["psicodelico", "aero"].includes(s.id)) { const mio = Props.colorLibre(s.id), cols = Propias.INCLUIDAS[s.id].colores; puntosColores(mio ? [...cols, ["Propio", mio]] : cols, s.id); }
+  if (Propias.INCLUIDAS[s.id] && Propias.INCLUIDAS[s.id].colores && ["psicodelico", "aero", "cromo"].includes(s.id)) { const mio = Props.colorLibre(s.id), cols = Propias.INCLUIDAS[s.id].colores; puntosColores(mio ? [...cols, ["Propio", mio]] : cols, s.id); }
   const vol = document.getElementById("volumen");
   if (vol) vol.addEventListener("input", () => raiz.setProperty("--v", vol.value + "%"));
 }
@@ -257,6 +257,26 @@ function fondo() {
   // sin WebGL2, o si MilkDrop ya va en la ventana del reproductor, el fondo es la visualización 2000
   if (tipo === "milkdrop" && (!Milkdrop.soportado() || spec.piezas.some(p => p.tipo === "winamp" && mdVentana(p)))) tipo = "visu2000";
   c.style.filter = `brightness(${fv("brillo") / 100})`;
+  if (fv("acabado")) c.classList.add("ac-" + fv("acabado"));   // acabado sobre cualquier fondo
+  golpeFondo(c);
+  dibujarFondo(tipo, c);
+  let t2 = fv("capa2");   // segunda capa: otro fondo encima, mezclado (pantalla, superponer…) y con su opacidad
+  if (t2 === "milkdrop" && (!Milkdrop.soportado() || tipo === "milkdrop")) t2 = "";
+  if (t2 && t2 !== tipo) {
+    const d = document.createElement("div"); d.className = "capa2"; d.style.mixBlendMode = fv("mezcla2"); d.style.opacity = fv("opacidad2") / 100; c.appendChild(d);
+    dibujarFondo(t2, d);
+  }
+}
+// El bombo sacude el fondo: un destello del color de acento, un zoom corto o los dos (GOLPE lo calcula el detector de golpes)
+function golpeFondo(c) {
+  const modo = fv("golpe"); if (!modo) return;
+  const fl = document.createElement("div"); fl.style.cssText = "z-index:6;pointer-events:none;mix-blend-mode:screen;opacity:0"; c.appendChild(fl);
+  R.cadaCuadro(() => {
+    if (modo !== "destello") c.style.transform = `scale(${(1 + GOLPE * .035).toFixed(4)})`;
+    if (modo !== "zoom") { fl.style.background = `radial-gradient(ellipse at center, rgba(${acento},.5), rgba(255,255,255,.12) 62%, transparent 85%)`; fl.style.opacity = (GOLPE * .65).toFixed(3); }
+  });
+}
+function dibujarFondo(tipo, c) {
   const capa = (css) => { const d = document.createElement("div"); d.style.background = css; c.appendChild(d); return d; };
   if (tipo === "color") return capa(fv("color"));
   if (tipo === "degradado") return capa(`linear-gradient(${fv("angulo")}deg, ${fv("color")}, ${fv("color2")})`);
@@ -278,12 +298,16 @@ function fondo() {
       ps.forEach(q => { q[1] -= .0006 * q[2] * (1 + GOLPE * 6); if (q[1] < -.02) { q[1] = 1.02; q[0] = Math.random(); } const z = 2 + q[2] * 3; g.fillRect(q[0] * w, q[1] * h, z, z); });
     }); return;
   }
-  if (fv("acabado")) c.classList.add("ac-" + fv("acabado"));   // acabado sobre cualquier fondo
   if (tipo === "milkdrop") {
     const lienzo = document.createElement("canvas"); c.appendChild(lienzo);
     Milkdrop.montar(lienzo, { cambio: mdCambio(), velocidad: mdVelocidad() }).catch(() => { lienzo.remove(); capa(fv("color")); }); return;
   }
 
+  if (tipo === "liquida") {   // tu imagen deformada como metal que fluye (cromo.js); sin imagen o sin WebGL, la imagen quieta
+    const lienzo = document.createElement("canvas"); c.appendChild(lienzo);
+    if (!fv("imagen") || !Cromo.imagen(lienzo, fv("imagen"))) { lienzo.remove(); capa(`${fv("color")} ${fv("imagen") ? `url("${fv("imagen")}")` : ""} center / cover`); }
+    return;
+  }
   if (tipo === "cromo") {   // metal derretido (cromo.js); sin WebGL queda el color de base
     const lienzo = document.createElement("canvas"); c.appendChild(lienzo);
     if (!Cromo.montar(lienzo, { tinte: () => acento })) { lienzo.remove(); capa(fv("color")); }

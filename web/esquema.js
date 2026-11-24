@@ -3,7 +3,7 @@
 // Debe seguir siendo JSON válido después de "const ESQUEMA = " (comillas dobles, sin comentarios dentro).
 // Cada opción: { "t": "enum"|"num"|"bool"|"color"|"imagen", "n": etiqueta, "v": {valor: etiqueta}, "min", "max", "def", "u": unidad, "vacio": true }
 const ESQUEMA = {
-  "fondos": { "haz": "Haz de luz", "tunel": "Túnel psicodélico", "burbujas": "Burbujas", "luces": "Luces suaves", "estrellas": "Estrellas de píxel", "caratula": "Carátula desenfocada", "degradado": "Degradado", "color": "Color liso", "imagen": "Imagen propia", "columnas": "Columnas de luz (PS2)", "agujero": "Agujero negro (retro)", "visu2000": "Visualización 2000 (WMP)", "nuevos": "Psicodélico (ojo, espiral, fractal)", "milkdrop": "MilkDrop (visuales de Winamp)", "aero": "Aero (cielo, aurora y burbujas)", "cromo": "Cromo líquido" },
+  "fondos": { "haz": "Haz de luz", "tunel": "Túnel psicodélico", "burbujas": "Burbujas", "luces": "Luces suaves", "estrellas": "Estrellas de píxel", "caratula": "Carátula desenfocada", "degradado": "Degradado", "color": "Color liso", "imagen": "Imagen propia", "columnas": "Columnas de luz (PS2)", "agujero": "Agujero negro (retro)", "visu2000": "Visualización 2000 (WMP)", "nuevos": "Psicodélico (ojo, espiral, fractal)", "milkdrop": "MilkDrop (visuales de Winamp)", "aero": "Aero (cielo, aurora y burbujas)", "cromo": "Cromo líquido", "liquida": "Tu imagen, líquida" },
   "fondo": {
     "color": { "t": "color", "n": "Color de base", "def": "#08080a" },
     "color2": { "t": "color", "n": "Segundo color (degradado)", "def": "#2a1030" },
@@ -13,6 +13,10 @@ const ESQUEMA = {
     "tinte": { "t": "color", "n": "Tinte del agujero negro", "def": "", "vacio": true },
     "velocidad": { "t": "num", "n": "Velocidad (visualización 2000 y MilkDrop)", "min": 20, "max": 150, "def": 100, "u": " %" },
     "cambio": { "t": "num", "n": "Cambio de visual (MilkDrop)", "min": 8, "max": 120, "def": 40, "u": " s" },
+    "golpe": { "t": "enum", "n": "Reacción al golpe (bombo)", "v": { "": "No", "destello": "Destello", "zoom": "Zoom", "ambos": "Destello y zoom" }, "def": "" },
+    "capa2": { "t": "enum", "n": "Segunda capa encima", "v": { "": "Ninguna", "burbujas": "Burbujas", "estrellas": "Estrellas de píxel", "luces": "Luces suaves", "haz": "Haz de luz", "tunel": "Túnel psicodélico", "columnas": "Columnas de luz", "agujero": "Agujero negro", "visu2000": "Visualización 2000", "nuevos": "Psicodélico", "milkdrop": "MilkDrop", "cromo": "Cromo líquido" }, "def": "" },
+    "mezcla2": { "t": "enum", "n": "Cómo se mezcla la segunda capa", "v": { "screen": "Aclarar (pantalla)", "overlay": "Superponer", "lighten": "Solo lo más claro", "multiply": "Oscurecer" }, "def": "screen" },
+    "opacidad2": { "t": "num", "n": "Opacidad de la segunda capa", "min": 10, "max": 100, "def": 70, "u": " %" },
     "acabado": { "t": "enum", "n": "Acabado del fondo", "v": { "": "Ninguno", "cine": "Cine (grano y viñeta)", "sueno": "Sueño (suave y saturado)", "vhs": "VHS (líneas)", "vivo": "Vivo (más contraste y color)" }, "def": "" },
     "imagen": { "t": "imagen" }
   },
@@ -100,7 +104,7 @@ const ESQUEMA = {
   "comunes": {
     "opacidad": { "t": "num", "n": "Opacidad", "min": 10, "max": 100, "def": 100, "u": " %" }
   },
-  "bases": ["liquido", "headspace", "dosmil", "ambiente", "pixel", "anime", "psicodelico", "aero"],
+  "bases": ["liquido", "headspace", "dosmil", "ambiente", "pixel", "anime", "psicodelico", "aero", "cromo"],
   "imagenesIncluidas": [],
   "maxPiezas": 30
 };

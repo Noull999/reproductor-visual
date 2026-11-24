@@ -18,7 +18,7 @@ VERSION = 1
 # Qué claves de variante guarda cada plantilla (las mismas que lee al abrirse)
 AJUSTABLES = {
     "liquido": ["tema-liquido"], "headspace": ["cuerpo-headspace", "color-headspace"], "dosmil": ["skin-2000s"], "ambiente": ["tema-ambiente"],
-    "pixel": ["paleta-pixel"], "neoy2k": ["tema-neoy2k"], "psicodelico": ["color-psicodelico"], "dreamcore": ["escena-dreamcore"], "anime": [], "aero": ["color-aero"],
+    "pixel": ["paleta-pixel"], "neoy2k": ["tema-neoy2k"], "psicodelico": ["color-psicodelico"], "dreamcore": ["escena-dreamcore"], "anime": [], "aero": ["color-aero"], "cromo": ["color-cromo"],
 }
 _HEX = re.compile(r"^#[0-9a-fA-F]{6}$")
 _NOMBRE = re.compile(r"^[\w ·.-]{1,32}$")
@@ -60,7 +60,7 @@ def validar(d) -> dict:
     if not isinstance(variante, dict) or not set(variante) <= set(AJUSTABLES[id_]):
         raise PlantillaInvalida("La variante no corresponde a esa plantilla.")
     for k, val in variante.items():
-        if not isinstance(val, str) or not (_HEX if k in ("color-psicodelico", "color-aero") else _NOMBRE).match(val):
+        if not isinstance(val, str) or not (_HEX if k in ("color-psicodelico", "color-aero", "color-cromo") else _NOMBRE).match(val):
             raise PlantillaInvalida("La variante no es válida.")
     p = d.get("props", {})
     if not isinstance(p, dict):

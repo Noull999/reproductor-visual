@@ -41,13 +41,17 @@ const PLANTILLAS = [
     desc: "La estética de Windows Vista y los 2000: cielo azul, aurora que ondula con la música, una colina verde y burbujas de vidrio que suben con el bajo. Todo en vidrio celeste brillante.",
     guardar: (x) => ({ "color-aero": x.color }),
     grupos: [{ titulo: "Color", items: Propias.INCLUIDAS.aero.colores.map(([n, c]) => v(n, c, `aero-${n.toLowerCase()}`, { color: c })) }] },
+  { id: "cromo", nombre: "Cromo líquido", pagina: "libre.html?plantilla=cromo", predeterminada: "Rosa",
+    desc: "Metal derretido que fluye y se sacude con cada bombo, con reflejos de tu color. Botones, barras y lista de cromo pulido y el título en letras metálicas.",
+    guardar: (x) => ({ "color-cromo": x.color }),
+    grupos: [{ titulo: "Color", items: Propias.INCLUIDAS.cromo.colores.map(([n, c]) => v(n, c, `cromo-${n.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")}`, { color: c })) }] },
   { id: "pixel", nombre: "Pixel", pagina: "pixel.html", predeterminada: "Sangre",
     desc: "8 bits: espectro en bloques y carátula pixelada, con paletas de color a elegir.",
     guardar: (x) => ({ "paleta-pixel": x.nombre }),
     grupos: [{ titulo: "Paleta", items: [v("Sangre", "#e8452c", "pixel-sangre"), v("Game Boy", "#9bbc0f", "pixel-game-boy"), v("NES", "#e40058", "pixel-nes"), v("Vaporwave", "#ff71ce", "pixel-vaporwave"), v("Matrix", "#39ff6a", "pixel-matrix"), v("Hielo", "#8fe3ff", "pixel-hielo"), v("Ámbar", "#ffb000", "pixel-ambar")] }] },
 ];
 // Headspace suma un grupo "Cuerpo propio" cuando la persona subió uno
-const CON_COLOR_LIBRE = ["liquido", "headspace", "dosmil", "ambiente", "pixel", "neoy2k", "psicodelico", "aero"];   // las que arman una variante desde un solo color
+const CON_COLOR_LIBRE = ["liquido", "headspace", "dosmil", "ambiente", "pixel", "neoy2k", "psicodelico", "aero", "cromo"];   // las que arman una variante desde un solo color
 const gruposDe = (p) => {
   let g = p.grupos;
   if (p.id === "headspace" && Props.leer("headspace").cuerpo) {
