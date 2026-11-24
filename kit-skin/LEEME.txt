@@ -1,0 +1,11 @@
+KIT PARA CREAR TU PROPIO SKIN (plantilla Winamp)
+=================================================
+1. Abre las piezas de la carpeta «piezas» en tu editor (Photoshop, GIMP, Krita, Paint.NET, Aseprite…).
+   Cada una tiene el tamaño exacto que se necesita. NO cambies el tamaño del lienzo.
+2. Mira «guias/guia-<pieza>.png»: muestra cada zona con su nombre (en grande, para leerla). Pinta tu arte dentro de esas zonas.
+   Lo mínimo para empezar es «main» (la ventana): con ella sola ya funciona; lo que no pintes usa el dibujo de respaldo de la app.
+3. Guarda cada pieza como BMP de 24 bits (o PNG) con el MISMO nombre (main.bmp, cbuttons.bmp…).
+4. Mete todo en un .zip (los archivos sueltos, sin carpeta) y cámbiale la extensión a .wsz.
+5. En la app: plantilla Winamp → Importar archivo → elige tu .wsz.
+«skin-en-blanco.wsz» ya es un skin válido con todas las zonas marcadas: impórtalo para ver el diseño tal cual.
+El arte que hagas es tuyo: puedes compartir tu skin en la comunidad si es 100 % original (no uses personajes ni marcas ajenas).
