@@ -64,8 +64,8 @@ const Propias = (() => {
         ["titulo", [3, 49, 40, 5], { tam: 90 }], ["artista", [3, 54, 40, 3]], ["lista", [72, 4, 26, 82]], ["botones", [3, 91, 20, 8]], ["barra", [26, 94.2, 46, 2.4]],
         ["tiempo", [75, 91.5, 10, 6]], ["volumen", [86, 92, 11, 5]]]) },
   };
-  // Anime PS2: un reproductor de Winamp con los skins que importa la persona (quedan solo en su equipo)
-  INCLUIDAS.anime = { nombre: "Anime PS2", reglas: { requeridas: ["winamp"], nota: "El reproductor de Winamp lo es todo: trae pantalla, botones, barra, ecualizador y lista. Los skins se importan en la Biblioteca (link de skins.webamp.org o archivo .wsz)." },
+  // Skin Player: un reproductor de Winamp con los skins que importa la persona (quedan solo en su equipo)
+  INCLUIDAS.anime = { nombre: "Skin Player", reglas: { requeridas: ["winamp"], nota: "El reproductor de Winamp lo es todo: trae pantalla, botones, barra, ecualizador y lista. Los skins se importan en la Biblioteca (link de skins.webamp.org o archivo .wsz)." },
       fondo: { tipo: "visu2000", color: "#000000", brillo: 55, velocidad: 50 }, estilo: { panel: "liso", acento: "#5ef0ff", fuente: "Geist" },
       piezas: () => armar([["winamp", [3, 13, 94, 72], { ambiente: true }]]) };
   // Psicodélico: el ojo pixel art sobre el caleidoscopio y la espiral, y el fractal (fondo "nuevos" de visu2000.js)
