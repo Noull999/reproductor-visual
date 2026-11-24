@@ -219,7 +219,13 @@ function pintarPanel() {
     Object.entries(defs).forEach(([k, def]) => {
       if (def.t === "imagen") {
         const b = document.createElement("div"); b.className = "fila-h"; b.innerHTML = `<button class="boton">${p.imagen ? "Cambiar imagen…" : "Elegir imagen…"}</button>`;
-        b.firstChild.onclick = async () => { const r = await api().imagen_elegir(spec.id, p.n, true); if (!r.ok) return estado(r.error); if (r.cancelado) return; p.imagen = r.url; guardar(); pintarPanel(); }; d.appendChild(b); return;
+        b.firstChild.onclick = async () => { const r = await api().imagen_elegir(spec.id, p.n, true); if (!r.ok) return estado(r.error); if (r.cancelado) return; p.imagen = r.url; guardar(); pintarPanel(); }; d.appendChild(b);
+        if (p.imagen && !p.imagen.startsWith("img/")) {   // quitar el fondo con IA, en este PC (recorte.py)
+          const q = document.createElement("div"); q.className = "fila-h"; q.innerHTML = '<button class="boton">Quitar fondo</button>';
+          q.firstChild.onclick = async () => { q.firstChild.disabled = true; q.firstChild.textContent = "Quitando el fondo…"; const r = await api().imagen_quitar_fondo(spec.id, p.n);
+            q.firstChild.disabled = false; q.firstChild.textContent = "Quitar fondo"; if (!r.ok) return estado(r.error); p.imagen = r.url; guardar(); pintarPanel(); };
+          d.appendChild(q);
+        } return;
       }
       d.appendChild(control(def, actual(p, k, def), (v, vivo) => { p[k] = v; guardar(false); refrescar(); if (!vivo) pintarPanel(); }));
     });
@@ -240,7 +246,7 @@ function pintarPanel() {
 function mover(i, d) { const j = i + d; if (j < 0 || j >= spec.piezas.length) return; [spec.piezas[i], spec.piezas[j]] = [spec.piezas[j], spec.piezas[i]]; sel = j; guardar(); pintarCapa(); pintarPanel(); }
 async function quitar(i) {
   if (Propias.esRequerida(spec, i)) return;
-  const x = spec.piezas[i]; if (x.tipo === "imagen") await api().imagen_quitar(spec.id, x.n);
+  const x = spec.piezas[i]; if (x.tipo === "imagen" || x.tipo === "carcasa") await api().imagen_quitar(spec.id, x.n);
   spec.piezas.splice(i, 1); sel = Math.max(0, Math.min(sel, spec.piezas.length - 1)); guardar(); pintarCapa(); pintarPanel();
 }
 
@@ -256,7 +262,7 @@ $("duplicar").onclick = () => { const c = Propias.duplicar(spec.id); if (c) loca
 let seguroBorrar = false;
 $("eliminar").onclick = async () => {
   if (!seguroBorrar) { seguroBorrar = true; $("eliminar").textContent = "¿Seguro?"; setTimeout(() => { seguroBorrar = false; $("eliminar").textContent = "Eliminar"; }, 3500); return; }
-  const a = api(); await a.imagen_quitar(spec.id, "fondo"); for (const p of spec.piezas) if (p.tipo === "imagen") await a.imagen_quitar(spec.id, p.n);
+  const a = api(); await a.imagen_quitar(spec.id, "fondo"); for (const p of spec.piezas) if (p.tipo === "imagen" || p.tipo === "carcasa") await a.imagen_quitar(spec.id, p.n);
   Propias.borrar(spec.id); location.href = "index.html";
 };
 

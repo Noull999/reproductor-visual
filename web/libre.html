@@ -157,6 +157,7 @@
 <script src="visu2000.js"></script>
 <script src="milkdrop.js"></script>
 <script src="cromo.js"></script>
+<script src="adornos.js"></script>
 <script src="haz.js"></script>
 <script src="nucleo.js"></script>
 <script src="modulos.js"></script>
@@ -208,6 +209,7 @@ function construir(s) {
     e.style.cssText = `left:${p.x}%;top:${p.y}%;width:${p.w}%;height:${p.h}%;z-index:${i + 1};opacity:${val(p, "opacidad") / 100}`;
     if (/^#[0-9a-f]{6}$/i.test(p.acento || "")) e.style.setProperty("--acento", p.acento);
     if (p.piel && /^[a-z0-9]+$/.test(p.piel)) e.classList.add("piel-" + p.piel);   // la piel de sus controles (ver .piel-*)   // color propio de la pieza: lo de adentro que usa el acento lo toma
+    if (p.tipo === "carcasa") { e.style.zIndex = 0; if (val(p, "sombra")) e.style.filter = "drop-shadow(0 18px 30px rgba(0,0,0,.55))"; }   // la carcasa va detrás de todo
     if (p.tipo === "lista") e.dataset.prop = "lista";   // lo apaga la propiedad "Mostrar la lista"
     const dentro = pieza(p, e);
     if (dentro) e.appendChild(dentro);
@@ -533,6 +535,21 @@ function pieza(p, caja) {
       c.style.setProperty("--tam", val(p, "tam") / 100); return c;
     }
     case "panel": { const c = document.createElement("div"); c.className = "caja" + (val(p, "borde") ? "" : " sinborde"); if (val(p, "color")) c.style.background = val(p, "color"); return c; }
+    case "adorno": {   // forma hecha con código (adornos.js); gira, late o brilla con la música
+      const d = document.createElement("div"); d.style.cssText = "width:100%;height:100%";
+      const color = val(p, "color") || `rgb(${acento})`;
+      d.innerHTML = Adornos.svg(val(p, "forma"), { puntas: Math.round(val(p, "puntas")), acabado: val(p, "acabado"), color, id: "ad" + p.n });
+      const base = `rotate(${val(p, "giro")}deg)${val(p, "reflejar") ? " scaleX(-1)" : ""}`, rx = val(p, "reaccion");
+      d.style.transform = base;
+      if (rx !== "ninguna") R.cadaCuadro((t) => {
+        const e = Math.min(1, R.energia(R.espectro(), 1, 8) * 1.2);
+        if (rx === "pulso") d.style.transform = `${base} scale(${(1 + e * .08 + GOLPE * .06).toFixed(3)})`;
+        else if (rx === "girar") d.style.transform = `rotate(${(val(p, "giro") + t * 12 + GOLPE * 8).toFixed(1)}deg)${val(p, "reflejar") ? " scaleX(-1)" : ""}`;
+        else d.style.filter = `brightness(${(1 + e * .6).toFixed(2)}) drop-shadow(0 0 ${(4 + e * 18).toFixed(0)}px ${color})`;
+      });
+      return d;
+    }
+    case "carcasa":   // un aparato recortado (Nokia, reproductor de gel, cabeza…) detrás de las demás piezas; se ponen encima con el Editor
     case "imagen": {
       if (!p.imagen) { const c = document.createElement("div"); c.className = "caja"; c.style.opacity = .4; return c; }
       const i = document.createElement("img"); i.className = "imagen"; i.src = p.imagen; i.alt = ""; i.style.objectFit = val(p, "ajuste") === "cubrir" ? "cover" : "contain";

@@ -276,6 +276,23 @@ class Api:
             return {"ok": False, "error": f"No se pudo usar esa imagen: {str(e)[:100]}"}
         return {"ok": True, "url": f"/imagen?n={nombre}&v={int(time.time())}"}
 
+    def imagen_quitar_fondo(self, plantilla: str, ranura: str) -> dict:
+        """Le quita el fondo a una imagen ya elegida (con IA, en este PC; ver recorte.py) y la guarda con transparencia."""
+        if not (plantilla.isalnum() and ranura.isalnum()):
+            return {"ok": False, "error": "Nombre no válido."}
+        ruta = servidor.CARPETA_IMAGENES / f"{plantilla}-{ranura}.webp"
+        if not ruta.is_file():
+            return {"ok": False, "error": "Primero elige una imagen."}
+        import recorte
+        try:
+            ruta.write_bytes(recorte.quitar_fondo(ruta.read_bytes()))
+        except recorte.RecorteNoDisponible as e:
+            return {"ok": False, "error": str(e)}
+        except Exception as e:
+            logger.exception("Quitar fondo")
+            return {"ok": False, "error": f"No se pudo quitar el fondo: {str(e)[:100]}"}
+        return {"ok": True, "url": f"/imagen?n={ruta.name}&v={int(time.time())}"}
+
     def imagen_quitar(self, plantilla: str, ranura: str) -> dict:
         if plantilla.isalnum() and ranura.isalnum():
             for ext in (".webp", ".mp4", ".webm"):

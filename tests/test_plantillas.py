@@ -210,3 +210,15 @@ def test_opciones_nuevas_del_editor_se_validan():
     spec["piezas"].append({"n": "lista1", "tipo": "lista", "x": 72, "y": 8, "w": 24, "h": 60, "acento": "javascript:alert(1)"})
     with pytest.raises(P.PlantillaInvalida):   # un color que no es #rrggbb rechaza el archivo
         P.validar(spec, "exportar")
+
+
+def test_adorno_y_carcasa_se_validan():
+    spec = base()
+    spec["piezas"] += [{"n": "adorno1", "tipo": "adorno", "x": 5, "y": 5, "w": 20, "h": 20, "forma": "alas", "acabado": "cromo", "puntas": 99, "reaccion": "girar"},
+                       {"n": "adorno2", "tipo": "adorno", "x": 60, "y": 5, "w": 20, "h": 20, "forma": "marco"},
+                       {"n": "carcasa1", "tipo": "carcasa", "x": 18, "y": 4, "w": 64, "h": 92, "imagen": "", "sombra": False}]
+    limpia = {p["n"]: p for p in P.validar(spec, "exportar")["piezas"]}
+    assert limpia["adorno1"]["forma"] == "alas" and limpia["adorno1"]["puntas"] == 24 and limpia["carcasa1"]["sombra"] is False
+    spec["piezas"].append({"n": "adorno3", "tipo": "adorno", "x": 1, "y": 1, "w": 5, "h": 5, "forma": "<script>"})
+    with pytest.raises(P.PlantillaInvalida):
+        P.validar(spec, "exportar")

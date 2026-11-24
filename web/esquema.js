@@ -88,6 +88,22 @@ const ESQUEMA = {
       "aura": { "t": "bool", "n": "Aura de color", "def": false },
       "aberracion": { "t": "bool", "n": "Desfase de color en los golpes", "def": false },
       "imagen": { "t": "imagen" } } },
+    "carcasa": { "etiqueta": "Carcasa (un aparato como reproductor)", "rect": [18, 4, 64, 92], "ids": [], "opciones": {
+      "ajuste": { "t": "enum", "n": "Ajuste", "v": { "contener": "Contener", "cubrir": "Cubrir" }, "def": "contener" },
+      "reaccion": { "t": "enum", "n": "Reacciona a la música", "v": { "ninguna": "No", "pulso": "Pulso", "golpe": "Golpe (con sacudida)", "flotar": "Flota" }, "def": "pulso" },
+      "fuerza": { "t": "num", "n": "Fuerza de la reacción", "min": 20, "max": 200, "def": 50, "u": " %" },
+      "aura": { "t": "bool", "n": "Aura de color", "def": false },
+      "aberracion": { "t": "bool", "n": "Desfase de color en los golpes", "def": false },
+      "sombra": { "t": "bool", "n": "Sombra debajo", "def": true },
+      "imagen": { "t": "imagen" } } },
+    "adorno": { "etiqueta": "Adorno (tribal, destello, marco…)", "rect": [40, 10, 20, 30], "ids": [], "repetible": true, "opciones": {
+      "forma": { "t": "enum", "n": "Forma", "v": { "estrella": "Estrella de púas", "destello": "Destello", "alas": "Alas tribales", "tribal": "Llama tribal", "anillo": "Anillo de púas", "marco": "Marco con esquinas", "barras": "Código de barras", "cristal": "Cristal" }, "def": "estrella" },
+      "acabado": { "t": "enum", "n": "Acabado", "v": { "cromo": "Cromo", "neon": "Neón", "plano": "Color plano", "vidrio": "Vidrio" }, "def": "cromo" },
+      "color": { "t": "color", "n": "Color", "def": "", "vacio": true },
+      "puntas": { "t": "num", "n": "Puntas", "min": 3, "max": 24, "def": 8, "u": "" },
+      "giro": { "t": "num", "n": "Giro", "min": 0, "max": 360, "def": 0, "u": "°" },
+      "reflejar": { "t": "bool", "n": "Reflejar (espejo)", "def": false },
+      "reaccion": { "t": "enum", "n": "Reacciona a la música", "v": { "ninguna": "No", "pulso": "Pulso", "girar": "Gira", "brillo": "Brilla con el bajo" }, "def": "pulso" } } },
     "efecto": { "etiqueta": "Efecto", "rect": [20, 5, 60, 80], "ids": [], "repetible": true, "opciones": {
       "efecto": { "t": "enum", "n": "Tipo", "v": { "lineas": "Líneas de velocidad", "anillos": "Anillos", "destellos": "Destellos" }, "def": "lineas" },
       "sensibilidad": { "t": "num", "n": "Sensibilidad", "min": 20, "max": 200, "def": 100, "u": " %" },
