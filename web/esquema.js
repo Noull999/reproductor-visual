@@ -3,7 +3,7 @@
 // Debe seguir siendo JSON válido después de "const ESQUEMA = " (comillas dobles, sin comentarios dentro).
 // Cada opción: { "t": "enum"|"num"|"bool"|"color"|"imagen", "n": etiqueta, "v": {valor: etiqueta}, "min", "max", "def", "u": unidad, "vacio": true }
 const ESQUEMA = {
-  "fondos": { "haz": "Haz de luz", "tunel": "Túnel psicodélico", "burbujas": "Burbujas", "luces": "Luces suaves", "estrellas": "Estrellas de píxel", "caratula": "Carátula desenfocada", "degradado": "Degradado", "color": "Color liso", "imagen": "Imagen propia", "columnas": "Columnas de luz (PS2)", "agujero": "Agujero negro (retro)", "visu2000": "Visualización 2000 (WMP)", "nuevos": "Psicodélico (ojo, espiral, fractal)" },
+  "fondos": { "haz": "Haz de luz", "tunel": "Túnel psicodélico", "burbujas": "Burbujas", "luces": "Luces suaves", "estrellas": "Estrellas de píxel", "caratula": "Carátula desenfocada", "degradado": "Degradado", "color": "Color liso", "imagen": "Imagen propia", "columnas": "Columnas de luz (PS2)", "agujero": "Agujero negro (retro)", "visu2000": "Visualización 2000 (WMP)", "nuevos": "Psicodélico (ojo, espiral, fractal)", "milkdrop": "MilkDrop (visuales de Winamp)" },
   "fondo": {
     "color": { "t": "color", "n": "Color de base", "def": "#08080a" },
     "color2": { "t": "color", "n": "Segundo color (degradado)", "def": "#2a1030" },
@@ -12,6 +12,7 @@ const ESQUEMA = {
     "brillo": { "t": "num", "n": "Brillo", "min": 20, "max": 130, "def": 100, "u": " %" },
     "tinte": { "t": "color", "n": "Tinte del agujero negro", "def": "", "vacio": true },
     "velocidad": { "t": "num", "n": "Velocidad (visualización 2000)", "min": 20, "max": 150, "def": 100, "u": " %" },
+    "cambio": { "t": "num", "n": "Cambio de visual (MilkDrop)", "min": 8, "max": 120, "def": 25, "u": " s" },
     "imagen": { "t": "imagen" }
   },
   "estilo": {

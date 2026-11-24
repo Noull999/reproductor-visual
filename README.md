@@ -152,4 +152,4 @@ python tools/capturar_previas.py   # regenera web/img/previas (abre la app y sac
 
 ## Licencia
 
-[MIT](LICENSE): puedes usar, copiar, modificar y compartir el código. Las tipografías y hls.js conservan sus propias licencias (ver arriba).
+[MIT](LICENSE): puedes usar, copiar, modificar y compartir el código. Las tipografías, hls.js y Butterchurn (los visuales MilkDrop, MIT, de Jordan Berg; ver `web/vendor/LICENSE-butterchurn.txt`) conservan sus propias licencias (ver arriba).

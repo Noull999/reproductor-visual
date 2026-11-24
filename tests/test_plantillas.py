@@ -192,3 +192,9 @@ def test_el_degradado_y_el_acento_automatico_se_validan():
     spec = base(estilo={"panel": "vidrio", "acento": "#ff2d3d", "acentoAuto": True, "fuente": "Geist", "deformacion": 70})
     e = P.validar(spec, "exportar")["estilo"]
     assert e["acentoAuto"] is True and e["deformacion"] == 70
+
+
+def test_fondo_milkdrop_se_acepta_y_se_acota():
+    spec = base(fondo={"tipo": "milkdrop", "color": "#000000", "brillo": 65, "cambio": 9999, "script": "x"})
+    f = P.validar(spec, "exportar")["fondo"]
+    assert f["tipo"] == "milkdrop" and f["cambio"] == 120 and "script" not in f   # el cambio se acota al máximo permitido
