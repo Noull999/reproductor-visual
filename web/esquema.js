@@ -3,7 +3,7 @@
 // Debe seguir siendo JSON válido después de "const ESQUEMA = " (comillas dobles, sin comentarios dentro).
 // Cada opción: { "t": "enum"|"num"|"bool"|"color"|"imagen", "n": etiqueta, "v": {valor: etiqueta}, "min", "max", "def", "u": unidad, "vacio": true }
 const ESQUEMA = {
-  "fondos": { "haz": "Haz de luz", "tunel": "Túnel psicodélico", "burbujas": "Burbujas", "luces": "Luces suaves", "estrellas": "Estrellas de píxel", "caratula": "Carátula desenfocada", "degradado": "Degradado", "color": "Color liso", "imagen": "Imagen propia", "columnas": "Columnas de luz (PS2)", "agujero": "Agujero negro (retro)", "visu2000": "Visualización 2000 (WMP)", "nuevos": "Psicodélico (ojo, espiral, fractal)", "milkdrop": "MilkDrop (visuales de Winamp)" },
+  "fondos": { "haz": "Haz de luz", "tunel": "Túnel psicodélico", "burbujas": "Burbujas", "luces": "Luces suaves", "estrellas": "Estrellas de píxel", "caratula": "Carátula desenfocada", "degradado": "Degradado", "color": "Color liso", "imagen": "Imagen propia", "columnas": "Columnas de luz (PS2)", "agujero": "Agujero negro (retro)", "visu2000": "Visualización 2000 (WMP)", "nuevos": "Psicodélico (ojo, espiral, fractal)", "milkdrop": "MilkDrop (visuales de Winamp)", "aero": "Aero (cielo, aurora y burbujas)", "cromo": "Cromo líquido" },
   "fondo": {
     "color": { "t": "color", "n": "Color de base", "def": "#08080a" },
     "color2": { "t": "color", "n": "Segundo color (degradado)", "def": "#2a1030" },
@@ -13,6 +13,7 @@ const ESQUEMA = {
     "tinte": { "t": "color", "n": "Tinte del agujero negro", "def": "", "vacio": true },
     "velocidad": { "t": "num", "n": "Velocidad (visualización 2000 y MilkDrop)", "min": 20, "max": 150, "def": 100, "u": " %" },
     "cambio": { "t": "num", "n": "Cambio de visual (MilkDrop)", "min": 8, "max": 120, "def": 40, "u": " s" },
+    "acabado": { "t": "enum", "n": "Acabado del fondo", "v": { "": "Ninguno", "cine": "Cine (grano y viñeta)", "sueno": "Sueño (suave y saturado)", "vhs": "VHS (líneas)", "vivo": "Vivo (más contraste y color)" }, "def": "" },
     "imagen": { "t": "imagen" }
   },
   "estilo": {
@@ -52,25 +53,30 @@ const ESQUEMA = {
       "tam": { "t": "num", "n": "Tamaño", "min": 50, "max": 160, "def": 100, "u": " %" },
       "separacion": { "t": "num", "n": "Separación", "min": 0, "max": 30, "def": 6, "u": "" },
       "redondos": { "t": "bool", "n": "Botones redondos", "def": false },
-      "acento": { "t": "color", "n": "Color propio de los botones", "def": "", "vacio": true } } },
+      "acento": { "t": "color", "n": "Color propio de los botones", "def": "", "vacio": true },
+      "piel": { "t": "enum", "n": "Piel de los controles", "v": { "": "La del estilo general", "gel": "Gel Y2K", "aero": "Aero (vidrio celeste)", "cromo": "Cromo", "neon": "Neón", "win98": "Windows 98", "xp": "Windows XP", "vidrio": "Vidrio", "arcilla": "Arcilla (inflada)", "relieve": "Relieve suave", "pixel": "Píxel" }, "def": "" } } },
     "barra": { "etiqueta": "Barra de avance", "rect": [10, 92, 80, 2.4], "ids": ["barra"], "opciones": {
       "modo": { "t": "enum", "n": "Tipo", "v": { "linea": "Línea", "onda": "Onda real del tema", "segmentos": "Segmentos" }, "def": "linea" },
       "grosor": { "t": "num", "n": "Grosor", "min": 3, "max": 30, "def": 12, "u": " px" },
-      "acento": { "t": "color", "n": "Color propio de la barra", "def": "", "vacio": true } } },
+      "acento": { "t": "color", "n": "Color propio de la barra", "def": "", "vacio": true },
+      "piel": { "t": "enum", "n": "Piel de los controles", "v": { "": "La del estilo general", "gel": "Gel Y2K", "aero": "Aero (vidrio celeste)", "cromo": "Cromo", "neon": "Neón", "win98": "Windows 98", "xp": "Windows XP", "vidrio": "Vidrio", "arcilla": "Arcilla (inflada)", "relieve": "Relieve suave", "pixel": "Píxel" }, "def": "" } } },
     "tiempo": { "etiqueta": "Tiempo", "rect": [84, 86, 12, 4], "ids": ["tiempo"], "opciones": {
       "tam": { "t": "num", "n": "Tamaño", "min": 40, "max": 220, "def": 100, "u": " %" },
       "color": { "t": "color", "n": "Color", "def": "", "vacio": true },
       "efecto": { "t": "enum", "n": "Efecto del texto", "v": { "ninguno": "Ninguno", "sombra": "Sombra", "brillo": "Brillo", "contorno": "Contorno", "neon": "Neón", "cromo": "Cromo" }, "def": "ninguno" } } },
     "volumen": { "etiqueta": "Volumen", "rect": [76, 78, 20, 6], "ids": ["volumen", "iconoVol"], "opciones": {
-      "acento": { "t": "color", "n": "Color propio del volumen", "def": "", "vacio": true } } },
+      "acento": { "t": "color", "n": "Color propio del volumen", "def": "", "vacio": true },
+      "piel": { "t": "enum", "n": "Piel de los controles", "v": { "": "La del estilo general", "gel": "Gel Y2K", "aero": "Aero (vidrio celeste)", "cromo": "Cromo", "neon": "Neón", "win98": "Windows 98", "xp": "Windows XP", "vidrio": "Vidrio", "arcilla": "Arcilla (inflada)", "relieve": "Relieve suave", "pixel": "Píxel" }, "def": "" } } },
     "lista": { "etiqueta": "Lista de temas", "rect": [72, 8, 24, 62], "ids": ["lista"], "opciones": {
       "miniaturas": { "t": "bool", "n": "Mostrar carátulas", "def": true },
       "numeros": { "t": "bool", "n": "Mostrar números", "def": true },
       "tam": { "t": "num", "n": "Tamaño del texto", "min": 70, "max": 150, "def": 100, "u": " %" },
-      "acento": { "t": "color", "n": "Color propio de la lista (tema que suena)", "def": "", "vacio": true } } },
+      "acento": { "t": "color", "n": "Color propio de la lista (tema que suena)", "def": "", "vacio": true },
+      "piel": { "t": "enum", "n": "Piel de los controles", "v": { "": "La del estilo general", "gel": "Gel Y2K", "aero": "Aero (vidrio celeste)", "cromo": "Cromo", "neon": "Neón", "win98": "Windows 98", "xp": "Windows XP", "vidrio": "Vidrio", "arcilla": "Arcilla (inflada)", "relieve": "Relieve suave", "pixel": "Píxel" }, "def": "" } } },
     "panel": { "etiqueta": "Panel", "rect": [8, 8, 26, 40], "ids": [], "repetible": true, "opciones": {
       "borde": { "t": "bool", "n": "Con borde", "def": true },
-      "color": { "t": "color", "n": "Color propio", "def": "", "vacio": true } } },
+      "color": { "t": "color", "n": "Color propio", "def": "", "vacio": true },
+      "piel": { "t": "enum", "n": "Piel de los controles", "v": { "": "La del estilo general", "gel": "Gel Y2K", "aero": "Aero (vidrio celeste)", "cromo": "Cromo", "neon": "Neón", "win98": "Windows 98", "xp": "Windows XP", "vidrio": "Vidrio", "arcilla": "Arcilla (inflada)", "relieve": "Relieve suave", "pixel": "Píxel" }, "def": "" } } },
     "imagen": { "etiqueta": "Imagen", "rect": [36, 8, 28, 50], "ids": [], "repetible": true, "opciones": {
       "ajuste": { "t": "enum", "n": "Ajuste", "v": { "contener": "Contener", "cubrir": "Cubrir" }, "def": "contener" },
       "reaccion": { "t": "enum", "n": "Reacciona a la música", "v": { "ninguna": "No", "pulso": "Pulso", "golpe": "Golpe (con sacudida)", "flotar": "Flota" }, "def": "ninguna" },
@@ -94,7 +100,7 @@ const ESQUEMA = {
   "comunes": {
     "opacidad": { "t": "num", "n": "Opacidad", "min": 10, "max": 100, "def": 100, "u": " %" }
   },
-  "bases": ["liquido", "headspace", "dosmil", "ambiente", "pixel", "anime", "psicodelico"],
+  "bases": ["liquido", "headspace", "dosmil", "ambiente", "pixel", "anime", "psicodelico", "aero"],
   "imagenesIncluidas": [],
   "maxPiezas": 30
 };

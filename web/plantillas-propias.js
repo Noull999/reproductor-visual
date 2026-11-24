@@ -74,7 +74,15 @@ const Propias = (() => {
       colores: [["Rojo", "#ff2a2a"], ["Naranja", "#ff8a1f"], ["Lima", "#9be22a"], ["Verde", "#1fe07a"], ["Cian", "#1fd5ff"], ["Azul", "#2f5bff"], ["Violeta", "#b04bff"], ["Rosa", "#ff3fa8"]],
       piezas: () => armar([["lista", [74, 6, 24, 78]], ["panel", [0, 88, 100, 12]], ["titulo", [3, 89.5, 30, 5]], ["artista", [3, 94.5, 30, 3.5]], ["botones", [36, 89, 18, 9]],
         ["barra", [57, 92.2, 24, 2.4]], ["tiempo", [82, 90, 7, 6]], ["volumen", [90, 91, 8, 5]]]) };
-  const SOLAS = ["anime", "psicodelico"];
+  // Frutiger Aero: cielo con aurora, colina y burbujas; todo en vidrio celeste (piel "aero")
+  INCLUIDAS.aero = { nombre: "Frutiger Aero", reglas: { requeridas: ["titulo", "botones", "barra"], nota: COMUN },
+      fondo: { tipo: "aero", color: "#2f97df", brillo: 92 }, estilo: { panel: "vidrio", acento: "#1e90e6", fuente: "Geist" },
+      colores: [["Cielo", "#1e90e6"], ["Menta", "#16b884"], ["Lavanda", "#7d6bff"], ["Coral", "#ff6f61"]],
+      piezas: () => armar([["panel", [3, 62, 50, 34], { piel: "aero" }], ["caratula", [5, 65, 13, 24], { forma: "redondeada", borde: true }],
+        ["titulo", [20, 66, 31, 7], { efecto: "sombra" }], ["artista", [20, 74, 31, 4], { efecto: "sombra" }], ["botones", [20, 80, 18, 8], { piel: "aero", redondos: true }],
+        ["volumen", [40, 82, 11, 4], { piel: "aero" }], ["tiempo", [41, 75, 10, 5], { efecto: "sombra" }], ["barra", [5, 91.5, 46, 2.4], { piel: "aero" }],
+        ["lista", [72, 6, 25, 74], { piel: "aero" }]]) };
+  const SOLAS = ["anime", "psicodelico", "aero"];
   // el color que se eligió en la Biblioteca (solo Psicodélico tiene colores)
   const colorElegido = (id) => { try { return localStorage.getItem(`color-${id}`) || INCLUIDAS[id].estilo.acento; } catch (e) { return INCLUIDAS[id].estilo.acento; } };
   function desdeBase(id) {
