@@ -429,7 +429,7 @@ function pieza(p, caja) {
       return i;
     }
     case "efecto": { const c = document.createElement("canvas"); efecto(c, p); return c; }
-    case "winamp": { window.reproductorWinamp = Winamp.montar(caja, { ambiente: val(p, "ambiente"), visualizacion: mdVentana(p) && Milkdrop.soportado(), cambio: mdCambio(), velocidad: mdVelocidad() }); return null; }
+    case "winamp": { window.reproductorWinamp = Winamp.montar(caja, { ambiente: val(p, "ambiente"), visualizacion: mdVentana(p) && Milkdrop.soportado(), cambio: mdCambio(), velocidad: mdVelocidad(), brillo: MD ? Props.extra("anime", "brillo") / 100 : 1 }); return null; }
     case "cabeza": Modulos.cabeza({ cuerpo: val(p, "cuerpo"), color: val(p, "color") }, caja); return null;
     case "equipo": Modulos.equipo({ skin: val(p, "skin") }, caja); return null;
   }

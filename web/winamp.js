@@ -18,7 +18,7 @@ const Winamp = (() => {
     const raiz = document.createElement("div"); raiz.className = "m-winamp";
     raiz.style.cssText = `position:absolute;left:50%;top:50%;width:${AW}px;height:${ALTO}px;transform-origin:50% 50%`;
     const c = document.createElement("canvas"); c.width = AW * S; c.height = ALTO * S;
-    c.style.cssText = `width:${AW}px;height:${ALTO}px;image-rendering:pixelated;display:block;cursor:default;filter:drop-shadow(0 12px 30px rgba(0,0,0,.6))`;
+    c.style.cssText = `width:${AW}px;height:${ALTO}px;image-rendering:pixelated;display:block;cursor:default;filter:brightness(${op.brillo || 1}) drop-shadow(0 12px 30px rgba(0,0,0,.6))`;
     // piezas invisibles que el reproductor (nucleo.js) actualiza por id: de aquí se leen título y estado
     const oculto = document.createElement("div"); oculto.style.display = "none";
     oculto.innerHTML = '<button id="bPlay">▶</button><div id="titulo"></div><div id="artista"></div><input id="volumen" type="range" min="0" max="100" value="80">';
@@ -107,8 +107,8 @@ const Winamp = (() => {
         caja3d(x, 88, w, 18, apretado === k ? "#2a2f48" : "#3a4060", "#7a82a8", "#141624");
         g.fillStyle = "#cfd6ff"; g.font = "8px Arial"; g.textAlign = "center"; g.fillText(ICONO[k] + "︎", x + w / 2, 100); g.textAlign = "left";
       });
-      pieza("cbuttons", 114, 0, 22, 16, 136, 89);
-      pieza("shufrep", 28, 0, 47, 15, 164, 89); pieza("shufrep", 0, 0, 28, 15, 210, 89);
+      pieza("cbuttons", 114, apretado === "eject" ? 16 : 0, 22, 16, 136, 89);
+      pieza("shufrep", 28, (R.modo.aleatorio ? 30 : 0) + (apretado === "shuf" ? 15 : 0), 47, 15, 164, 89); pieza("shufrep", 0, (R.modo.repetir ? 30 : 0) + (apretado === "rep" ? 15 : 0), 28, 15, 210, 89);
       pieza("shufrep", 0, 61, 23, 12, 219, 58); pieza("shufrep", 23, 73, 23, 12, 242, 58);
       g.restore();
     }
@@ -160,14 +160,14 @@ const Winamp = (() => {
     // La ventana de visualización: marco con la barra de título del skin y un hueco negro; MilkDrop se pone encima (canvas aparte)
     function ventanaVisualizacion() {
       g.save(); g.translate(ANCHO, 0);
-      caja3d(0, 0, AN, PL, "#262a3e", "#565c7c", "#0e1018");
+      caja3d(0, 0, AN, PL, pl.normalbg || "#262a3e", pl.normal || "#565c7c", pl.normal || "#0e1018");   // los colores de la lista del skin, para que el marco haga juego
       if (listo("titlebar")) pieza("titlebar", 27, 0, 275, 14, 0, 0); else { g.fillStyle = "#3a4268"; g.fillRect(0, 0, AN, 14); }
       g.fillStyle = "#000"; g.fillRect(5, 17, AN - 10, PL - 22);
       g.restore();
     }
 
     // ---- ayuda encima del skin: íconos donde el botón casi no se ve, y resalte + nombre al pasar el mouse ----
-    const ZONAS = { ant: [16, 88, 23, 18, "Anterior"], play: [39, 88, 23, 18, "Play"], pausa: [62, 88, 23, 18, "Pausa"], stop: [85, 88, 23, 18, "Detener"], sig: [108, 88, 22, 18, "Siguiente"],
+    const ZONAS = { shuf: [164, 89, 46, 15, "Aleatorio"], rep: [210, 89, 28, 15, "Repetir la lista"], eject: [136, 89, 22, 16, "Cambiar de skin"], ant: [16, 88, 23, 18, "Anterior"], play: [39, 88, 23, 18, "Play"], pausa: [62, 88, 23, 18, "Pausa"], stop: [85, 88, 23, 18, "Detener"], sig: [108, 88, 22, 18, "Siguiente"],
       pos: [16, 72, 248, 10, "Avance (arrastra para adelantar)"], vol: [107, 57, 68, 13, "Volumen"] };
     const ICONOS = { ant: "⏮", play: "▶", pausa: "⏸", stop: "■", sig: "⏭" };
     function medirContraste() {   // botón del skin vs. el dibujo que tiene detrás: si se parecen mucho, el botón no se entiende
@@ -207,7 +207,7 @@ const Winamp = (() => {
 
     // ---- ratón: botones, barras y lista ----
     const punto = (e) => { const r = c.getBoundingClientRect(); return [(e.clientX - r.left) / r.width * AW, (e.clientY - r.top) / r.height * ALTO]; };
-    const boton = (x, y) => y >= 88 && y < 106 ? (x >= 16 && x < 39 ? "ant" : x < 62 ? "play" : x < 85 ? "pausa" : x < 108 ? "stop" : x < 130 ? "sig" : "") : "";
+    const boton = (x, y) => y >= 89 && y < 105 && x >= 136 && x < 238 ? (x < 158 ? "eject" : x >= 164 && x < 210 ? "shuf" : x >= 210 ? "rep" : "") : y >= 88 && y < 106 ? (x >= 16 && x < 39 ? "ant" : x < 62 ? "play" : x < 85 ? "pausa" : x < 108 ? "stop" : x < 130 ? "sig" : "") : "";
     const ponerVol = (x) => { vol.value = Math.round(Math.max(0, Math.min(1, (x - 114) / 54)) * 100); vol.dispatchEvent(new Event("input")); };
     c.addEventListener("pointerdown", (e) => {
       const [x, y] = punto(e); c.setPointerCapture(e.pointerId);
@@ -229,7 +229,10 @@ const Winamp = (() => {
       const [x, y] = punto(e), b = x < AN ? boton(x, y) : "";
       if (b && b === apretado) {
         const n = R.pistas.length;
-        if (b === "play") { if (!sonando()) R.alternar(); else R.saltarA(0); }
+        if (b === "shuf") R.modo.aleatorio = !R.modo.aleatorio;
+        else if (b === "rep") R.modo.repetir = !R.modo.repetir;
+        else if (b === "eject") { if (skins.length > 1) usar(skins[(skins.findIndex(s => actual && s.id === actual.id) + 1) % skins.length].id); }
+        else if (b === "play") { if (!sonando()) R.alternar(); else R.saltarA(0); }
         else if (b === "pausa") R.alternar();
         else if (b === "stop") { if (sonando()) R.alternar(); R.saltarA(0); }
         else if (n) R.cargar((((R.actual ?? 0) + (b === "sig" ? 1 : -1)) % n + n) % n);

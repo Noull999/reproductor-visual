@@ -241,7 +241,14 @@ const R = (() => {
     if (fuente === "pc") return api().pc_control(accion).then(() => setTimeout(vigilarPc, 600));
     return api().pc_control(accion).then(() => setTimeout(vigilarSpotify, 900));   // spotify: también por teclas multimedia
   };
-  const siguiente = () => remoto && !demo ? salto("siguiente") : cargar(actual + 1);
+  // Modos de reproducción (solo con tu música y la demo; en Spotify y PC manda la otra app). repetir = volver al inicio al acabar la lista, como siempre.
+  const modo = { aleatorio: false, repetir: true };
+  const proximo = () => { const n = pistas.length; if (modo.aleatorio && n > 1) { let k; do k = Math.floor(Math.random() * n); while (k === actual); return k; } return actual + 1; };
+  const terminar = () => {   // acabó un tema
+    if (!modo.aleatorio && !modo.repetir && actual >= pistas.length - 1) { if (demo) { pcEstado = { ...pcEstado, posicion: 0, sonando: false }; icono(false); } return; }   // fin de la lista: se queda quieto
+    cargar(proximo());
+  };
+  const siguiente = () => remoto && !demo ? salto("siguiente") : cargar(proximo());
   const anterior = () => remoto && !demo ? salto("anterior") : cargar(actual - 1);
   const saltarA = (fraccion) => {
     if (spotify) { if (pcEstado.duracion) { pcEstado = { ...pcEstado, posicion: fraccion * pcEstado.duracion }; pcVisto = performance.now(); api().spotify_seek(fraccion * pcEstado.duracion); } }
@@ -333,7 +340,7 @@ const R = (() => {
     // Spotify: se adelanta al soltar (no una orden por cada pixel que se arrastra)
     on("barra", spotify ? "change" : "input", (e) => { if (!remoto || spotify) saltarA(e.target.value / 1000); });
     volumenActual = $("volumen") ? $("volumen").value / 100 : 0.8;
-    audio.addEventListener("ended", () => cargar(actual + 1));
+    audio.addEventListener("ended", terminar);
     const alAudio = () => { if (!remoto) icono(!audio.paused); };
     audio.addEventListener("play", alAudio); audio.addEventListener("pause", alAudio);
     let arrastrando = false;
@@ -363,7 +370,7 @@ const R = (() => {
     if (demo) {
       pistas.push(...pistasDemo()); listaLista(); dibujarLista(); mostrar(0);
       pcEstado = { sonando: true, posicion: 0, duracion: pistas[0].duracion }; pcVisto = performance.now(); icono(true);
-      cadaCuadro(() => { if (pcEstado.sonando && pcPosicion() >= pcEstado.duracion) cargar(actual + 1); });
+      cadaCuadro(() => { if (pcEstado.sonando && pcPosicion() >= pcEstado.duracion) terminar(); });
       return;
     }
     if (fuente === "pc") {
@@ -395,7 +402,7 @@ const R = (() => {
   else window.addEventListener("pywebviewready", arrancar);
 
   return {
-    audio, pistas, fuente, cargar, velocidad: factorV, alternar, espectro, ondaAudio, energia, fmt, progreso, tiempoActual, saltarA,
+    audio, pistas, fuente, cargar, modo, velocidad: factorV, alternar, espectro, ondaAudio, energia, fmt, progreso, tiempoActual, saltarA,
     get actual() { return actual; },
     alCambiar: (fn) => avisos.push(fn),
     cadaCuadro,
