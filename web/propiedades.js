@@ -19,6 +19,9 @@ const Props = (() => {
     ambiente: [{ id: "desenfoque", nombre: "Desenfoque del fondo", min: 10, max: 140, def: 70, unidad: " px" }],
     dreamcore: [{ id: "vhs", nombre: "Efecto VHS (grano, colores corridos, saltos)", min: 0, max: 100, def: 35, unidad: " %" }],
     pixel: [{ id: "pixel", nombre: "Tamaño de los píxeles", min: 3, max: 9, def: 5, unidad: " px" }],
+    anime: [{ id: "milkdrop", nombre: "Visuales MilkDrop", min: 0, max: 2, def: 1, etiquetas: ["apagados (visualización clásica)", "de fondo", "en una ventana del reproductor"] },
+      { id: "cambio", nombre: "Cambiar de visual", min: 0, max: 3, def: 1, etiquetas: ["cada 20 s", "cada 40 s", "cada 90 s", "solo con un clic"] },
+      { id: "ritmo", nombre: "Velocidad de los visuales", min: 20, max: 150, def: 55, unidad: " %" }],
   };
   const api = {
     DEFECTO, ZONAS_HEADSPACE, EXTRAS,

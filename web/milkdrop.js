@@ -2,7 +2,8 @@
 // Se dibuja con WebGL2 y recibe la onda de nuestro propio analizador (R.ondaAudio), así que no toca el audio de la app.
 // Las librerías (~850 KB) solo se cargan cuando una plantilla usa este fondo.
 //   Milkdrop.soportado()                       ¿hay WebGL2?
-//   Milkdrop.montar(lienzo, { cambio }) → Promise<{ siguiente }>   cambio: segundos entre un visual y otro
+//   Milkdrop.montar(lienzo, { cambio, velocidad, tam }) → Promise<{ siguiente }>
+//     cambio: segundos entre un visual y otro · velocidad: 0.2-1.5 (1 = la del visual original) · tam: () => [ancho, alto] fijo (si no, la pantalla)
 "use strict";
 const Milkdrop = (() => {
   const soportado = () => { try { return !!document.createElement("canvas").getContext("webgl2"); } catch (e) { return false; } };
@@ -16,20 +17,20 @@ const Milkdrop = (() => {
 
   async function montar(lienzo, op = {}) {
     const { b, presets } = await librerias();
-    const escala = 0.75, tam = () => [Math.max(320, Math.round(innerWidth * escala)), Math.max(180, Math.round(innerHeight * escala))];   // al 75%: se ve igual y pesa mucho menos
+    const escala = 0.75, tam = op.tam || (() => [Math.max(320, Math.round(innerWidth * escala)), Math.max(180, Math.round(innerHeight * escala))]);   // al 75%: se ve igual y pesa mucho menos
     let [w, h] = tam(); lienzo.width = w; lienzo.height = h;
     const viz = b.createVisualizer(new (window.AudioContext || window.webkitAudioContext)(), lienzo, { width: w, height: h, pixelRatio: 1 });
     const nombres = Object.keys(presets).sort(() => Math.random() - .5);
     let i = -1;
-    const siguiente = (mezcla = 2.5) => { i = (i + 1) % nombres.length; try { viz.loadPreset(presets[nombres[i]], mezcla); } catch (e) { /* un preset que no compila se salta */ if (nombres.length > 1) siguiente(0); } };
+    const siguiente = (mezcla = 5) => { i = (i + 1) % nombres.length; try { viz.loadPreset(presets[nombres[i]], mezcla); } catch (e) { /* un preset que no compila se salta */ if (nombres.length > 1) siguiente(0); } };
     siguiente(0);
     const cada = Math.max(8, Math.min(120, +op.cambio || 25));
     setInterval(() => { if (!document.hidden) siguiente(); }, cada * 1000);
     lienzo.style.cursor = "pointer"; lienzo.onclick = () => siguiente();   // cambia por tiempo o con un clic, como los demás fondos
     addEventListener("resize", () => { [w, h] = tam(); lienzo.width = w; lienzo.height = h; viz.setRendererSize(w, h); });
-    let ultimo = 0;
+    let ultimo = 0; const vel = Math.min(1.5, Math.max(.2, +op.velocidad || 1));
     R.cadaCuadro((t) => {
-      const dt = Math.min(.1, Math.max(1 / 240, t - ultimo || 1 / 60)); ultimo = t;
+      const dt = Math.min(.1, Math.max(1 / 240, t - ultimo || 1 / 60)) * vel; ultimo = t;   // velocidad < 1 = el visual se mueve más despacio
       const onda = R.ondaAudio();   // 1024 muestras (0-255, 128 = silencio), las que espera Butterchurn
       viz.render({ audioLevels: { timeByteArray: onda, timeByteArrayL: onda, timeByteArrayR: onda }, elapsedTime: dt });
     });

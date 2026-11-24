@@ -11,8 +11,8 @@ const ESQUEMA = {
     "desenfoque": { "t": "num", "n": "Desenfoque (carátula)", "min": 10, "max": 140, "def": 70, "u": " px" },
     "brillo": { "t": "num", "n": "Brillo", "min": 20, "max": 130, "def": 100, "u": " %" },
     "tinte": { "t": "color", "n": "Tinte del agujero negro", "def": "", "vacio": true },
-    "velocidad": { "t": "num", "n": "Velocidad (visualización 2000)", "min": 20, "max": 150, "def": 100, "u": " %" },
-    "cambio": { "t": "num", "n": "Cambio de visual (MilkDrop)", "min": 8, "max": 120, "def": 25, "u": " s" },
+    "velocidad": { "t": "num", "n": "Velocidad (visualización 2000 y MilkDrop)", "min": 20, "max": 150, "def": 100, "u": " %" },
+    "cambio": { "t": "num", "n": "Cambio de visual (MilkDrop)", "min": 8, "max": 120, "def": 40, "u": " s" },
     "imagen": { "t": "imagen" }
   },
   "estilo": {
@@ -75,7 +75,8 @@ const ESQUEMA = {
       "sensibilidad": { "t": "num", "n": "Sensibilidad", "min": 20, "max": 200, "def": 100, "u": " %" },
       "color": { "t": "color", "n": "Color", "def": "", "vacio": true } } },
     "winamp": { "etiqueta": "Reproductor Winamp (tus skins)", "rect": [3, 13, 94, 72], "ids": ["titulo", "artista", "bAnt", "bPlay", "bSig", "barra", "tiempo", "volumen", "lista"], "aspecto": 2.371, "opciones": {
-      "ambiente": { "t": "bool", "n": "Fondo con el arte del skin", "def": true } } },
+      "ambiente": { "t": "bool", "n": "Fondo con el arte del skin", "def": true },
+      "visualizacion": { "t": "bool", "n": "Ventana de visualización (MilkDrop dentro del reproductor)", "def": false } } },
     "cabeza": { "etiqueta": "Cabeza Y2K (con pantalla)", "rect": [28, 3, 44, 92], "ids": ["caratula", "titulo", "artista", "bAnt", "bPlay", "bSig", "barra", "tiempo"], "aspecto": 0.789, "opciones": {
       "cuerpo": { "t": "enum", "n": "Cuerpo", "v": { "Y2K": "Y2K translúcido", "Gel": "Gel brillante", "Propio": "El que subiste en Headspace" }, "def": "Y2K" },
       "color": { "t": "enum", "n": "Color", "v": { "Lima": "Lima", "Chicle": "Chicle", "Cielo": "Cielo", "Mandarina": "Mandarina", "Cromo": "Cromo" }, "def": "Lima" } } },

@@ -66,7 +66,7 @@ const Propias = (() => {
   };
   // Winamp: un reproductor de Winamp con los skins que importa la persona (quedan solo en su equipo)
   INCLUIDAS.anime = { nombre: "Winamp", reglas: { requeridas: ["winamp"], nota: "El reproductor de Winamp lo es todo: trae pantalla, botones, barra, ecualizador y lista. Los skins se importan en la Biblioteca (link de skins.webamp.org o archivo .wsz)." },
-      fondo: { tipo: "milkdrop", color: "#000000", brillo: 65, cambio: 25 }, estilo: { panel: "liso", acento: "#5ef0ff", fuente: "Geist" },
+      fondo: { tipo: "milkdrop", color: "#000000", brillo: 65, cambio: 40, velocidad: 55 }, estilo: { panel: "liso", acento: "#5ef0ff", fuente: "Geist" },
       piezas: () => armar([["winamp", [3, 13, 94, 72], { ambiente: true }]]) };
   // Psicodélico: el ojo pixel art sobre el caleidoscopio y la espiral, y el fractal (fondo "nuevos" de visu2000.js)
   INCLUIDAS.psicodelico = { nombre: "Psicodélico", reglas: { requeridas: ["titulo", "botones", "barra"], nota: COMUN },

@@ -14,15 +14,22 @@ const Winamp = (() => {
   const guardada = () => { try { return localStorage.getItem("skin-winamp") || ""; } catch (e) { return ""; } };
 
   function montar(caja, op) {
+    const AW = op.visualizacion ? AN * 3 : ANCHO;   // con la ventana de visualización hay una tercera columna a la derecha
     const raiz = document.createElement("div"); raiz.className = "m-winamp";
-    raiz.style.cssText = `position:absolute;left:50%;top:50%;width:${ANCHO}px;height:${ALTO}px;transform-origin:50% 50%`;
-    const c = document.createElement("canvas"); c.width = ANCHO * S; c.height = ALTO * S;
-    c.style.cssText = `width:${ANCHO}px;height:${ALTO}px;image-rendering:pixelated;display:block;cursor:default;filter:drop-shadow(0 12px 30px rgba(0,0,0,.6))`;
+    raiz.style.cssText = `position:absolute;left:50%;top:50%;width:${AW}px;height:${ALTO}px;transform-origin:50% 50%`;
+    const c = document.createElement("canvas"); c.width = AW * S; c.height = ALTO * S;
+    c.style.cssText = `width:${AW}px;height:${ALTO}px;image-rendering:pixelated;display:block;cursor:default;filter:drop-shadow(0 12px 30px rgba(0,0,0,.6))`;
     // piezas invisibles que el reproductor (nucleo.js) actualiza por id: de aquí se leen título y estado
     const oculto = document.createElement("div"); oculto.style.display = "none";
     oculto.innerHTML = '<button id="bPlay">▶</button><div id="titulo"></div><div id="artista"></div><input id="volumen" type="range" min="0" max="100" value="80">';
     raiz.append(c, oculto); caja.appendChild(raiz);
-    const ajustar = () => { const s = Math.min(caja.clientWidth / ANCHO, caja.clientHeight / ALTO) || .01; raiz.style.transform = `translate(-50%, -50%) scale(${s})`; };
+    if (op.visualizacion) {   // MilkDrop dentro de su propia ventana (el hueco negro que deja ventanaVisualizacion)
+      const vl = document.createElement("canvas");
+      vl.style.cssText = `position:absolute;left:${ANCHO + 6}px;top:18px;width:${AN - 12}px;height:${PL - 24}px`;
+      raiz.append(vl);
+      Milkdrop.montar(vl, { tam: () => [(AN - 12) * 2, (PL - 24) * 2], cambio: op.cambio, velocidad: op.velocidad }).catch(() => vl.remove());
+    }
+    const ajustar = () => { const s = Math.min(caja.clientWidth / AW, caja.clientHeight / ALTO) || .01; raiz.style.transform = `translate(-50%, -50%) scale(${s})`; };
     new ResizeObserver(ajustar).observe(caja); requestAnimationFrame(ajustar);
     const g = c.getContext("2d"); g.scale(S, S); g.imageSmoothingEnabled = false;
     const vol = oculto.querySelector("#volumen"), bPlay = oculto.querySelector("#bPlay"), tit = oculto.querySelector("#titulo"), art = oculto.querySelector("#artista");
@@ -150,6 +157,15 @@ const Winamp = (() => {
       g.restore(); g.restore();
     }
 
+    // La ventana de visualización: marco con la barra de título del skin y un hueco negro; MilkDrop se pone encima (canvas aparte)
+    function ventanaVisualizacion() {
+      g.save(); g.translate(ANCHO, 0);
+      caja3d(0, 0, AN, PL, "#262a3e", "#565c7c", "#0e1018");
+      if (listo("titlebar")) pieza("titlebar", 27, 0, 275, 14, 0, 0); else { g.fillStyle = "#3a4268"; g.fillRect(0, 0, AN, 14); }
+      g.fillStyle = "#000"; g.fillRect(5, 17, AN - 10, PL - 22);
+      g.restore();
+    }
+
     // ---- ayuda encima del skin: íconos donde el botón casi no se ve, y resalte + nombre al pasar el mouse ----
     const ZONAS = { ant: [16, 88, 23, 18, "Anterior"], play: [39, 88, 23, 18, "Play"], pausa: [62, 88, 23, 18, "Pausa"], stop: [85, 88, 23, 18, "Detener"], sig: [108, 88, 22, 18, "Siguiente"],
       pos: [16, 72, 248, 10, "Avance (arrastra para adelantar)"], vol: [107, 57, 68, 13, "Volumen"] };
@@ -184,13 +200,13 @@ const Winamp = (() => {
       }
       g.restore();
     }
-    const zona = (x, y) => { if (x >= AN) return y >= 20 && y < PL - 38 ? "lista" : ""; for (const [k, [zx, zy, w, h]] of Object.entries(ZONAS)) if (x >= zx && x < zx + w && y >= zy && y < zy + h) return k; return ""; };
+    const zona = (x, y) => { if (x >= ANCHO) return ""; if (x >= AN) return y >= 20 && y < PL - 38 ? "lista" : ""; for (const [k, [zx, zy, w, h]] of Object.entries(ZONAS)) if (x >= zx && x < zx + w && y >= zy && y < zy + h) return k; return ""; };
     const NOMBRES = { lista: "Clic en un tema para reproducirlo · rueda para moverte" };
 
-    R.cadaCuadro((t) => { const d = R.espectro(); g.clearRect(0, 0, ANCHO, ALTO); ventanaPrincipal(t, d); ayuda(); ventanaEcualizador(d); ventanaLista(); });
+    R.cadaCuadro((t) => { const d = R.espectro(); g.clearRect(0, 0, AW, ALTO); ventanaPrincipal(t, d); ayuda(); ventanaEcualizador(d); ventanaLista(); if (op.visualizacion) ventanaVisualizacion(); });
 
     // ---- ratón: botones, barras y lista ----
-    const punto = (e) => { const r = c.getBoundingClientRect(); return [(e.clientX - r.left) / r.width * ANCHO, (e.clientY - r.top) / r.height * ALTO]; };
+    const punto = (e) => { const r = c.getBoundingClientRect(); return [(e.clientX - r.left) / r.width * AW, (e.clientY - r.top) / r.height * ALTO]; };
     const boton = (x, y) => y >= 88 && y < 106 ? (x >= 16 && x < 39 ? "ant" : x < 62 ? "play" : x < 85 ? "pausa" : x < 108 ? "stop" : x < 130 ? "sig" : "") : "";
     const ponerVol = (x) => { vol.value = Math.round(Math.max(0, Math.min(1, (x - 114) / 54)) * 100); vol.dispatchEvent(new Event("input")); };
     c.addEventListener("pointerdown", (e) => {
@@ -220,7 +236,7 @@ const Winamp = (() => {
       }
       apretado = ""; arrastre = "";
     });
-    c.addEventListener("wheel", (e) => { const [x] = punto(e); if (x > AN) { e.preventDefault(); scroll = Math.max(0, Math.min(Math.max(0, R.pistas.length - 12), scroll + Math.sign(e.deltaY) * 2)); } }, { passive: false });
+    c.addEventListener("wheel", (e) => { const [x] = punto(e); if (x > AN && x < ANCHO) { e.preventDefault(); scroll = Math.max(0, Math.min(Math.max(0, R.pistas.length - 12), scroll + Math.sign(e.deltaY) * 2)); } }, { passive: false });
 
     if (window.pywebview && pywebview.api) usar(""); else addEventListener("pywebviewready", () => usar(""));
     return { usar };
