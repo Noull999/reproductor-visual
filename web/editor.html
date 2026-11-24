@@ -25,6 +25,7 @@
   #capa { position: absolute; inset: 0; }
   .rz { position: absolute; border: 1.5px solid var(--c); background: color-mix(in srgb, var(--c) 10%, transparent); cursor: move; box-sizing: border-box; border-radius: 3px; }
   .rz.sel { border-width: 2.5px; background: color-mix(in srgb, var(--c) 22%, transparent); box-shadow: 0 0 0 1px #000, 0 0 16px var(--c); }
+  .guia { position: absolute; background: #ff3fd8; box-shadow: 0 0 6px #ff3fd8; pointer-events: none; z-index: 999; }
   .rz span { position: absolute; left: 3px; top: 1px; font: 10px "Geist Mono", monospace; color: #fff; text-shadow: 0 1px 2px #000; pointer-events: none; white-space: nowrap; }
   .rz .hd { position: absolute; right: -1px; bottom: -1px; width: 13px; height: 13px; background: var(--c); cursor: nwse-resize; border-radius: 3px 0 3px 0; }
   .ayuda { color: var(--suave); font-size: 13px; }
@@ -125,9 +126,31 @@ $("capa").addEventListener("pointermove", (e) => {
   if (Math.abs(dx) + Math.abs(dy) > 0.2) arrastre.movido = true;
   if (arrastre.tam) { p.w = Math.round(limitar(z.w + dx, 3, 100 - z.x) * 10) / 10; p.h = Math.round(limitar(z.h + dy, 1.5, 100 - z.y) * 10) / 10; }
   else { p.x = Math.round(limitar(z.x + dx, 0, 100 - z.w) * 10) / 10; p.y = Math.round(limitar(z.y + dy, 0, 100 - z.h) * 10) / 10; }
+  iman(p, arrastre.tam, e.altKey);
   const r = $("capa").querySelector(`[data-i="${arrastre.i}"]`); Object.assign(r.style, { left: p.x + "%", top: p.y + "%", width: p.w + "%", height: p.h + "%" });
 });
-$("capa").addEventListener("pointerup", () => { if (arrastre && arrastre.movido) guardar(); arrastre = null; });
+$("capa").addEventListener("pointerup", () => { if (arrastre && arrastre.movido) guardar(); arrastre = null; guias([], []); });
+// Imán: al acercar un borde o el centro de la pieza a los de otra (o al centro de la pantalla) se pega y aparece una guía. Alt lo desactiva.
+function iman(p, tam, apagado) {
+  if (apagado) return guias([], []);
+  const otras = spec.piezas.filter(q => q !== p), U = 0.8;
+  const lineas = (eje) => [0, 50, 100, ...otras.flatMap(q => eje === "x" ? [q.x, q.x + q.w / 2, q.x + q.w] : [q.y, q.y + q.h / 2, q.y + q.h])];
+  const pegar = (eje) => {
+    const a = eje === "x" ? p.x : p.y, l = eje === "x" ? p.w : p.h, mios = tam ? [a + l] : [a, a + l / 2, a + l];
+    let mejor = null;
+    for (const m of mios) for (const o of lineas(eje)) { const d = o - m; if (Math.abs(d) <= U && (!mejor || Math.abs(d) < Math.abs(mejor.d))) mejor = { d, o }; }
+    if (!mejor) return [];
+    if (tam) { if (eje === "x") p.w = Math.round((p.w + mejor.d) * 10) / 10; else p.h = Math.round((p.h + mejor.d) * 10) / 10; }
+    else if (eje === "x") p.x = Math.round(limitar(p.x + mejor.d, 0, 100 - p.w) * 10) / 10; else p.y = Math.round(limitar(p.y + mejor.d, 0, 100 - p.h) * 10) / 10;
+    return [mejor.o];
+  };
+  guias(pegar("x"), pegar("y"));
+}
+function guias(xs, ys) {
+  $("capa").querySelectorAll(".guia").forEach(g => g.remove());
+  xs.forEach(x => { const g = document.createElement("div"); g.className = "guia"; g.style.cssText = `left:${x}%;top:0;bottom:0;width:1px`; $("capa").appendChild(g); });
+  ys.forEach(y => { const g = document.createElement("div"); g.className = "guia"; g.style.cssText = `top:${y}%;left:0;right:0;height:1px`; $("capa").appendChild(g); });
+}
 
 // ---- Controles generados desde el esquema (enum, num, bool, color) ----
 const opciones = (obj, actual) => Object.entries(obj).map(([k, v]) => `<option value="${k}"${k === actual ? " selected" : ""}>${v}</option>`).join("");

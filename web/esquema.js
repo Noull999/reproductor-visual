@@ -38,28 +38,36 @@ const ESQUEMA = {
       "alineacion": { "t": "enum", "n": "Alineación", "v": { "izquierda": "Izquierda", "centro": "Centro", "derecha": "Derecha" }, "def": "izquierda" },
       "mayusculas": { "t": "bool", "n": "Todo en mayúsculas", "def": false },
       "fuente": { "t": "enum", "n": "Letra propia", "v": { "": "La de la plantilla", "Geist": "Geist", "Fredoka": "Fredoka", "Instrument Serif": "Instrument Serif", "Silkscreen": "Silkscreen", "VT323": "VT323", "Michroma": "Michroma" }, "def": "" },
-      "color": { "t": "color", "n": "Color", "def": "", "vacio": true } } },
+      "color": { "t": "color", "n": "Color", "def": "", "vacio": true },
+      "efecto": { "t": "enum", "n": "Efecto del texto", "v": { "ninguno": "Ninguno", "sombra": "Sombra", "brillo": "Brillo", "contorno": "Contorno", "neon": "Neón" }, "def": "ninguno" },
+      "marquesina": { "t": "bool", "n": "Si no cabe, que se desplace", "def": true } } },
     "artista": { "etiqueta": "Artista", "rect": [30, 69, 40, 4], "ids": ["artista"], "opciones": {
       "tam": { "t": "num", "n": "Tamaño", "min": 40, "max": 220, "def": 100, "u": " %" },
       "alineacion": { "t": "enum", "n": "Alineación", "v": { "izquierda": "Izquierda", "centro": "Centro", "derecha": "Derecha" }, "def": "izquierda" },
       "mayusculas": { "t": "bool", "n": "Todo en mayúsculas", "def": false },
       "fuente": { "t": "enum", "n": "Letra propia", "v": { "": "La de la plantilla", "Geist": "Geist", "Fredoka": "Fredoka", "Instrument Serif": "Instrument Serif", "Silkscreen": "Silkscreen", "VT323": "VT323", "Michroma": "Michroma" }, "def": "" },
-      "color": { "t": "color", "n": "Color", "def": "", "vacio": true } } },
+      "color": { "t": "color", "n": "Color", "def": "", "vacio": true },
+      "efecto": { "t": "enum", "n": "Efecto del texto", "v": { "ninguno": "Ninguno", "sombra": "Sombra", "brillo": "Brillo", "contorno": "Contorno", "neon": "Neón" }, "def": "ninguno" } } },
     "botones": { "etiqueta": "Botones", "rect": [34, 78, 32, 9], "ids": ["bAnt", "bPlay", "bSig"], "opciones": {
       "tam": { "t": "num", "n": "Tamaño", "min": 50, "max": 160, "def": 100, "u": " %" },
       "separacion": { "t": "num", "n": "Separación", "min": 0, "max": 30, "def": 6, "u": "" },
-      "redondos": { "t": "bool", "n": "Botones redondos", "def": false } } },
+      "redondos": { "t": "bool", "n": "Botones redondos", "def": false },
+      "acento": { "t": "color", "n": "Color propio de los botones", "def": "", "vacio": true } } },
     "barra": { "etiqueta": "Barra de avance", "rect": [10, 92, 80, 2.4], "ids": ["barra"], "opciones": {
       "modo": { "t": "enum", "n": "Tipo", "v": { "linea": "Línea", "onda": "Onda real del tema", "segmentos": "Segmentos" }, "def": "linea" },
-      "grosor": { "t": "num", "n": "Grosor", "min": 3, "max": 30, "def": 12, "u": " px" } } },
+      "grosor": { "t": "num", "n": "Grosor", "min": 3, "max": 30, "def": 12, "u": " px" },
+      "acento": { "t": "color", "n": "Color propio de la barra", "def": "", "vacio": true } } },
     "tiempo": { "etiqueta": "Tiempo", "rect": [84, 86, 12, 4], "ids": ["tiempo"], "opciones": {
       "tam": { "t": "num", "n": "Tamaño", "min": 40, "max": 220, "def": 100, "u": " %" },
-      "color": { "t": "color", "n": "Color", "def": "", "vacio": true } } },
-    "volumen": { "etiqueta": "Volumen", "rect": [76, 78, 20, 6], "ids": ["volumen", "iconoVol"], "opciones": {} },
+      "color": { "t": "color", "n": "Color", "def": "", "vacio": true },
+      "efecto": { "t": "enum", "n": "Efecto del texto", "v": { "ninguno": "Ninguno", "sombra": "Sombra", "brillo": "Brillo", "contorno": "Contorno", "neon": "Neón" }, "def": "ninguno" } } },
+    "volumen": { "etiqueta": "Volumen", "rect": [76, 78, 20, 6], "ids": ["volumen", "iconoVol"], "opciones": {
+      "acento": { "t": "color", "n": "Color propio del volumen", "def": "", "vacio": true } } },
     "lista": { "etiqueta": "Lista de temas", "rect": [72, 8, 24, 62], "ids": ["lista"], "opciones": {
       "miniaturas": { "t": "bool", "n": "Mostrar carátulas", "def": true },
       "numeros": { "t": "bool", "n": "Mostrar números", "def": true },
-      "tam": { "t": "num", "n": "Tamaño del texto", "min": 70, "max": 150, "def": 100, "u": " %" } } },
+      "tam": { "t": "num", "n": "Tamaño del texto", "min": 70, "max": 150, "def": 100, "u": " %" },
+      "acento": { "t": "color", "n": "Color propio de la lista (tema que suena)", "def": "", "vacio": true } } },
     "panel": { "etiqueta": "Panel", "rect": [8, 8, 26, 40], "ids": [], "repetible": true, "opciones": {
       "borde": { "t": "bool", "n": "Con borde", "def": true },
       "color": { "t": "color", "n": "Color propio", "def": "", "vacio": true } } },

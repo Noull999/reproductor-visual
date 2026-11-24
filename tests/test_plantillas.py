@@ -198,3 +198,15 @@ def test_fondo_milkdrop_se_acepta_y_se_acota():
     spec = base(fondo={"tipo": "milkdrop", "color": "#000000", "brillo": 65, "cambio": 9999, "script": "x"})
     f = P.validar(spec, "exportar")["fondo"]
     assert f["tipo"] == "milkdrop" and f["cambio"] == 120 and "script" not in f   # el cambio se acota al máximo permitido
+
+
+def test_opciones_nuevas_del_editor_se_validan():
+    spec = base()
+    spec["piezas"][1].update(efecto="neon", marquesina=False)
+    spec["piezas"].append({"n": "barra1", "tipo": "barra", "x": 10, "y": 92, "w": 80, "h": 2.4, "modo": "linea", "grosor": 8, "acento": "#ff3fd8"})
+    limpia = {p["n"]: p for p in P.validar(spec, "exportar")["piezas"]}
+    assert limpia["titulo1"]["efecto"] == "neon" and limpia["titulo1"]["marquesina"] is False
+    assert limpia["barra1"]["acento"] == "#ff3fd8"
+    spec["piezas"].append({"n": "lista1", "tipo": "lista", "x": 72, "y": 8, "w": 24, "h": 60, "acento": "javascript:alert(1)"})
+    with pytest.raises(P.PlantillaInvalida):   # un color que no es #rrggbb rechaza el archivo
+        P.validar(spec, "exportar")
