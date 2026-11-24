@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="fonts/ambiente.css">
 <link rel="stylesheet" href="fonts/pixel.css">
 <link rel="stylesheet" href="fonts/dosmil.css">
+<link rel="stylesheet" href="fonts/extra.css">
 <link rel="stylesheet" href="modulos.css">
 <script src="hls.min.js"></script>
 <style>
@@ -77,6 +78,7 @@
   input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #fff; box-shadow: 0 0 10px var(--acento); }
   body[data-panel=pixel] input[type=range]::-webkit-slider-thumb { border-radius: 0; width: 10px; height: 18px; }
   .barra-c { width: 100%; height: 100%; cursor: pointer; position: relative; } .barra-c input { display: none; }
+  .cromo { background: linear-gradient(180deg, #fff 0%, #dfe6f2 36%, #59647a 50%, #eef3ff 60%, #a3aec2 100%); -webkit-background-clip: text; background-clip: text; color: transparent !important; text-shadow: none !important; filter: drop-shadow(0 2px 0 rgba(0,0,0,.55)) drop-shadow(0 0 10px rgba(0,0,0,.35)); }
   .marq { text-overflow: clip !important; animation: marq var(--dur, 8s) ease-in-out infinite alternate; }
   @keyframes marq { 0%, 18% { text-indent: 0; } 82%, 100% { text-indent: var(--corr); } }
   @media (prefers-reduced-motion: reduce) { .marq { animation: none; text-overflow: ellipsis !important; } }
@@ -407,6 +409,7 @@ function pieza(p, caja) {
     return e;
   };
   function efectoTexto(x) {
+    if (val(p, "efecto") === "cromo") return x.classList.add("cromo");   // metal pulido: degradado recortado a la letra
     const ef = EFECTOS_TEXTO[val(p, "efecto")]; if (!ef) return;
     x.style.textShadow = ef[0]; if (ef[1]) { x.style.webkitTextStroke = ef[1]; x.style.paintOrder = "stroke fill"; }
   }

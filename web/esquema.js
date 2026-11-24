@@ -19,7 +19,7 @@ const ESQUEMA = {
     "panel": { "t": "enum", "n": "Paneles y botones", "v": { "vidrio": "Vidrio", "metal": "Metal", "gel": "Gel", "pixel": "Píxel", "liso": "Liso oscuro", "ps2": "Consola (PS2)", "psico": "Psicodélico" }, "def": "vidrio" },
     "acento": { "t": "color", "n": "Color de acento", "def": "#ff2d3d" },
     "acentoAuto": { "t": "bool", "n": "Acento tomado de la carátula", "def": false },
-    "fuente": { "t": "enum", "n": "Letra", "v": { "Geist": "Geist (moderna)", "Fredoka": "Fredoka (redondeada)", "Instrument Serif": "Instrument Serif (serif)", "Silkscreen": "Silkscreen (píxel)", "VT323": "VT323 (pantalla LCD)", "Michroma": "Michroma (ancha)" }, "def": "Geist" },
+    "fuente": { "t": "enum", "n": "Letra", "v": { "Geist": "Geist (moderna)", "Fredoka": "Fredoka (redondeada)", "Instrument Serif": "Instrument Serif (serif)", "Silkscreen": "Silkscreen (píxel)", "VT323": "VT323 (pantalla LCD)", "Michroma": "Michroma (ancha)", "Orbitron": "Orbitron (futurista)", "Audiowide": "Audiowide", "Zen Dots": "Zen Dots (redonda Y2K)", "Syncopate": "Syncopate", "Quantico": "Quantico", "Bebas Neue": "Bebas Neue (alta)", "Baloo 2": "Baloo 2 (inflada)" }, "def": "Geist" },
     "deformacion": { "t": "num", "n": "Deformar lo que hay tras el vidrio", "min": 0, "max": 140, "def": 0, "u": "" }
   },
   "tipos": {
@@ -37,17 +37,17 @@ const ESQUEMA = {
       "tam": { "t": "num", "n": "Tamaño", "min": 40, "max": 220, "def": 100, "u": " %" },
       "alineacion": { "t": "enum", "n": "Alineación", "v": { "izquierda": "Izquierda", "centro": "Centro", "derecha": "Derecha" }, "def": "izquierda" },
       "mayusculas": { "t": "bool", "n": "Todo en mayúsculas", "def": false },
-      "fuente": { "t": "enum", "n": "Letra propia", "v": { "": "La de la plantilla", "Geist": "Geist", "Fredoka": "Fredoka", "Instrument Serif": "Instrument Serif", "Silkscreen": "Silkscreen", "VT323": "VT323", "Michroma": "Michroma" }, "def": "" },
+      "fuente": { "t": "enum", "n": "Letra propia", "v": { "": "La de la plantilla", "Geist": "Geist", "Fredoka": "Fredoka", "Instrument Serif": "Instrument Serif", "Silkscreen": "Silkscreen", "VT323": "VT323", "Michroma": "Michroma", "Orbitron": "Orbitron", "Audiowide": "Audiowide", "Zen Dots": "Zen Dots", "Syncopate": "Syncopate", "Quantico": "Quantico", "Bebas Neue": "Bebas Neue", "Baloo 2": "Baloo 2" }, "def": "" },
       "color": { "t": "color", "n": "Color", "def": "", "vacio": true },
-      "efecto": { "t": "enum", "n": "Efecto del texto", "v": { "ninguno": "Ninguno", "sombra": "Sombra", "brillo": "Brillo", "contorno": "Contorno", "neon": "Neón" }, "def": "ninguno" },
+      "efecto": { "t": "enum", "n": "Efecto del texto", "v": { "ninguno": "Ninguno", "sombra": "Sombra", "brillo": "Brillo", "contorno": "Contorno", "neon": "Neón", "cromo": "Cromo" }, "def": "ninguno" },
       "marquesina": { "t": "bool", "n": "Si no cabe, que se desplace", "def": true } } },
     "artista": { "etiqueta": "Artista", "rect": [30, 69, 40, 4], "ids": ["artista"], "opciones": {
       "tam": { "t": "num", "n": "Tamaño", "min": 40, "max": 220, "def": 100, "u": " %" },
       "alineacion": { "t": "enum", "n": "Alineación", "v": { "izquierda": "Izquierda", "centro": "Centro", "derecha": "Derecha" }, "def": "izquierda" },
       "mayusculas": { "t": "bool", "n": "Todo en mayúsculas", "def": false },
-      "fuente": { "t": "enum", "n": "Letra propia", "v": { "": "La de la plantilla", "Geist": "Geist", "Fredoka": "Fredoka", "Instrument Serif": "Instrument Serif", "Silkscreen": "Silkscreen", "VT323": "VT323", "Michroma": "Michroma" }, "def": "" },
+      "fuente": { "t": "enum", "n": "Letra propia", "v": { "": "La de la plantilla", "Geist": "Geist", "Fredoka": "Fredoka", "Instrument Serif": "Instrument Serif", "Silkscreen": "Silkscreen", "VT323": "VT323", "Michroma": "Michroma", "Orbitron": "Orbitron", "Audiowide": "Audiowide", "Zen Dots": "Zen Dots", "Syncopate": "Syncopate", "Quantico": "Quantico", "Bebas Neue": "Bebas Neue", "Baloo 2": "Baloo 2" }, "def": "" },
       "color": { "t": "color", "n": "Color", "def": "", "vacio": true },
-      "efecto": { "t": "enum", "n": "Efecto del texto", "v": { "ninguno": "Ninguno", "sombra": "Sombra", "brillo": "Brillo", "contorno": "Contorno", "neon": "Neón" }, "def": "ninguno" } } },
+      "efecto": { "t": "enum", "n": "Efecto del texto", "v": { "ninguno": "Ninguno", "sombra": "Sombra", "brillo": "Brillo", "contorno": "Contorno", "neon": "Neón", "cromo": "Cromo" }, "def": "ninguno" } } },
     "botones": { "etiqueta": "Botones", "rect": [34, 78, 32, 9], "ids": ["bAnt", "bPlay", "bSig"], "opciones": {
       "tam": { "t": "num", "n": "Tamaño", "min": 50, "max": 160, "def": 100, "u": " %" },
       "separacion": { "t": "num", "n": "Separación", "min": 0, "max": 30, "def": 6, "u": "" },
@@ -60,7 +60,7 @@ const ESQUEMA = {
     "tiempo": { "etiqueta": "Tiempo", "rect": [84, 86, 12, 4], "ids": ["tiempo"], "opciones": {
       "tam": { "t": "num", "n": "Tamaño", "min": 40, "max": 220, "def": 100, "u": " %" },
       "color": { "t": "color", "n": "Color", "def": "", "vacio": true },
-      "efecto": { "t": "enum", "n": "Efecto del texto", "v": { "ninguno": "Ninguno", "sombra": "Sombra", "brillo": "Brillo", "contorno": "Contorno", "neon": "Neón" }, "def": "ninguno" } } },
+      "efecto": { "t": "enum", "n": "Efecto del texto", "v": { "ninguno": "Ninguno", "sombra": "Sombra", "brillo": "Brillo", "contorno": "Contorno", "neon": "Neón", "cromo": "Cromo" }, "def": "ninguno" } } },
     "volumen": { "etiqueta": "Volumen", "rect": [76, 78, 20, 6], "ids": ["volumen", "iconoVol"], "opciones": {
       "acento": { "t": "color", "n": "Color propio del volumen", "def": "", "vacio": true } } },
     "lista": { "etiqueta": "Lista de temas", "rect": [72, 8, 24, 62], "ids": ["lista"], "opciones": {
