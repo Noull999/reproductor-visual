@@ -203,7 +203,8 @@
     --sombra: 0 0 16px color-mix(in srgb, var(--acento) 26%, transparent), inset 0 0 24px rgba(0,0,0,.55); }
   body[data-panel=terminal] .tit, body[data-panel=terminal] .art, body[data-panel=terminal] .tiempo { color: var(--acento); text-shadow: 0 0 9px color-mix(in srgb, var(--acento) 55%, transparent); }
   body[data-panel=terminal] .tiempo { font-size: calc(min(60cqh, 11cqw) * var(--tam, 1)); letter-spacing: -.02em; }   /* el prefijo "t+ " no cabía y se cortaba */
-  body[data-panel=terminal] .pz:is([data-tipo=panel], [data-tipo=titulo], [data-tipo=artista]) { transition: opacity .6s; }   /* se esconden con el mismo fundido que botones y lista */
+  body[data-panel=terminal] .pz { transition: opacity .6s; }
+  body.demonioActivo .pz:not([data-tipo=caratula]), body.demonioActivo #variantes { opacity: 0 !important; pointer-events: none; }   /* durante el evento del demonio solo queda la carátula */   /* se esconden con el mismo fundido que botones y lista */
   body[data-panel=terminal] .tit::before { content: "> "; opacity: .6; } body[data-panel=terminal] .art::before { content: "# "; opacity: .5; } body[data-panel=terminal] .tiempo::before { content: "t+ "; opacity: .55; }
   body[data-panel=terminal] .tit::after { content: "\2588"; margin-left: .12em; animation: parp 1s steps(2) infinite; } @keyframes parp { 50% { opacity: 0; } }
   body[data-panel=terminal] .art { opacity: .8; }

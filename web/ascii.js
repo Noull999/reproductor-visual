@@ -1,6 +1,6 @@
 // Fondo ASCII: una cuadrícula de caracteres que reacciona a la música. Seis escenas que se turnan con fundido (lluvia, dona 3D que gira, ondas con
 // el espectro, fuego, túnel y tu carátula hecha de caracteres) y "cosas que pasan en el tiempo": una secuencia de arranque que se tipea y, cada 10-20 s, un
-// evento (glitch, alerta, barrido de escaneo o inversión). Todo con código propio; se dibuja a ~30 cuadros para pesar poco.
+// evento (glitch, alerta, barrido de escaneo o inversión) y, muy de vez en cuando, EL DEMONIO: aparece, se mueve, abre la boca y se come la pantalla (la interfaz también). Todo con código propio; se dibuja a ~30 cuadros para pesar poco.
 //   Ascii.montar(contenedor, { color: () => [r, g, b], cambio: segundos entre escenas, eventos: true|false })
 "use strict";
 const Ascii = (() => {
@@ -14,7 +14,7 @@ const Ascii = (() => {
     const lienzo = document.createElement("canvas"); lienzo.style.pointerEvents = "none"; cont.appendChild(lienzo);
     const g = lienzo.getContext("2d");
     const cambio = Math.max(8, Math.min(120, +op.cambio || 26)), conEventos = op.eventos !== false;
-    let calor = null, giroA = 0, giroB = 0, cols = 0, filas = 0, cw = 8, ch = 14, tam = 16, I = null, J = null, lluvia = null, ultimo = 0, esc = 0, sig = -1, tFundido = 0, tCambio = 1e9, t0 = null;
+    let demonioAntes = -1e9, velo = null, info = null, calor = null, giroA = 0, giroB = 0, cols = 0, filas = 0, cw = 8, ch = 14, tam = 16, I = null, J = null, lluvia = null, ultimo = 0, esc = 0, sig = -1, tFundido = 0, tCambio = 1e9, t0 = null;
     let imgOk = false, mini = null, caratula = new Image(), prox = 9 + Math.random() * 8, ev = null, suaveB = 0, suaveM = 0, suaveA = 0;
     const fuente = () => `${tam}px "VT323", "Cascadia Mono", Consolas, monospace`;
 
@@ -99,9 +99,72 @@ const Ascii = (() => {
     };
     const GOLP = () => (typeof GOLPE !== "undefined" ? GOLPE : 0);
 
+
+    // ---- EL DEMONIO: un evento con guion que dura ~18 s. Cara dibujada con código (cuernos, ojos que brillan con el bajo, nariz, boca con dientes). ----
+    //  0-2 aparece desde abajo · 2-9 se mueve · 9-12 abre la boca y tiembla · 12-14 se come la pantalla (con la interfaz) · 14-16 oscuridad · 16-18 la escupe
+    const ease = (x) => (x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x));
+    function demonio(A, u, t, b) {
+      A.fill(0);
+      const asp = ch / cw, S = Math.min(cols * .2, filas * asp * .36), entra = ease(u / 2), abre = ease((u - 9) / 3), grow = ease((u - 12) / 2.2);
+      const cx = cols / 2 + Math.sin(t * .9) * cols * .035 + (abre > .1 && u < 12 ? (Math.random() - .5) * .05 * abre * S : 0), cy = filas * .56 + (1 - entra) * filas * .6 + Math.sin(t * 1.7) * filas * .012;
+      const pon = (X, Y, v) => { const c = Math.round(cx + X * S), r = Math.round(cy + Y * S / asp); if (c >= 0 && c < cols && r >= 0 && r < filas) A[r * cols + c] = Math.max(A[r * cols + c], v); };
+      const curva = (p0, p1, p2, ancho, v) => { for (let k = 0; k <= 1; k += .01) { const m = 1 - k, x = m * m * p0[0] + 2 * m * k * p1[0] + k * k * p2[0], y = m * m * p0[1] + 2 * m * k * p1[1] + k * k * p2[1]; for (let w = -ancho; w <= ancho; w += .025) pon(x + w, y, v); } };
+      for (const sg of [-1, 1]) {
+        curva([sg * .55, -.8], [sg * 1.2, -1.3], [sg * .78, -2.1], .06, .95);              // cuernos
+        curva([sg * .8, -.42], [sg * .5, -.55], [sg * .12, -.3], .025, .85);                // cejas
+      }
+      for (let r = 0; r < filas; r++) for (let c = 0; c < cols; c++) {   // cabeza: contorno y sombra suave
+        const X = (c - cx) / S, Y = (r - cy) * asp / S, dd = Math.hypot(X, Y / 1.12);
+        if (dd < 1.07) A[r * cols + c] = Math.abs(dd - 1) < .05 ? .95 : dd < 1 ? (((c + r * 2) % 5 === 0) ? .22 : .08) + .1 * Math.abs(X) * (Y > 0 ? 1 : .4) : 0;   // el sombreado es un rayado fino
+      }
+      for (const sg of [-1, 1]) {   // ojos: rendijas inclinadas que brillan con el bajo, pupila vertical
+        const ex = sg * .42, ey = -.2, ang = -sg * .5, co = Math.cos(ang), si = Math.sin(ang);
+        for (let r = 0; r < filas; r++) for (let c = 0; c < cols; c++) {
+          const X = (c - cx) / S - ex, Y = (r - cy) * asp / S - ey, xr = X * co - Y * si, yr = X * si + Y * co, q = (xr / .36) ** 2 + (yr / .13) ** 2;
+          if (q < 1) A[r * cols + c] = Math.abs(xr) < .022 ? 0 : 1.35; else if (q < 4.2) A[r * cols + c] = Math.max(A[r * cols + c], (.2 + b * .65) * (1 - (q - 1) / 3.2));
+        }
+        for (let k = 0; k < 3; k++) pon(sg * .09, .1 + k * .035, .85);   // nariz
+      }
+      const wM = .78 * (1 + grow * 5), hM = (.07 + abre * .6) * (1 + grow * 6), mY = .52, caida = abre * .12, c0 = Math.max(0, Math.floor(cx - wM * S)), c1 = Math.min(cols - 1, Math.ceil(cx + wM * S));
+      for (let c = c0; c <= c1; c++) {   // boca: hueco, borde y dientes que cuelgan
+        const X = (c - cx) / S, k = Math.sqrt(Math.max(0, 1 - (X / wM) ** 2)), top = mY - hM * k, bot = mY + hM * k + caida * k;
+        const r0 = Math.max(0, Math.round(cy + top * S / asp)), r1 = Math.min(filas - 1, Math.round(cy + bot * S / asp));
+        for (let r = r0; r <= r1; r++) A[r * cols + c] = 0;
+        pon(X, top, .9); pon(X, bot, .9);
+        if (hM > .03) { const tl = (.16 + abre * .12) * (1 - Math.abs(((X * 7) % 2 + 2) % 2 - 1)); for (let q = 0; q <= tl; q += .03) { pon(X, top + q, 1.15); pon(X, bot - q, 1.15); } }
+      }
+      return { mx: (cx) * cw, my: (cy + mY * S / asp) * ch, grow };
+    }
+    // lo que cubre la pantalla entera (por encima de la interfaz): el círculo negro que sale de la boca, caracteres aspirados y los ojos en la oscuridad
+    function dibujarVelo(u, t, col) {
+      if (!velo) { velo = document.createElement("canvas"); velo.style.cssText = "position:fixed;inset:0;z-index:80;pointer-events:none"; document.body.appendChild(velo); }
+      const g2 = velo.getContext("2d"); if (velo.width !== innerWidth || velo.height !== innerHeight) { velo.width = innerWidth; velo.height = innerHeight; }
+      g2.clearRect(0, 0, velo.width, velo.height);
+      if (u < 11 || u > 18.6 || !info) return;
+      const Rmax = Math.hypot(innerWidth, innerHeight) * 1.08, [r, gc, bl] = col, vivo = `rgba(${r},${gc},${bl},`;
+      const R = u < 14.2 ? Rmax * Math.pow(ease((u - 12) / 2.2), 2) : u < 16.4 ? Rmax : Rmax * (1 - ease((u - 16.4) / 2));
+      g2.font = fuente(); g2.textBaseline = "middle"; g2.textAlign = "center";
+      if (u < 14.2) for (let i = 0; i < 70; i++) {   // caracteres aspirados hacia la boca
+        const k = Math.max(0, Math.min(1, (u - 11.2) / 3 - hash(i, 3, 1) * .5)), a = hash(i, 1, 1) * TAU, dist = (1 - k * k) * Rmax * (.3 + .6 * hash(i, 2, 1));
+        g2.fillStyle = vivo + (.3 + .6 * k) + ")"; g2.fillText(CABEZA[Math.floor(hash(i, 4, 1) * CABEZA.length)], info.mx + Math.cos(a + k * 2) * dist, info.my + Math.sin(a + k * 2) * dist * .8);
+      }
+      if (R > 2) {
+        g2.fillStyle = "#000"; g2.beginPath(); g2.arc(info.mx, info.my, R, 0, TAU); g2.fill();
+        g2.fillStyle = "#e8fff0"; const n = Math.min(260, Math.floor(R / 4) + 20);
+        for (let i = 0; i < n; i++) { const a = i / n * TAU, rr = R * (1 + (hash(i, 7, Math.floor(t * 10)) - .5) * .025); g2.fillText(CABEZA[Math.floor(hash(i, 9, Math.floor(t * 6)) * CABEZA.length)], info.mx + Math.cos(a) * rr, info.my + Math.sin(a) * rr); }
+      }
+      if (u > 14.2 && u < 16.6 && R > Rmax * .9) {   // oscuridad: solo se ven los ojos
+        const al = Math.min(1, (u - 14.2) / .4) * Math.min(1, (16.6 - u) / .4); g2.fillStyle = vivo + al + ")"; g2.font = `${tam * 3}px "VT323", monospace`;
+        const ojo = Math.floor(t * 3) % 8 === 0 ? "-  -" : "(O)  (O)"; g2.fillText(ojo, innerWidth / 2, innerHeight * .46);
+        if (u > 14.8) { g2.font = `${tam * 1.4}px "VT323", monospace`; g2.fillStyle = `rgba(232,255,240,${al * .8})`; g2.fillText(u < 15.6 ? "*GULP*" : "...tenia hambre.", innerWidth / 2, innerHeight * .46 + tam * 3.2); }
+      }
+    }
+
     function lanzar(t) {   // un evento nuevo con el tiempo
-      const tipos = ["glitch", "alerta", "scan", "invertir"], tipo = tipos[Math.floor(Math.random() * tipos.length)];
-      ev = { tipo, t0: t, dur: { glitch: .55, alerta: 2.6, scan: 1.2, invertir: .22 }[tipo], msg: ALERTAS[Math.floor(Math.random() * ALERTAS.length)], filas: Array.from({ length: filas }, () => (Math.random() < .3 ? Math.round((Math.random() - .5) * 26) : 0)) };
+      const tipos = ["glitch", "alerta", "scan", "invertir"];
+      let tipo = tipos[Math.floor(Math.random() * tipos.length)];
+      if (t - t0 > 30 && t - demonioAntes > 80 && Math.random() < .3) { tipo = "demonio"; demonioAntes = t; }   // muy de vez en cuando
+      ev = { tipo, t0: t, dur: { glitch: .55, alerta: 2.6, scan: 1.2, invertir: .22, demonio: 18.6 }[tipo], msg: ALERTAS[Math.floor(Math.random() * ALERTAS.length)], filas: Array.from({ length: filas }, () => (Math.random() < .3 ? Math.round((Math.random() - .5) * 26) : 0)) };
     }
 
     function dibujar(t, dt, d) {
@@ -115,16 +178,19 @@ const Ascii = (() => {
       let k = 0;
       if (sig >= 0) { k = Math.min(1, (t - tFundido) / 1.6); escena[ESCENAS[sig]](J, t, dt, d, b); if (k >= 1) { esc = sig; sig = -1; tCambio = t; I.set(J); k = 0; } }
       if (conEventos) {
-        if (!ev && t - t0 > 5 && t > prox) { lanzar(t); prox = t + 10 + Math.random() * 10; }
+        if (!ev && t - t0 > 5 && t > prox) { lanzar(t); prox = t + ev.dur + 10 + Math.random() * 10; }
         if (ev && t - ev.t0 > ev.dur) ev = null;
       }
+      if (ev && ev.tipo === "demonio") { info = demonio(I, t - ev.t0, t, b); k = 0; } else info = null;
+      dibujarVelo(ev && ev.tipo === "demonio" ? t - ev.t0 : -1, t, col);
+      document.body.classList.toggle("demonioActivo", !!(ev && ev.tipo === "demonio" && t - ev.t0 < 16.4));   // la interfaz se esconde para que se vea el demonio
       const invertido = ev && ev.tipo === "invertir";
       g.clearRect(0, 0, lienzo.width, lienzo.height);
       if (invertido) { g.fillStyle = cadena(.9); g.fillRect(0, 0, lienzo.width, lienzo.height); }
       g.font = fuente(); g.textBaseline = "top";
       const cubos = [[], [], [], [], [], [], []], u = ev && ev.tipo === "scan" ? (t - ev.t0) / ev.dur * (filas + 6) - 3 : -99;
       for (let rr = 0; rr < filas; rr++) {
-        const desp = ev && ev.tipo === "glitch" ? ev.filas[rr] : 0;
+        const desp = ev && (ev.tipo === "glitch" || (ev.tipo === "demonio" && t - ev.t0 > 16.4 && t - ev.t0 < 17.6)) ? ev.filas[rr] : 0;
         for (let c = 0; c < cols; c++) {
           const i = rr * cols + c; let v = k > 0 ? I[i] * (1 - k) + J[i] * k : I[i];
           if (Math.abs(rr - u) < 1.6) v += .9 * (1 - Math.abs(rr - u) / 1.6);
@@ -158,7 +224,7 @@ const Ascii = (() => {
       }
     }
 
-    cont.__lanzar = (tipo) => { lanzar(performance.now() / 1000); if (tipo) ev.tipo = tipo, ev.dur = { glitch: .55, alerta: 2.6, scan: 1.2, invertir: .22 }[tipo]; };   // para pruebas
+    cont.__lanzar = (tipo) => { lanzar(performance.now() / 1000); if (tipo) ev.tipo = tipo, ev.dur = { glitch: .55, alerta: 2.6, scan: 1.2, invertir: .22, demonio: 18.6 }[tipo]; };   // para pruebas
     cont.__ascii = () => ({ t0, esc, sig, tCambio, cambio, ev: ev && ev.tipo, prox, cols, filas, ultimo });   // para pruebas
     R.cadaCuadro(() => {   // el tiempo de la app avanza por cuadro (más lento si el equipo va a menos de 60); aquí se usa el reloj real para que escenas y eventos duren lo que dicen
       const t = performance.now() / 1000;
