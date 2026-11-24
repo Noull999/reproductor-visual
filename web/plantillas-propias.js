@@ -93,7 +93,7 @@ const Propias = (() => {
       piezas: () => armar([["caratula", [3, 8, 21, 37], { forma: "cuadrada", efecto: "ascii", borde: true }],
         ["panel", [27, 8, 44, 40], {}],
         ["titulo", [29.5, 11, 39, 8], { fuente: "VT323" }], ["artista", [29.5, 19.5, 39, 5], { fuente: "VT323" }],
-        ["botones", [29.5, 28, 26, 8], {}], ["tiempo", [57, 29, 12, 5], { fuente: "VT323" }],
+        ["botones", [29.5, 28, 26, 8], {}], ["tiempo", [55.5, 28.8, 14.5, 5.4], { fuente: "VT323" }],
         ["volumen", [29.5, 39.5, 22, 3.4], {}], ["lista", [74, 8, 23, 76], {}],
         ["barra", [3, 90, 94, 4], { modo: "ascii" }]]) };
   // Cromo líquido: metal derretido que se sacude con el bombo; todo en cromo y letras metálicas

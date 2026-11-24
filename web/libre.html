@@ -48,7 +48,7 @@
   body[data-panel=psico] input#barra::-webkit-slider-thumb { width: 12px; height: 12px; background: #ece8f4; box-shadow: 0 0 8px var(--acento); }
   body[data-panel=psico] .tit { color: #f1eef6; }
   /* a los 3 s sin mover el mouse se va todo, no solo los controles: queda la visualización sola */
-  body.inactivo[data-panel=psico] .pz:is([data-tipo=panel], [data-tipo=titulo], [data-tipo=artista]) { opacity: 0 !important; pointer-events: none; }
+  body.inactivo:is([data-panel=psico], [data-panel=terminal]) .pz:is([data-tipo=panel], [data-tipo=titulo], [data-tipo=artista]) { opacity: 0 !important; pointer-events: none; }   /* al esconderse la interfaz queda solo la carátula */
   .caja { background: var(--bg); border: var(--borde); border-radius: var(--radp); box-shadow: var(--sombra); width: 100%; height: 100%; color: var(--pt); }
   .caja.sinborde { border: none; box-shadow: none; }
   body[data-panel=gel] .caja { background: linear-gradient(180deg,rgba(255,255,255,.35),rgba(255,255,255,.05) 50%,rgba(0,0,0,.25)), color-mix(in srgb, var(--acento) 55%, #000); color: #fff; }
@@ -202,6 +202,8 @@
   body[data-panel=terminal] { --bg: color-mix(in srgb, var(--acento) 7%, rgba(2,4,3,.88)); --borde: 1px solid color-mix(in srgb, var(--acento) 75%, transparent); --rad: 0; --radp: 0; --pt: var(--acento);
     --sombra: 0 0 16px color-mix(in srgb, var(--acento) 26%, transparent), inset 0 0 24px rgba(0,0,0,.55); }
   body[data-panel=terminal] .tit, body[data-panel=terminal] .art, body[data-panel=terminal] .tiempo { color: var(--acento); text-shadow: 0 0 9px color-mix(in srgb, var(--acento) 55%, transparent); }
+  body[data-panel=terminal] .tiempo { font-size: calc(min(60cqh, 11cqw) * var(--tam, 1)); letter-spacing: -.02em; }   /* el prefijo "t+ " no cabía y se cortaba */
+  body[data-panel=terminal] .pz:is([data-tipo=panel], [data-tipo=titulo], [data-tipo=artista]) { transition: opacity .6s; }   /* se esconden con el mismo fundido que botones y lista */
   body[data-panel=terminal] .tit::before { content: "> "; opacity: .6; } body[data-panel=terminal] .art::before { content: "# "; opacity: .5; } body[data-panel=terminal] .tiempo::before { content: "t+ "; opacity: .55; }
   body[data-panel=terminal] .tit::after { content: "\2588"; margin-left: .12em; animation: parp 1s steps(2) infinite; } @keyframes parp { 50% { opacity: 0; } }
   body[data-panel=terminal] .art { opacity: .8; }
