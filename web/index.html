@@ -265,7 +265,7 @@ function fila(titulo, valor, texto, onInput, ctl) {
   const r = document.createElement("input"); r.type = "range"; Object.assign(r, { min: ctl.min, max: ctl.max, step: 1, value: valor });
   r.oninput = () => onInput(+r.value, r); d.appendChild(r); return d;
 }
-// ---- Skins de Winamp (Skin Player): se importan desde un link de skins.webamp.org o un .wsz; quedan solo en este PC ----
+// ---- Skins de Winamp (Winamp): se importan desde un link de skins.webamp.org o un .wsz; quedan solo en este PC ----
 async function seccionSkins() {
   const caja = $("extras"), d = document.createElement("div"); d.className = "skins-winamp"; caja.appendChild(d);
   const api = window.pywebview && pywebview.api;
