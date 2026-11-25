@@ -10,7 +10,7 @@ const Ascii = (() => {
     terminal: { nombre: "ASCII", escenas: ["LLUVIA", "DONA", "ONDAS", "FUEGO", "TUNEL", "CARATULA"], demonio: true,
       alertas: ["SENAL FUERTE DETECTADA", "BAJO >> MAXIMO", "SINCRONIZANDO RITMO...", "NUCLEO ESTABLE", "ANOMALIA EN EL ESPECTRO"],
       arranque: ["> boot reproductor.sys", "> cargando visuales ........ OK", "> senal de audio ........... OK", "> modo ascii activado"] },
-    psicodelico: { nombre: "PSICO", escenas: ["KALEIDO", "ESPIRAL", "INFINITO", "OJO"], multicolor: true,
+    psicodelico: { nombre: "PSICO", escenas: ["KALEIDO", "PRISMA", "ESPIRAL", "MALLA", "INFINITO", "OJO"], multicolor: true,
       alertas: ["TODO ES UN ESPIRAL", "RESPIRA", "MIRA FIJO", "EL COLOR TIENE SONIDO", "NO PARPADEES"],
       arranque: ["> abriendo la percepcion ...", "> filtro de realidad ....... OFF", "> espiral .................. ON", "> mira fijo"] },
     juegos: { nombre: "ARCADE", escenas: ["PONG", "SNAKE", "INVADERS", "BREAKOUT"], glifos: true,
@@ -152,7 +152,7 @@ const Ascii = (() => {
         const cx = cols / 2, cy = filas / 2, asp = ch / cw, sector = TAU / 8;
         for (let r = 0; r < filas; r++) for (let c = 0; c < cols; c++) {
           const dx = c - cx, dy = (r - cy) * asp, rad = Math.hypot(dx, dy); let a = Math.atan2(dy, dx) % sector; if (a < 0) a += sector; if (a > sector / 2) a = sector - a;
-          const x = rad * Math.cos(a), y = rad * Math.sin(a), i = r * cols + c, v = .5 + .5 * Math.sin(x * .12 + Math.sin(y * .14 + t * .7) * 2 + t * .9 + b * 3);
+          const x = rad * Math.cos(a), y = rad * Math.sin(a), i = r * cols + c, v = .5 + .5 * Math.sin(x * .12 + Math.sin(y * .14 + t * 1.1) * 2 + t * 1.5 + b * 3);
           A[i] = Math.pow(v, 1.8) * (.7 + b * .5); H[i] = (rad * .005 + t * .05 + a * .15) % 1;
         }
       },
@@ -185,6 +185,55 @@ const Ascii = (() => {
           const i = r * cols + c;
           if (!hecho) { v = .45; tono = t * .04 + nivel * .16; }
           A[i] = Math.min(1.1, v * (.85 + b * .35)); H[i] = tono % 1;
+        }
+      },
+      MALLA(A, t, dt, d, b) {   // pasillo de neón en espejo, rayo de luz al centro, poliedros que flotan y una figura que cae boca abajo
+        juego.zm = (juego.zm || 0) + dt * (1 + b * 2.6); const z0 = juego.zm, asp = ch / cw, cx = cols / 2, cy = filas / 2;
+        A.fill(0);
+        for (let r = 0; r < filas; r++) for (let c = 0; c < cols; c++) {
+          const i = r * cols + c, X = Math.abs(c - cx), Y = Math.abs(r - cy) * asp, dR = Math.max(X / cx * .9, Y / (cy * asp)) + .001; let v = 0, h = 2.62;
+          const hs = hash(c, r, 3); if (hs > .985) { v = .3 + .5 * Math.abs(Math.sin(t * 3 + hs * 60)); h = 2.62; }   // estrellas azules
+          if (dR > .05) {
+            const marco = ((Math.log(dR + .15) * 3.4 + z0 * .8) % 1 + 1) % 1;   // marcos rectangulares que vienen hacia ti
+            if (marco < .08) { v = .95; h = 2.93; }
+            else if ((X + 2) % 13 < .95 || (Y + z0 * 5) % 8.5 < .95) { v = Math.max(v, .6); h = 2.98; }   // retícula de neón que cae
+          }
+          const bw = 1.4 + b * 3.5, dx = Math.abs(c - cx);
+          if (dx < bw * 2.4) { const k = Math.exp(-(dx * dx) / (bw * bw)) * (.8 + .2 * Math.sin(r * .7 - t * 9)); if (k * 1.2 > v) { v = Math.min(1.1, k * 1.2); h = 2.52; } }   // el rayo
+          A[i] = v; H[i] = h;
+        }
+        for (let k = 0; k < 8; k++) {   // poliedros (hexágonos con cruz), en espejo
+          const f1 = hash(k, 1, 1), f2 = hash(k, 2, 1), rho = 3 + f1 * 4 + b * 1.6, oy = (((f2 + t * .03 * (1 + f1)) % 1) * (filas + 16)) - 8, off = (.12 + f1 * .8) * cx;
+          for (const sg of [-1, 1]) {
+            const ox = cx + sg * off;
+            for (let r = Math.floor(oy - rho / asp - 1); r <= Math.ceil(oy + rho / asp + 1); r++) for (let c = Math.floor(ox - rho - 1); c <= Math.ceil(ox + rho + 1); c++) {
+              if (r < 0 || r >= filas || c < 0 || c >= cols) continue;
+              const ddx = c - ox, ddy = (r - oy) * asp, hexd = Math.max(Math.abs(ddy), Math.abs(ddx) * .866 + Math.abs(ddy) * .5), i = r * cols + c;
+              if (Math.abs(hexd - rho) < .95) { A[i] = 1; H[i] = 2.78; } else if (hexd < rho && (Math.abs(ddx) < .6 || Math.abs(ddy) < .6)) { A[i] = Math.max(A[i], .55); H[i] = 2.78; }
+            }
+          }
+        }
+        // la figura: cápsulas (cabeza, torso, brazos, piernas) giradas boca abajo y con un leve vaivén
+        const F = filas * asp * .27, ang = Math.PI + .14 * Math.sin(t * .6), ca = Math.cos(-ang), sa = Math.sin(-ang), cyy = cy + Math.sin(t * .5) * filas * .04, br = .5 * Math.sin(t * 1.3), pi = .25 * Math.sin(t * 1.7);
+        const seg = [[0, -1, 0, -1, .21], [0, -.78, 0, .05, .24], [0, -.62, .5 + br * .25, -.3 + br * .3, .1], [.5 + br * .25, -.3 + br * .3, .68 + br * .3, .08, .08], [0, -.62, -.5 - br * .25, -.3 - br * .3, .1], [-.5 - br * .25, -.3 - br * .3, -.68 - br * .3, .08, .08],
+          [0, .05, .17 + pi, .6, .13], [.17 + pi, .6, .2 + pi * 1.4, 1.05, .1], [0, .05, -.17 - pi, .6, .13], [-.17 - pi, .6, -.2 - pi * 1.4, 1.05, .1]];
+        for (let r = Math.max(0, Math.floor(cyy - F * 1.3 / asp)); r < Math.min(filas, Math.ceil(cyy + F * 1.3 / asp)); r++) for (let c = Math.max(0, Math.floor(cx - F * 1.3)); c < Math.min(cols, Math.ceil(cx + F * 1.3)); c++) {
+          const X = c - cx, Y = (r - cyy) * asp, px = (X * ca - Y * sa) / F, py = (X * sa + Y * ca) / F; let mejor = 9, rr = 0;
+          for (const q of seg) { const vx = q[2] - q[0], vy = q[3] - q[1], tt = Math.max(0, Math.min(1, ((px - q[0]) * vx + (py - q[1]) * vy) / (vx * vx + vy * vy + 1e-9))), dd = Math.hypot(px - q[0] - vx * tt, py - q[1] - vy * tt) - q[4]; if (dd < mejor) { mejor = dd; rr = q[4]; } }
+          if (mejor < 0) { const i = r * cols + c; A[i] = mejor > -.055 ? 1 : .55 + .3 * (1 - Math.min(1, Math.abs(px))); H[i] = 2.9 + .04 * py; }
+        }
+      },
+      PRISMA(A, t, dt, d, b) {   // túnel de ocho lados con rayos y cambio de color según el radio: veloz e hipnótico
+        juego.zp = (juego.zp || 0) + dt * (1.3 + b * 3.4); const z0 = juego.zp, asp = ch / cw, S = Math.min(cols * .5, filas * asp * .52);
+        for (let r = 0; r < filas; r++) for (let c = 0; c < cols; c++) {
+          const X = (c - cols / 2) / S, Y = (r - filas / 2) * asp / S, i = r * cols + c;
+          const d8 = Math.max(Math.abs(X), Math.abs(Y), (Math.abs(X) + Math.abs(Y)) * .7071) + .0001, ang = Math.atan2(Y, X), z = 1 / (d8 + .12);
+          const sec = (ang / TAU + .5) * 16, fs = sec - Math.floor(sec), anillo = (((z * 1.5 - z0 * 1.1) % 1) + 1) % 1;
+          let v = (Math.floor(sec) % 2 ? .75 : .22) + (fs < .07 || fs > .93 ? .3 : 0);   // rayos alternados con un filo brillante
+          if (anillo < .16) v = Math.max(v, .95);                                          // anillos que se acercan
+          if (d8 < .17) v = .25 + .75 * Math.abs(Math.sin(X * 44)) * Math.abs(Math.sin(Y * 44));   // el centro: rombos
+          v *= Math.min(1, d8 * 3.5 + .3);
+          A[i] = Math.min(1.1, v * (.75 + b * .55)); H[i] = (Math.floor(sec) * .07 + z * .11 - t * .25 + d8 * .3) % 1;
         }
       },
       OJO(A, t, dt, d, b) {   // un ojo que parpadea, mira de lado y dilata la pupila con el bajo; rayos alrededor
@@ -462,7 +511,7 @@ const Ascii = (() => {
       g.clearRect(0, 0, lienzo.width, lienzo.height);
       if (invertido) { g.fillStyle = cadena(.9); g.fillRect(0, 0, lienzo.width, lienzo.height); }
       g.font = fuente(); g.textBaseline = "top";
-      const multi = !!T().multicolor, base = multi ? tonoDe(col) : 0, L0 = multi ? 84 : 7, cubos = Array.from({ length: L0 + 65 }, () => []), u = ev && ev.tipo === "scan" ? (t - ev.t0) / ev.dur * (filas + 6) - 3 : -99;
+      const multi = !!T().multicolor, base = multi ? tonoDe(col) : 0, L0 = multi ? 168 : 7, cubos = Array.from({ length: L0 + 65 }, () => []), u = ev && ev.tipo === "scan" ? (t - ev.t0) / ev.dur * (filas + 6) - 3 : -99;
       for (let rr = 0; rr < filas; rr++) {
         const desp = ev && (ev.tipo === "glitch" || (ev.tipo === "demonio" && t - ev.t0 > 16.4 && t - ev.t0 < 17.6)) ? ev.filas[rr] : 0;
         for (let c = 0; c < cols; c++) {
@@ -473,13 +522,14 @@ const Ascii = (() => {
           if (chr === " ") continue;
           const nv = Math.min(6, Math.floor(v * 5));
           if (K[i]) { cubos[L0 + K[i]].push((c + desp) * cw, rr * ch, chr); continue; }
-          cubos[multi ? nv * 12 + (Math.floor((((H[i] % 1) + 1) % 1) * 12) % 12) : nv].push((c + desp) * cw, rr * ch, chr);
+          cubos[multi ? nv * 24 + (H[i] >= 2 ? 12 : 0) + (Math.floor((((H[i] % 1) + 1) % 1) * 12) % 12) : nv].push(   // H >= 2: tono fijo (H - 2); si no, relativo al color elegido
+            (c + desp) * cw, rr * ch, chr);
         }
       }
       for (let l = 0; l < cubos.length; l++) {
         const q = cubos[l]; if (!q.length) continue;
         if (l > L0) g.fillStyle = invertido ? "#000" : miaPal[l - L0 - 1];
-        else if (multi) { const nv = Math.floor(l / 12), hb = l % 12; g.fillStyle = invertido ? "#000" : `hsl(${(base + hb * 30) % 360},95%,${nv >= 6 ? 86 : 30 + nv * 9}%)`; }
+        else if (multi) { const nv = Math.floor(l / 24), fijo = l % 24 >= 12, hb = l % 12; g.fillStyle = invertido ? "#000" : `hsl(${((fijo ? 0 : base) + hb * 30) % 360},95%,${nv >= 6 ? 86 : 30 + nv * 9}%)`; }
         else g.fillStyle = invertido ? "#000" : l === 6 ? "#e8fff0" : cadena(.18 + l * .14);
         for (let n = 0; n < q.length; n += 3) g.fillText(q[n + 2], q[n], q[n + 1]);
       }
