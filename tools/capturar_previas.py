@@ -2,7 +2,8 @@
 Genera las vistas previas de la Biblioteca (web/img/previas/*.webp): abre la app de verdad con las
 carátulas pixeladas, recorre cada plantilla y cada variante de color, y saca una captura de cada una.
 
-    python tools/capturar_previas.py
+    python tools/capturar_previas.py            (todas)
+    python tools/capturar_previas.py pixel      (solo las de una o más páginas)
 
 Necesita Windows y la cuenta de SoundCloud conectada. La ventana pasa por la pantalla unos minutos.
 """
@@ -42,6 +43,8 @@ ESCENAS = (
        (("Sangre", "sangre"), ("Game Boy", "game-boy"), ("NES", "nes"), ("Vaporwave", "vaporwave"),
         ("Matrix", "matrix"), ("Hielo", "hielo"), ("Ámbar", "ambar"))]
 )
+
+ESCENAS = [e for e in ESCENAS if not sys.argv[1:] or e[0] in sys.argv[1:]]   # python tools/capturar_previas.py pixel  -> solo esas
 
 api = A.Api()
 puerto = servidor.iniciar(api.cfg.get("carpetas") or [])

@@ -10,7 +10,8 @@ const Ascii = (() => {
     terminal: { nombre: "ASCII", escenas: ["LLUVIA", "DONA", "ONDAS", "FUEGO", "TUNEL", "CARATULA"], demonio: true,
       alertas: ["SENAL FUERTE DETECTADA", "BAJO >> MAXIMO", "SINCRONIZANDO RITMO...", "NUCLEO ESTABLE", "ANOMALIA EN EL ESPECTRO"],
       arranque: ["> boot reproductor.sys", "> cargando visuales ........ OK", "> senal de audio ........... OK", "> modo ascii activado"] },
-    psicodelico: { nombre: "PSICO", escenas: ["KALEIDO", "ESPIRAL", "MALLA", "LAVA", "INFINITO"], multicolor: true,
+    psicodelico: { nombre: "PSICO", escenas: ["KALEIDO", "ESPIRAL", "MALLA", "LAVA", "INFINITO"], multicolor: true, ritmo: .55,   // ritmo: las escenas duran 0,55 del "cambio" (26 s -> ~14 s)
+     
       alertas: ["TODO ES UN ESPIRAL", "RESPIRA", "MIRA FIJO", "EL COLOR TIENE SONIDO", "NO PARPADEES"],
       arranque: ["> abriendo la percepcion ...", "> filtro de realidad ....... OFF", "> espiral .................. ON", "> mira fijo"] },
     juegos: { nombre: "ARCADE", escenas: ["PONG", "SNAKE", "INVADERS", "BREAKOUT"], glifos: true,
@@ -200,15 +201,15 @@ const Ascii = (() => {
         }
       },
       MALLA(A, t, dt, d, b) {   // pasillo de neón en espejo, rayo de luz al centro, poliedros que flotan y una figura que cae boca abajo
-        juego.zm = (juego.zm || 0) + dt * (1 + b * 2.6); const z0 = juego.zm, asp = ch / cw, cx = cols / 2, cy = filas / 2;
+        juego.zm = (juego.zm || 0) + dt * (1.6 + b * 3.2); const z0 = juego.zm, asp = ch / cw, cx = cols / 2, cy = filas / 2;
         A.fill(0);
         for (let r = 0; r < filas; r++) for (let c = 0; c < cols; c++) {
           const i = r * cols + c, X = Math.abs(c - cx), Y = Math.abs(r - cy) * asp, dR = Math.max(X / cx * .9, Y / (cy * asp)) + .001; let v = 0, h = 2.62;
           const hs = hash(c, r, 3); if (hs > .985) { v = .3 + .5 * Math.abs(Math.sin(t * 3 + hs * 60)); h = 2.62; }   // estrellas azules
           if (dR > .05) {
-            const marco = ((Math.log(dR + .15) * 3.4 + z0 * .8) % 1 + 1) % 1;   // marcos rectangulares que vienen hacia ti
+            const marco = ((Math.log(dR + .15) * 3.4 + z0 * 1.3) % 1 + 1) % 1;   // marcos rectangulares que vienen hacia ti
             if (marco < .08) { v = .95; h = 2.93; }
-            else if ((X + 2) % 13 < .95 || (Y + z0 * 5) % 8.5 < .95) { v = Math.max(v, .6); h = 2.98; }   // retícula de neón que cae
+            else if ((X + 2) % 13 < .95 || (Y + z0 * 11) % 8.5 < .95) { v = Math.max(v, .6); h = 2.98; }   // retícula de neón que cae
           }
           const bw = 1.4 + b * 3.5, dx = Math.abs(c - cx);
           if (dx < bw * 2.4) { const k = Math.exp(-(dx * dx) / (bw * bw)) * (.8 + .2 * Math.sin(r * .7 - t * 9)); if (k * 1.2 > v) { v = Math.min(1.1, k * 1.2); h = 2.52; } }   // el rayo
@@ -478,7 +479,7 @@ const Ascii = (() => {
       if (t0 === null) t0 = t;
       const ESC = escenasAct(); if (esc >= ESC.length) esc = 0;
       G.fill(0); K.fill(0);
-      if (sig < 0 && ESC.length > 1 && t - tCambio > cambio) { sig = (esc + 1) % ESC.length; if (ESC[sig] === "CARATULA" && !imgOk) sig = (sig + 1) % ESC.length; tFundido = t; }
+      if (sig < 0 && ESC.length > 1 && t - tCambio > cambio * (T().ritmo || 1)) { sig = (esc + 1) % ESC.length; if (ESC[sig] === "CARATULA" && !imgOk) sig = (sig + 1) % ESC.length; tFundido = t; }
       if (tCambio === 1e9) tCambio = t;
       if (miaImg instanceof HTMLVideoElement) { const vista = ESC[esc] === "MIA" || ESC[sig] === "MIA"; if (vista && miaImg.paused) miaImg.play().catch(() => {}); else if (!vista && !miaImg.paused) miaImg.pause(); }
       escena[ESC[esc]](I, t, dt, d, b);
