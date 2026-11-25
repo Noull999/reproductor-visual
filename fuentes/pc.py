@@ -96,6 +96,8 @@ class Captura:
         self.espectro = [0] * BINS
         self.dispositivo = ""
         self.error = ""
+        self.preferido = ""   # nombre de la salida a escuchar; vacío = la predeterminada de Windows
+        self.reabrir = False
         self._hilo = None
 
     def iniciar(self):
@@ -108,11 +110,25 @@ class Captura:
         cada vez: el anterior no se entera si cambias de parlantes a audífonos."""
         import pyaudiowpatch as pyaudio
         pa = pyaudio.PyAudio()
-        disp = pa.get_device_info_by_index(pa.get_default_wasapi_loopback()["index"])
+        disp = None
+        if self.preferido:
+            disp = next((d for d in pa.get_loopback_device_info_generator() if d["name"] == self.preferido), None)   # si ya no existe, se usa la predeterminada
+        if disp is None:
+            disp = pa.get_device_info_by_index(pa.get_default_wasapi_loopback()["index"])
         canales, tasa = int(disp["maxInputChannels"]), int(disp["defaultSampleRate"])
         flujo = pa.open(format=pyaudio.paFloat32, channels=canales, rate=tasa, input=True,
                         input_device_index=disp["index"], frames_per_buffer=1024)
         return pa, flujo, canales, disp["name"]
+
+    @staticmethod
+    def listar() -> list[str]:
+        """Los nombres de las salidas de audio que se pueden escuchar."""
+        import pyaudiowpatch as pyaudio
+        pa = pyaudio.PyAudio()
+        try:
+            return [d["name"] for d in pa.get_loopback_device_info_generator()]
+        finally:
+            pa.terminate()
 
     def _cerrar(self, pa, flujo):
         for cerrar in (flujo.stop_stream, flujo.close, pa.terminate):
@@ -132,6 +148,16 @@ class Captura:
         memoria = np.zeros(BINS * 2, dtype=np.float32)
         sin_senal = time.time()
         while True:
+            if self.reabrir:   # cambió la salida elegida
+                self.reabrir = False
+                try:
+                    nuevos = self._abrir()
+                    self._cerrar(pa, flujo)
+                    pa, flujo, canales, self.dispositivo = nuevos
+                    self.error = ""
+                except Exception as e:
+                    self.error = f"No se pudo escuchar esa salida: {e}"
+                continue
             try:
                 datos = np.frombuffer(flujo.read(1024, exception_on_overflow=False), dtype=np.float32)
             except Exception as e:

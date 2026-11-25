@@ -30,6 +30,9 @@
   main.eligiendo .der { display: none; }
   #fuentes { display: flex; flex-direction: column; gap: 8px; min-height: 0; overflow: hidden; }
   #fuentes .titulo-lado { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--suave); margin: 4px 6px 2px; white-space: nowrap; }
+  .audio-pc { font-size: 11px; color: var(--suave); padding: 4px 6px; display: flex; flex-direction: column; gap: 4px; }
+  .audio-pc select { background: rgba(255,255,255,.06); color: inherit; border: 1px solid var(--borde); border-radius: 10px; padding: 6px 8px; font: inherit; max-width: 100%; }
+  main:not(.eligiendo) .audio-pc { display: none; }
   .fuente { all: unset; cursor: pointer; padding: 13px 14px; border-radius: 16px; background: rgba(255,255,255,.05); border: 1px solid var(--borde); display: flex; align-items: center; gap: 12px; font-size: 15px; font-weight: 500; white-space: nowrap; overflow: hidden;
     transition: background .18s, border-color .18s, transform .18s; }
   .fuente:hover { border-color: rgba(255,255,255,.3); }
@@ -131,7 +134,8 @@
       <button class="fuente" data-f="spotify" title="Spotify"><span class="ic">🟢</span><div>Spotify<small data-e="spotify">Tus me gusta y playlists</small></div></button>
       <button class="fuente" data-f="soundcloud" title="SoundCloud"><span class="ic">☁️</span><div>SoundCloud<small data-e="soundcloud">Tus likes</small></div></button>
       <button class="fuente" data-f="musica" title="Mi música"><span class="ic">💽</span><div>Mi música<small data-e="musica">Tus carpetas</small></div></button>
-      <button class="fuente" data-f="pc" title="Lo que suena en el PC"><span class="ic">🔊</span><div>Lo que suena en el PC<small>Cualquier app</small></div></button>
+      <button class="fuente" data-f="pc" title="Lo que suena en el PC"><span class="ic">🔊</span><div>Lo que suena en el PC<small>Cualquier app, Serato…</small></div></button>
+      <label id="audioPcCaja" class="audio-pc" hidden>Audio que escuchan los visuales<select id="audioPc" aria-label="Salida de audio a escuchar"></select></label>
     </aside>
     <div class="izq" id="grilla"></div>
     <section class="der vidrio tarjeta">
@@ -501,7 +505,15 @@ async function revisarFuentes() {
   else txt("musica", `${a.carpetas.length} ${a.carpetas.length === 1 ? "carpeta" : "carpetas"}`);
 }
 marcarFuente(); pintar(); refrescar(true);
-const alListo = () => { revisarFuentes(); if (yaElegida && (fuente === "spotify" || fuente === "musica")) listas(); };
+// qué salida de audio escuchan los visuales (útil con Serato u otro programa que no suena por la salida predeterminada de Windows)
+async function audioPc() {
+  const api = window.pywebview && pywebview.api, sel = $("audioPc"); if (!api || !api.pc_dispositivos) return;
+  const r = await api.pc_dispositivos(); if (!r.ok || !r.lista.length) return;
+  sel.replaceChildren(new Option("Salida predeterminada de Windows", ""), ...r.lista.map(n => new Option(n, n)));
+  sel.value = r.elegido; $("audioPcCaja").hidden = false;
+  sel.onchange = async () => { const x = await api.pc_elegir_dispositivo(sel.value); $("avisoGeneral").textContent = x.ok ? "" : x.error; };
+}
+const alListo = () => { revisarFuentes(); audioPc(); if (yaElegida && (fuente === "spotify" || fuente === "musica")) listas(); };
 if (window.pywebview && window.pywebview.api) alListo(); else window.addEventListener("pywebviewready", alListo);
 </script>
 </body>

@@ -23,7 +23,7 @@ import comunidad
 import plantillas
 import servidor
 import skins
-from fuentes import musica, pc, soundcloud_acceso, vista_previa
+from fuentes import musica, pc, serato, soundcloud_acceso, vista_previa
 from fuentes.soundcloud import SoundCloud
 from fuentes import spotify
 from fuentes.spotify import Spotify
@@ -42,6 +42,7 @@ class Api:
         self._sp_pistas: dict[str, list] = {}   # lista -> canciones (para tocar por posición)
         self._sp_cache: dict[str, tuple[float, dict]] = {}   # respuestas de listas guardadas 10 min (cada petición cuenta contra la cuota)
         self._captura = pc.Captura()
+        self._captura.preferido = self.cfg.get("audio_pc") or ""
         self._login_sc = {"estado": "nada"}
 
     # ---- SoundCloud ----
@@ -471,7 +472,30 @@ class Api:
 
     # ---- Lo que suena en el PC ----
     def pc_estado(self) -> dict:
-        return pc.estado()
+        e = pc.estado()
+        if not (e.get("hay") and e.get("sonando")) and serato.corriendo():   # nada suena en Windows y Serato está abierto: su última canción cargada
+            s = serato.estado()
+            if s:
+                s["sonando"] = any(self._captura.espectro)   # suena si llega audio
+                return s
+        return e
+
+    def pc_dispositivos(self) -> dict:
+        try:
+            lista = pc.Captura.listar()
+        except Exception as e:
+            return {"ok": False, "error": str(e)[:120], "lista": [], "elegido": ""}
+        return {"ok": True, "lista": lista, "elegido": self.cfg.get("audio_pc") or "", "actual": self._captura.dispositivo}
+
+    def pc_elegir_dispositivo(self, nombre: str) -> dict:
+        nombre = nombre if isinstance(nombre, str) else ""
+        if nombre and nombre not in pc.Captura.listar():
+            return {"ok": False, "error": "Esa salida de audio ya no está."}
+        self.cfg["audio_pc"] = nombre
+        config.guardar(self.cfg)
+        self._captura.preferido = nombre
+        self._captura.reabrir = True
+        return {"ok": True}
 
     def pc_control(self, accion: str) -> bool:
         return pc.control(accion)
