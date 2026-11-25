@@ -186,9 +186,9 @@ function pintarPanel() {
   f.appendChild(Object.assign(document.createElement("div"), { innerHTML: `<label class="f">Tipo<select>${opciones(ESQUEMA.fondos, spec.fondo.tipo)}</select></label>` }));
   f.querySelector("select").onchange = (e) => { spec.fondo.tipo = e.target.value; guardar(); pintarPanel(); };
   const t = spec.fondo.tipo, fd = ESQUEMA.fondo;
-  const relevantes = { color: ["color"], degradado: ["color", "color2", "angulo"], imagen: ["color"], caratula: ["color", "desenfoque"], haz: ["color"], tunel: ["color"], burbujas: ["color"], luces: ["color"], estrellas: ["color"] }[t] || [];
+  const relevantes = { color: ["color"], degradado: ["color", "color2", "angulo"], imagen: ["color"], caratula: ["color", "desenfoque"], haz: ["color"], tunel: ["color"], burbujas: ["color"], luces: ["color"], estrellas: ["color"], ascii: ["tema", "eventos", "imagenModo", "imagenColor", "imagenSola"] }[t] || [];
   relevantes.forEach(k => f.appendChild(control(fd[k], actual(spec.fondo, k, fd[k]), (v, vivo) => { spec.fondo[k] = v; guardar(false); refrescar(vivo ? false : true); if (!vivo) pintarPanel(); })));
-  if (t === "imagen") { const b = document.createElement("div"); b.className = "fila-h"; b.innerHTML = `<button class="boton">${spec.fondo.imagen ? "Cambiar imagen…" : "Elegir imagen…"}</button>`; b.firstChild.onclick = async () => { const r = await api().imagen_elegir(spec.id, "fondo", false); if (!r.ok) return estado(r.error); if (r.cancelado) return; spec.fondo.imagen = r.url; guardar(); pintarPanel(); }; f.appendChild(b); }
+  if (t === "imagen" || t === "ascii") { const b = document.createElement("div"); b.className = "fila-h"; b.innerHTML = `<button class="boton">${spec.fondo.imagen ? "Cambiar imagen…" : t === "ascii" ? "Elegir tu imagen (se vuelve ASCII)…" : "Elegir imagen…"}</button>`; b.firstChild.onclick = async () => { const r = await api().imagen_elegir(spec.id, "fondo", false); if (!r.ok) return estado(r.error); if (r.cancelado) return; spec.fondo.imagen = r.url; guardar(); pintarPanel(); }; f.appendChild(b); }
   f.appendChild(control(fd.brillo, actual(spec.fondo, "brillo", fd.brillo), (v) => { spec.fondo.brillo = v; guardar(false); refrescar(); }));
 
   // Estilo

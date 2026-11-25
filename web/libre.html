@@ -413,7 +413,7 @@ function dibujarFondo(tipo, c, segunda = false) {
 
   if (tipo === "ascii") {   // caracteres que reaccionan a la música y cambian con el tiempo (ascii.js)
     if (!segunda) capa(fv("color"));
-    asciiVivo = Ascii.montar(c, { color: () => acento, cambio: fv("cambio"), eventos: fv("eventos"), tema: fv("tema") }); return;
+    asciiVivo = Ascii.montar(c, { color: () => acento, cambio: fv("cambio"), eventos: fv("eventos"), tema: fv("tema"), imagen: fv("imagen"), imagenModo: fv("imagenModo"), imagenColor: fv("imagenColor"), imagenSola: fv("imagenSola") }); return;
   }
   if (tipo === "pompas") {   // pompas de jabón que se reventan al tocarlas (burbujas.js)
     if (!segunda) capa(fv("color"));

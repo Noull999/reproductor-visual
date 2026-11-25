@@ -25,16 +25,17 @@ const Ascii = (() => {
     const g = lienzo.getContext("2d");
     const cambio = Math.max(8, Math.min(120, +op.cambio || 26)), conEventos = op.eventos !== false;
     let tema = TEMAS[op.tema] ? op.tema : "terminal", G = null, H = null, juego = {}, factorTam = 1, criatura = null, demonioAntes = -1e9, velo = null, info = null, calor = null, giroA = 0, giroB = 0, cols = 0, filas = 0, cw = 8, ch = 14, tam = 16, I = null, J = null, lluvia = null, ultimo = 0, esc = 0, sig = -1, tFundido = 0, tCambio = 1e9, t0 = null;
+    let mia = null, miaImg = null, miaPal = [], K = null;   // la imagen propia (op.imagen) ya convertida
     let imgOk = false, mini = null, caratula = new Image(), prox = 9 + Math.random() * 8, ev = null, suaveB = 0, suaveM = 0, suaveA = 0;
     const T = () => TEMAS[tema];
     const fuente = () => `${tam}px "VT323", "Cascadia Mono", Consolas, monospace`;
 
     function medir() {
-      tam = Math.max(10, Math.round(innerHeight / 46 * factorTam * (T().glifos ? 1.7 : 1)));   // los juegos usan letras más grandes: se ven mejor las piezas
+      tam = Math.max(10, Math.round(innerHeight / 46 * factorTam * (op.imagen ? .72 : T().glifos ? 1.7 : 1)));   // los juegos usan letras más grandes: se ven mejor las piezas
       g.font = fuente(); cw = Math.max(5, g.measureText("M").width); ch = tam * .92;
       cols = Math.max(20, Math.floor(innerWidth / cw)); filas = Math.max(10, Math.floor(innerHeight / ch));
       lienzo.width = innerWidth; lienzo.height = innerHeight; I = new Float32Array(cols * filas); J = new Float32Array(cols * filas);
-      calor = new Float32Array(cols * (filas + 2)); G = new Uint16Array(cols * filas); H = new Float32Array(cols * filas); juego = {};
+      calor = new Float32Array(cols * (filas + 2)); G = new Uint16Array(cols * filas); H = new Float32Array(cols * filas); K = new Uint8Array(cols * filas); juego = {}; prepararMia();
       lluvia = { y: Float32Array.from({ length: cols }, () => Math.random() * filas), v: Float32Array.from({ length: cols }, () => 6 + Math.random() * 14), l: Float32Array.from({ length: cols }, () => 6 + Math.random() * 16) };
       mini = document.createElement("canvas"); mini.width = cols; mini.height = filas;
     }
@@ -52,7 +53,44 @@ const Ascii = (() => {
     // glifos propios (juegos): se escriben en G y la intensidad en A
     const pon = (A, c, r, chr, v) => { c = Math.round(c); r = Math.round(r); if (c >= 0 && c < cols && r >= 0 && r < filas) { A[r * cols + c] = v; G[r * cols + c] = chr.charCodeAt(0); } };
     const txt = (A, c, r, str, v) => { for (let k = 0; k < str.length; k++) if (str[k] !== " ") pon(A, c + k, r, str[k], v); };
+
+    // ---- "Tu imagen": cualquier imagen que la persona elige se convierte en caracteres (en su PC, al cargarla). Pierde el fondo plano, late con el bajo y se
+    // "rompe" en líneas con cada golpe. Con "colores de la imagen" cada letra lleva el color de su zona (paleta de 64) ----
+    function prepararMia() {
+      if (!miaImg || !miaImg.naturalWidth || !cols) return;
+      const asp = ch / cw, iw = miaImg.naturalWidth, ih = miaImg.naturalHeight;
+      let wc = cols - 2, hc = Math.round(wc * ih / iw / asp);
+      if (hc > filas - 3) { hc = filas - 3; wc = Math.round(hc * asp * iw / ih); }
+      wc = Math.max(8, wc); hc = Math.max(4, hc);
+      const cv = document.createElement("canvas"); cv.width = wc; cv.height = hc;
+      const x = cv.getContext("2d", { willReadFrequently: true }); x.imageSmoothingQuality = "high"; x.drawImage(miaImg, 0, 0, wc, hc);
+      let px; try { px = x.getImageData(0, 0, wc, hc).data; } catch (e) { mia = null; return; }
+      const porBrillo = op.imagenModo === "brillo", v = new Float32Array(wc * hc), q = new Uint8Array(wc * hc), suma = Array.from({ length: 64 }, () => [0, 0, 0, 0]);
+      for (let i = 0; i < wc * hc; i++) { const k = (px[i * 4] >> 6) * 16 + (px[i * 4 + 1] >> 6) * 4 + (px[i * 4 + 2] >> 6); q[i] = k; const s = suma[k]; s[0] += px[i * 4]; s[1] += px[i * 4 + 1]; s[2] += px[i * 4 + 2]; s[3]++; }
+      const dom = suma.reduce((m, s, k) => (s[3] > suma[m][3] ? k : m), 0), [fr, fg, fb] = [0, 1, 2].map(o => suma[dom][o] / Math.max(1, suma[dom][3]));   // el fondo = el color más común de la imagen
+      for (let i = 0; i < wc * hc; i++) {
+        const R_ = px[i * 4], G_ = px[i * 4 + 1], B_ = px[i * 4 + 2], lum = (.299 * R_ + .587 * G_ + .114 * B_) / 255;
+        const dist = Math.max(Math.abs(R_ - fr), Math.abs(G_ - fg), Math.abs(B_ - fb)) / 255;
+        v[i] = px[i * 4 + 3] < 40 ? 0 : porBrillo ? Math.pow(lum, 1.2) : Math.min(1, Math.max(0, dist - .1) * 2.6);   // lo casi igual al fondo se descarta
+      }
+      miaPal = suma.map(([a, b_, c_, n]) => { if (!n) return "#fff"; let r_ = a / n, g_ = b_ / n, bb = c_ / n; const m = Math.max(r_, g_, bb, 1), f = Math.max(1, 150 / m); return `rgb(${Math.min(255, r_ * f) | 0},${Math.min(255, g_ * f) | 0},${Math.min(255, bb * f) | 0})`; });
+      mia = { wc, hc, ox: (cols - wc) >> 1, oy: ((filas - hc) >> 1) + 1, v, q };
+    }
+    const escenasAct = () => (mia ? (op.imagenSola ? ["MIA"] : ["MIA", ...T().escenas]) : T().escenas);
     const escena = {
+      MIA(A, t, dt, d, b) {   // tu imagen en caracteres
+        A.fill(0); if (!mia) return;
+        const gan = .82 + Math.min(.4, b * .5), color = !!op.imagenColor;
+        for (let r = 0; r < mia.hc; r++) {
+          const golpe = b > .45 && hash(r, Math.floor(t * 14), 5) < .1 ? Math.round((hash(r, Math.floor(t * 14), 6) - .5) * 6) : 0, y = mia.oy + r;
+          if (y < 0 || y >= filas) continue;
+          for (let c = 0; c < mia.wc; c++) {
+            const i = r * mia.wc + c, v = mia.v[i]; if (v < .06) continue;
+            const x = mia.ox + c + golpe; if (x < 0 || x >= cols) continue;
+            A[y * cols + x] = Math.min(1.05, v * gan * 1.1); if (color) K[y * cols + x] = mia.q[i] + 1;
+          }
+        }
+      },
       // ======== PSICODÉLICO: cada celda lleva su tono (H) ========
       KALEIDO(A, t, dt, d, b) {   // caleidoscopio de 8 espejos
         const cx = cols / 2, cy = filas / 2, asp = ch / cw, sector = TAU / 8;
@@ -332,9 +370,9 @@ const Ascii = (() => {
       const b = suaveB;
       // mezcla de escenas con fundido
       if (t0 === null) t0 = t;
-      const ESC = T().escenas; if (esc >= ESC.length) esc = 0;
-      G.fill(0);
-      if (sig < 0 && t - tCambio > cambio) { sig = (esc + 1) % ESC.length; if (ESC[sig] === "CARATULA" && !imgOk) sig = (sig + 1) % ESC.length; tFundido = t; }
+      const ESC = escenasAct(); if (esc >= ESC.length) esc = 0;
+      G.fill(0); K.fill(0);
+      if (sig < 0 && ESC.length > 1 && t - tCambio > cambio) { sig = (esc + 1) % ESC.length; if (ESC[sig] === "CARATULA" && !imgOk) sig = (sig + 1) % ESC.length; tFundido = t; }
       if (tCambio === 1e9) tCambio = t;
       escena[ESC[esc]](I, t, dt, d, b);
       let k = 0;
@@ -350,7 +388,7 @@ const Ascii = (() => {
       g.clearRect(0, 0, lienzo.width, lienzo.height);
       if (invertido) { g.fillStyle = cadena(.9); g.fillRect(0, 0, lienzo.width, lienzo.height); }
       g.font = fuente(); g.textBaseline = "top";
-      const multi = !!T().multicolor, base = multi ? tonoDe(col) : 0, cubos = multi ? Array.from({ length: 84 }, () => []) : [[], [], [], [], [], [], []], u = ev && ev.tipo === "scan" ? (t - ev.t0) / ev.dur * (filas + 6) - 3 : -99;
+      const multi = !!T().multicolor, base = multi ? tonoDe(col) : 0, L0 = multi ? 84 : 7, cubos = Array.from({ length: L0 + 65 }, () => []), u = ev && ev.tipo === "scan" ? (t - ev.t0) / ev.dur * (filas + 6) - 3 : -99;
       for (let rr = 0; rr < filas; rr++) {
         const desp = ev && (ev.tipo === "glitch" || (ev.tipo === "demonio" && t - ev.t0 > 16.4 && t - ev.t0 < 17.6)) ? ev.filas[rr] : 0;
         for (let c = 0; c < cols; c++) {
@@ -360,12 +398,14 @@ const Ascii = (() => {
           const chr = G[i] ? String.fromCharCode(G[i]) : v >= 1 ? CABEZA[Math.floor(hash(c, rr, Math.floor(t * 9)) * CABEZA.length)] : RAMPA[Math.min(RAMPA.length - 1, Math.floor(v * (RAMPA.length - 1) + .4))];
           if (chr === " ") continue;
           const nv = Math.min(6, Math.floor(v * 5));
+          if (K[i]) { cubos[L0 + K[i]].push((c + desp) * cw, rr * ch, chr); continue; }
           cubos[multi ? nv * 12 + (Math.floor((((H[i] % 1) + 1) % 1) * 12) % 12) : nv].push((c + desp) * cw, rr * ch, chr);
         }
       }
       for (let l = 0; l < cubos.length; l++) {
         const q = cubos[l]; if (!q.length) continue;
-        if (multi) { const nv = Math.floor(l / 12), hb = l % 12; g.fillStyle = invertido ? "#000" : `hsl(${(base + hb * 30) % 360},95%,${nv >= 6 ? 86 : 30 + nv * 9}%)`; }
+        if (l > L0) g.fillStyle = invertido ? "#000" : miaPal[l - L0 - 1];
+        else if (multi) { const nv = Math.floor(l / 12), hb = l % 12; g.fillStyle = invertido ? "#000" : `hsl(${(base + hb * 30) % 360},95%,${nv >= 6 ? 86 : 30 + nv * 9}%)`; }
         else g.fillStyle = invertido ? "#000" : l === 6 ? "#e8fff0" : cadena(.18 + l * .14);
         for (let n = 0; n < q.length; n += 3) g.fillText(q[n + 2], q[n], q[n + 1]);
       }
@@ -389,6 +429,7 @@ const Ascii = (() => {
     }
 
     const setTema = (n) => { if (!TEMAS[n] || n === tema) return; tema = n; esc = 0; sig = -1; tCambio = 1e9; ev = null; t0 = null; juego = {}; factorTam = 1; medir(); };   // vuelve a empezar: arranque y primera escena del tema
+    if (op.imagen) { miaImg = new Image(); miaImg.onload = () => { prepararMia(); if (mia) { esc = 0; sig = -1; tCambio = 1e9; } }; miaImg.src = op.imagen; }
     cont.__lanzar = (tipo) => lanzar(performance.now() / 1000, tipo);   // para pruebas   // para pruebas
     cont.__escena = (n) => { esc = n % T().escenas.length; sig = -1; tCambio = 1e9; };   // para pruebas y vistas previas
     cont.__ascii = () => ({ t0, esc, sig, tCambio, cambio, ev: ev && ev.tipo, prox, cols, filas, ultimo });   // para pruebas
