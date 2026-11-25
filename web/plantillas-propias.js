@@ -70,14 +70,14 @@ const Propias = (() => {
       piezas: () => armar([["winamp", [3, 13, 94, 72], { ambiente: true }]]) };
   // Psicodélico: el ojo pixel art sobre el caleidoscopio y la espiral, y el fractal (fondo "nuevos" de visu2000.js)
   INCLUIDAS.psicodelico = { nombre: "Psicodélico", reglas: { requeridas: ["titulo", "botones", "barra"], nota: COMUN },
-      fondo: { tipo: "nuevos", color: "#000000", brillo: 90, velocidad: 80 }, estilo: { panel: "psico", acento: "#b04bff", fuente: "Geist" },
+      fondo: { tipo: "nuevos", color: "#000000", brillo: 90, velocidad: 80, golpe: "cromatico" }, estilo: { panel: "psico", acento: "#b04bff", fuente: "Geist" },
       colores: [["Rojo", "#ff2a2a"], ["Naranja", "#ff8a1f"], ["Lima", "#9be22a"], ["Verde", "#1fe07a"], ["Cian", "#1fd5ff"], ["Azul", "#2f5bff"], ["Violeta", "#b04bff"], ["Rosa", "#ff3fa8"]],
       piezas: () => armar([["lista", [74, 6, 24, 78]], ["panel", [0, 88, 100, 12]], ["titulo", [3, 89.5, 30, 5]], ["artista", [3, 94.5, 30, 3.5]], ["botones", [36, 89, 18, 9]],
         ["barra", [57, 92.2, 24, 2.4]], ["tiempo", [82, 90, 7, 6]], ["volumen", [90, 91, 8, 5]]]) };
   // Frutiger Aero: dos escenas (Colinas y Agua; fondos generados con IA por el usuario), pompas de jabón que se reventan al tocarlas, una burbuja
   // de vidrio para la carátula y el resto en vidrio celeste (piel "aero")
   INCLUIDAS.aero = { nombre: "Frutiger Aero", reglas: { requeridas: ["titulo", "botones", "barra"], nota: COMUN },
-      fondo: { tipo: "imagen", color: "#0a4a86", brillo: 96, imagen: "img/aero/colinas.webp", deriva: true, capa2: "pompas", mezcla2: "normal", opacidad2: 100, pompas: 20, golpe: "destello" },
+      fondo: { tipo: "imagen", color: "#0a4a86", brillo: 96, imagen: "img/aero/colinas.webp", deriva: true, capa2: "pompas", mezcla2: "normal", opacidad2: 100, pompas: 20, golpe: "ambos" },
       estilo: { panel: "vidrio", acento: "#36c8ff", fuente: "Baloo 2" },
       escenas: [["Colinas", "img/aero/colinas.webp", "#36c8ff"], ["Agua", "img/aero/agua.webp", "#2fb6ff"]],
       piezas: () => armar([["caratula", [6, 8, 21, 37], { forma: "burbuja" }],
@@ -98,7 +98,7 @@ const Propias = (() => {
         ["barra", [3, 90, 94, 4], { modo: "ascii" }]]) };
   // Cromo líquido: metal derretido que se sacude con el bombo; todo en cromo y letras metálicas
   INCLUIDAS.cromo = { nombre: "Cromo líquido", reglas: { requeridas: ["titulo", "botones", "barra"], nota: COMUN },
-      fondo: { tipo: "cromo", color: "#05060a", brillo: 72, golpe: "zoom", acabado: "cine" }, estilo: { panel: "liso", acento: "#ff3fd8", fuente: "Orbitron" },
+      fondo: { tipo: "cromo", color: "#05060a", brillo: 72, golpe: "todo", acabado: "cine" }, estilo: { panel: "liso", acento: "#ff3fd8", fuente: "Orbitron" },
       colores: [["Rosa", "#ff3fd8"], ["Plata", "#9fb6e0"], ["Ácido", "#b6ff3c"], ["Hielo", "#5fd8ff"], ["Fuego", "#ff6a2b"]],
       piezas: () => armar([["panel", [3, 10, 69, 50], { piel: "neon" }], ["caratula", [5, 14, 24, 42], { forma: "circulo", borde: true }],
         ["titulo", [32, 24, 40, 9], { efecto: "cromo", mayusculas: true }], ["artista", [32, 34, 40, 5], { efecto: "sombra" }],

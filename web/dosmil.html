@@ -156,6 +156,8 @@
 
 <script src="propiedades.js"></script>
 <script src="nucleo.js"></script>
+<script src="ritmo.js"></script>
+<script>const RT = Ritmo.global();   // golpes de bombo, caja y platillo, caída y compás (ritmo.js)</script>
 <script src="visu2000.js"></script>
 <script>
 "use strict";
@@ -285,7 +287,9 @@ const esp = $("espectro"), eg = esp.getContext("2d"), BARRAS = 20, SEG = 21, pic
 const dosCifras = (s) => { s = isFinite(s) && s > 0 ? s : 0; return `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(Math.floor(s % 60)).padStart(2, "0")}`; };
 R.cadaCuadro((t) => {
   const d = R.espectro();
-  visu.dibujar(t, d, R.ondaAudio(), R.energia(d, 1, 8), R.energia(d, 10, 60), R.energia(d, 60, 200), tonoSkin);
+  visu.dibujar(t, d, R.ondaAudio(), Math.max(R.energia(d, 1, 8), RT.bombo * .85), R.energia(d, 10, 60), R.energia(d, 60, 200), tonoSkin);
+  perilla.style.rotate = `${(RT.bombo * 14).toFixed(1)}deg`; esp.style.filter = RT.caja > .05 ? `brightness(${(1 + RT.caja * .7).toFixed(2)})` : "";   // bombo: respingo de la perilla · caja: el LCD se enciende
+  $("tiempoGrande").style.textShadow = RT.platillo > .1 ? `0 0 ${(RT.platillo * 16).toFixed(0)}px ${skin.tinta}` : "";   // platillos: el reloj brilla
 
   const sonando = $("bPlay").textContent === "❚❚";
   document.body.classList.toggle("sonando", sonando);

@@ -108,6 +108,8 @@
 <script src="haz.js"></script>
 <script src="propiedades.js"></script>
 <script src="nucleo.js"></script>
+<script src="ritmo.js"></script>
+<script>const RT = Ritmo.global();   // golpes de bombo, caja y platillo, caída y compás (ritmo.js)</script>
 <script>
 "use strict";
 document.querySelector("#liquido feDisplacementMap").setAttribute("scale", Props.extra("liquido", "deformacion"));
@@ -146,11 +148,16 @@ iniciarHaz($("haz"), () => {
   suave += (bajo - suave) * 0.3;
   return { bajo: Math.min(1, bajo * 1.2), medio: R.energia(d, 10, 60), agudo: R.energia(d, 60, 200) };
 }, () => colorHaz);
-const raiz = document.documentElement.style;
+const raiz = document.documentElement.style, DEF = Props.extra("liquido", "deformacion"), desplaza = document.querySelector("#liquido feDisplacementMap"), destello = document.createElement("div");
+destello.style.cssText = "position:fixed;inset:0;z-index:1;pointer-events:none;mix-blend-mode:screen;opacity:0;background:radial-gradient(ellipse at 50% 40%, color-mix(in srgb, var(--rojo) 75%, transparent), transparent 72%)"; document.body.appendChild(destello);
+let defPrev = -1;
 R.cadaCuadro((t) => {
+  const caida = Math.max(0, 1 - RT.desdeCaida / .7), def = Math.round(DEF + RT.bombo * 26 + caida * 60);   // bombo: el vidrio se deforma · caída: se sacude fuerte
+  if (def !== defPrev) { desplaza.setAttribute("scale", def); defPrev = def; }
+  destello.style.opacity = Math.min(.85, RT.caja * .3 + caida * .65).toFixed(3);   // caja: el haz destella
   raiz.setProperty("--p", (R.progreso() * 100).toFixed(2) + "%");
-  raiz.setProperty("--brillo", Math.min(1, suave * 1.5).toFixed(2));
-  raiz.setProperty("--latido", (1 + suave * 0.03).toFixed(3));
+  raiz.setProperty("--brillo", Math.min(1, suave * 1.5 + RT.platillo * .5).toFixed(2));   // platillos: brilla el borde
+  raiz.setProperty("--latido", (1 + suave * 0.03 + RT.bombo * .02).toFixed(3));
   raiz.setProperty("--giro", (-3 + Math.sin(t * 0.25) * 2).toFixed(2) + "deg");
   document.body.classList.toggle("sonando", $("bPlay").textContent === "❚❚");
 });

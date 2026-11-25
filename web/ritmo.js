@@ -29,5 +29,19 @@ const Ritmo = (() => {
       return e;
     };
   }
-  return { crear };
+  // Ritmo.global(): para las páginas de las plantillas. Devuelve un objeto que se actualiza solo en cada cuadro:
+  //   bombo / caja / platillo (0..1, se apagan solos) · golpes.bombo|caja|platillo (true el cuadro del golpe) · caida / desdeCaida
+  //   cuenta (bombos desde que empezó) · compas (0..3) · cada4 / cada8 (true el cuadro del 1.º bombo de cada compás de 4 u 8)
+  function global(reloj = () => performance.now() / 1000) {   // reloj: solo se cambia en las pruebas
+    const RT = { bombo: 0, caja: 0, platillo: 0, golpes: {}, caida: false, desdeCaida: 99, cuenta: 0, compas: 0, cada4: false, cada8: false };
+    if (typeof R === "undefined") return RT;
+    const leer = crear();
+    R.cadaCuadro(() => {
+      const e = leer(R.espectro(), reloj());
+      RT.bombo = e.bombo; RT.caja = e.caja; RT.platillo = e.platillo; RT.golpes = e.golpes; RT.caida = e.caida; RT.desdeCaida = e.desdeCaida; RT.cada4 = RT.cada8 = false;
+      if (e.golpes.bombo) { RT.cuenta++; RT.compas = RT.cuenta % 4; RT.cada4 = RT.compas === 0; RT.cada8 = RT.cuenta % 8 === 0; }
+    });
+    return RT;
+  }
+  return { crear, global };
 })();

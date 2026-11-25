@@ -98,6 +98,8 @@
 
 <script src="propiedades.js"></script>
 <script src="nucleo.js"></script>
+<script src="ritmo.js"></script>
+<script>const RT = Ritmo.global();   // golpes de bombo, caja y platillo, caída y compás (ritmo.js)</script>
 <script>
 "use strict";
 const $ = (id) => document.getElementById(id);
@@ -179,10 +181,12 @@ function mariposa(x, y, s, aleteo, col) {
   g.fillStyle = "#2a0848"; g.fillRect(-1.5, -14, 3, 34); g.restore();
 }
 let suave = 0;
+let tBarrido = -9;
 R.cadaCuadro((t) => {
   if (cv.width !== innerWidth || cv.height !== innerHeight) { cv.width = innerWidth; cv.height = innerHeight; }
   const W = cv.width, H = cv.height, bajo = R.energia(R.espectro(), 1, 8), [verde, azul] = TEMAS[tema];
-  suave += (bajo - suave) * .25;
+  suave += (Math.max(bajo, RT.bombo * .9) - suave) * .25;
+  if (RT.cada4 || t - tBarrido > 6) tBarrido = t;   // el barrido de brillo sale en cada compás (cada 4 bombos)
   raiz.setProperty("--p", (R.progreso() * 100).toFixed(2) + "%");
   // carátula gigante y borrosa que respira
   const z = 1.15 + Math.sin(t * .4) * .05 + suave * .04, L = Math.max(W, H) * 1.5;
@@ -213,7 +217,8 @@ R.cadaCuadro((t) => {
   const r = $("portada").getBoundingClientRect();
   const flare = (x, y, rr) => { const q = g.createRadialGradient(x, y, 0, x, y, rr); q.addColorStop(0, "rgba(255,255,255,.9)"); q.addColorStop(.15, "rgba(190,225,255,.45)"); q.addColorStop(1, rgba(azul, 0));
     g.fillStyle = q; g.fillRect(x - rr, y - rr, rr * 2, rr * 2); g.fillStyle = "rgba(255,255,255,.7)"; g.fillRect(x - rr * 1.6, y - 1, rr * 3.2, 2); g.fillRect(x - 1, y - rr * .8, 2, rr * 1.6); };
-  flare(r.right, r.top, 80 + suave * 60); flare(W * .7, H * .74, 36 + suave * 26);
+  flare(r.right, r.top, 80 + suave * 60 + RT.caja * 90);   // caja: el destello de lente se agranda
+   flare(W * .7, H * .74, 36 + suave * 26);
   g.globalCompositeOperation = "source-over";
   // figura de cromo detrás de la esquina de la carátula (Hielo no lleva: su protagonista es la carátula congelada)
   const forma = est.forma;
@@ -232,12 +237,13 @@ R.cadaCuadro((t) => {
   g.save(); g.shadowColor = rgba(azul, .6 + suave * .4); g.shadowBlur = 40 + suave * 50; g.fillStyle = "#000"; g.fillRect(X, Y, S, S); g.restore();
   if (caratula) g.drawImage(caratula, X, Y, S, S); else { g.fillStyle = azul; g.fillRect(X, Y, S, S); }
   g.save(); g.beginPath(); g.rect(X, Y, S, S); g.clip(); g.globalCompositeOperation = "lighter";
-  const bx = X - S * .75 + ((t % 3) / 3) * S * 2.5, sw = g.createLinearGradient(-S * .22, 0, S * .22, 0);
+  const bx = X - S * .75 + Math.min(1, (t - tBarrido) / 1.4) * S * 2.5, sw = g.createLinearGradient(-S * .22, 0, S * .22, 0);
   if (tema === "Chicle") ["rgba(255,255,255,0)", "rgba(255,120,220,.35)", "rgba(170,140,255,.4)", "rgba(110,240,255,.5)", "rgba(200,255,140,.4)", "rgba(255,240,160,.35)", "rgba(255,255,255,0)"].forEach((c, i, a) => sw.addColorStop(i / (a.length - 1), c));   // holográfico
   else { sw.addColorStop(0, "rgba(255,255,255,0)"); sw.addColorStop(.42, rgba(verde, .3)); sw.addColorStop(.5, "rgba(255,255,255,.7)"); sw.addColorStop(.58, rgba(azul, .3)); sw.addColorStop(1, "rgba(255,255,255,0)"); }
   g.fillStyle = sw; g.translate(bx, Y + S / 2); g.rotate(.5); g.fillRect(-S * .22, -S, S * .44, S * 2); g.restore();
   g.save(); g.globalCompositeOperation = "lighter";
   for (const c of CHISPAS) { const a = Math.max(0, Math.sin(t * 3 + c.f)) ** 4; if (a > .02) chispa(X + c.x * S, Y + c.y * S, c.r * (.6 + a * .6) * S / 400, a * .95); }
+  if (RT.platillo > .25) for (let k = 0; k < 5; k++) chispa(X + Math.random() * S, Y + Math.random() * S, (8 + Math.random() * 14) * S / 400, RT.platillo);   // platillos: destellos sobre la carátula
   g.restore();
   if (tema === "Hielo") congelar(t, X, Y, S);
   g.strokeStyle = "rgba(255,255,255,.7)"; g.lineWidth = 2; g.strokeRect(X, Y, S, S);
@@ -273,7 +279,7 @@ function congelar(t, X, Y, S) {
   g.drawImage(ESCARCHA, X + S / 2 - S * cubre / 2, Y + S / 2 - S * cubre / 2, S * cubre, S * cubre); g.globalAlpha = 1;
   // grieta: aparece con un golpe fuerte, con destello, y se desvanece
   const bajo = suave;
-  if (!grieta && bajo > .72 && t - ultimaGrieta > 2.5) {
+  if (!grieta && (RT.caida || (bajo > .72 && t - ultimaGrieta > 2.5))) {   // y con cada caída
     ultimaGrieta = t; const cx = .25 + rnd() * .5, cy = .25 + rnd() * .5;
     grieta = { t, cx, cy, rayos: Array.from({ length: 9 }, (_, i) => { const a = i / 9 * Math.PI * 2 + rnd() * .4; let px = 0, py = 0; const pts = [[0, 0]];
       for (let k = 0; k < 6; k++) { const d = .05 + rnd() * .06, aa = a + (rnd() - .5) * .5; px += Math.cos(aa) * d; py += Math.sin(aa) * d; pts.push([px, py]); } return pts; }) };

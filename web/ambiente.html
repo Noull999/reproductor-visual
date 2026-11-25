@@ -118,6 +118,8 @@
 
 <script src="propiedades.js"></script>
 <script src="nucleo.js"></script>
+<script src="ritmo.js"></script>
+<script>const RT = Ritmo.global();   // golpes de bombo, caja y platillo, caída y compás (ritmo.js)</script>
 <script>
 "use strict";
 document.getElementById("fondoImg").style.filter = `blur(${Props.extra("ambiente", "desenfoque")}px) saturate(1.4) brightness(.42)`;
@@ -268,16 +270,18 @@ function dibujarLuces(t, bajo) {
   if (luces.width !== innerWidth || luces.height !== innerHeight) { luces.width = innerWidth; luces.height = innerHeight; }
   const g = luces.getContext("2d"), w = luces.width, h = luces.height;
   if (!w || !h) return;
-  golpe = Math.max(golpe * 0.9, bajo);
+  golpe = Math.max(golpe * 0.9, bajo, RT.bombo);
   g.clearRect(0, 0, w, h);
   colores.forEach((c, i) => {
     const x = w * (0.3 + 0.35 * Math.sin(t * 0.13 + i * 2.1)), y = h * (0.45 + 0.3 * Math.cos(t * 0.11 + i * 1.7));
     const r = Math.max(w, h) * (0.3 + golpe * 0.18);
     const grad = g.createRadialGradient(x, y, 0, x, y, r);
-    grad.addColorStop(0, `rgba(${c[0]},${c[1]},${c[2]},${0.22 + golpe * 0.3})`);
+    grad.addColorStop(0, `rgba(${c[0]},${c[1]},${c[2]},${(0.22 + golpe * 0.3 + RT.caja * .22).toFixed(3)})`);
     grad.addColorStop(1, "rgba(0,0,0,0)");
     g.fillStyle = grad; g.fillRect(0, 0, w, h);
   });
+  if (RT.platillo > .2) for (let k = 0; k < 9; k++) { const c = colores[k % colores.length]; g.fillStyle = `rgba(${Math.min(255, c[0] + 90)},${Math.min(255, c[1] + 90)},${Math.min(255, c[2] + 90)},${RT.platillo.toFixed(2)})`; g.beginPath(); g.arc(Math.random() * w, Math.random() * h, 1.5 + Math.random() * 2.5, 0, 7); g.fill(); }   // platillos: chispas
+  const caida = Math.max(0, 1 - RT.desdeCaida / .6); if (caida) { g.fillStyle = `rgba(255,255,255,${(caida * .3).toFixed(3)})`; g.fillRect(0, 0, w, h); }   // caída: destello
 }
 
 let suave = 0;
@@ -287,7 +291,7 @@ R.cadaCuadro((t) => {
   dibujarLuces(t, bajo);
   dibujarOnda(d);
   raiz.setProperty("--p", (R.progreso() * 100).toFixed(2) + "%");
-  $("portada").style.transform = `scale(${(1 + suave * 0.025).toFixed(3)})`;
+  $("portada").style.transform = `scale(${(1 + suave * 0.025 + RT.bombo * .03).toFixed(3)})`;
   $("fondoImg").style.transform = `scale(${(1 + suave * 0.1).toFixed(3)})`;
 });
 </script>

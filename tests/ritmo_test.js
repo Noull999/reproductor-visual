@@ -9,4 +9,16 @@ for (let f = 0; f < 60 * 40; f++) {   // 40 s a 60 cuadros: 20 s suaves, luego u
 }
 console.log({ bombos, cajas, caidas });
 assert(bombos > 60 && bombos < 95, "unos 85 bombos en 40 s a 128 BPM"); assert(cajas > 60 && cajas < 95); assert(caidas >= 1 && caidas <= 2, "una caída al entrar la parte fuerte");
+// modo global: una página lee RT que se actualiza solo en cada cuadro de R
+{
+  const fns = []; let t = 0; globalThis.R = { cadaCuadro: (f) => fns.push(f), espectro: () => d };
+  const RT = Ritmo.global(() => t); let cada4 = 0, cuadrosConBombo = 0;
+  for (let f = 0; f < 60 * 20; f++) {
+    t = f / 60; const fase = (t * 128 / 60) % 1;
+    for (let i = 0; i < 512; i++) d[i] = 20; for (let i = 1; i < 9; i++) d[i] = 60 + (fase < .08 ? 180 : 0);
+    fns.forEach(fn => fn(t)); if (RT.cada4) cada4++; if (RT.bombo > .5) cuadrosConBombo++;
+  }
+  console.log({ cuenta: RT.cuenta, cada4 });
+  assert(RT.cuenta > 35 && RT.cuenta < 50, "unos 43 bombos en 20 s"); assert(cada4 >= 8 && cada4 <= 12, "un compás cada 4 bombos"); assert(cuadrosConBombo > 20, "el bombo sube y se apaga solo");
+}
 console.log("ritmo ok");

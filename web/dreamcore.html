@@ -81,6 +81,8 @@
 
 <script src="propiedades.js"></script>
 <script src="nucleo.js"></script>
+<script src="ritmo.js"></script>
+<script>const RT = Ritmo.global();   // golpes de bombo, caja y platillo, caída y compás (ritmo.js)</script>
 <script>
 "use strict";
 const $ = (id) => document.getElementById(id);
@@ -285,13 +287,13 @@ function imagenPropia(t, bajo) {   // la imagen elegida, flotando: acercamiento 
 }
 
 // ---- Pasada VHS sobre el cuadro chico: colores corridos, grano, líneas y la franja de tracking ----
-let golpe = 0;
+let golpe = 0, bandaOff = 0;
 // El ruido sale de una tabla ya sorteada (un Math.random por punto y por cuadro era lo más caro de todo el efecto)
 const RUIDO = Int8Array.from({ length: 1 << 17 }, () => Math.round((Math.random() - .5) * 254)), MASCARA = RUIDO.length - 1;
 const SALIDA_VHS = new Uint8ClampedArray(ANCHO * ALTO * 4);
 function vhs(t, bajo) {
   const img = g.getImageData(0, 0, ANCHO, ALTO), d = img.data, out = SALIDA_VHS;
-  const corr = Math.round((1 + bajo * 3) * SUCIO * 2), banda = (t * 40) % (ALTO + 60) - 30, ruido = 40 * SUCIO / 254, desfase = (Math.random() * RUIDO.length) | 0;
+  const corr = Math.round((1 + bajo * 3) * SUCIO * 2), banda = (t * 40 + bandaOff) % (ALTO + 60) - 30, ruido = 40 * SUCIO / 254, desfase = (Math.random() * RUIDO.length) | 0;
   for (let y = 0; y < ALTO; y++) {
     const enBanda = y > banda && y < banda + 14, salto = enBanda ? Math.round((Math.random() - .5) * 24 * SUCIO) : (golpe > 0 && (y >> 4) % 3 === 0 ? Math.round(golpe * 18) : 0);
     const oscuro = y % 2 ? .9 : 1;
@@ -307,12 +309,13 @@ function vhs(t, bajo) {
 let suave = 0;
 R.cadaCuadro((t) => {
   const bajo = R.energia(R.espectro(), 1, 8); suave += (bajo - suave) * .25;
-  if (bajo > .9 && golpe <= 0 && Math.random() < .15) golpe = 1;   // a veces, con un golpe fuerte, la imagen salta
+  if (RT.golpes.caja) bandaOff = Math.random() * ALTO;   // caja: la banda de tracking brinca
+  if (RT.cada4 || RT.caida || (bajo > .9 && golpe <= 0 && Math.random() < .06)) golpe = 1;   // la imagen salta cada compás (y con la caída)
   golpe = Math.max(0, golpe - .12);
   raiz.setProperty("--p", (R.progreso() * 100).toFixed(2) + "%");
   const s = Math.floor(R.tiempoActual()); $("osd2").textContent = `SP ${Math.floor(s / 3600)}:${String(Math.floor(s / 60) % 60).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
   if (propia) imagenPropia(t, suave); else dibujarEscena(t, suave);
-  if (SUCIO > 0) vhs(t, suave);
+  if (SUCIO > 0) vhs(t, suave + RT.platillo * .5);   // platillos: los colores se corren
   if (cv.width !== innerWidth || cv.height !== innerHeight) { cv.width = innerWidth; cv.height = innerHeight; }
   o.imageSmoothingEnabled = true; o.drawImage(chico, 0, 0, cv.width, cv.height);
   const vin = o.createRadialGradient(cv.width / 2, cv.height / 2, cv.height * .3, cv.width / 2, cv.height / 2, cv.height); vin.addColorStop(0, "rgba(0,0,0,0)"); vin.addColorStop(1, "rgba(0,0,0,.6)");
