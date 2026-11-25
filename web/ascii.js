@@ -59,11 +59,14 @@ const Ascii = (() => {
     function prepararMia() {
       if (!miaImg || !miaImg.naturalWidth || !cols) return;
       const asp = ch / cw, iw = miaImg.naturalWidth, ih = miaImg.naturalHeight;
-      let wc = cols - 2, hc = Math.round(wc * ih / iw / asp);
-      if (hc > filas - 3) { hc = filas - 3; wc = Math.round(hc * asp * iw / ih); }
+      const ajuste = op.imagenAjuste || "estirar", alto = filas - 3;   // estirar: ocupa todo el ancho y el alto · cubrir: llena la pantalla recortando · contener: se ve entera con sus proporciones
+      let wc = cols, hc = alto;
+      if (ajuste === "contener") { wc = cols - 2; hc = Math.round(wc * ih / iw / asp); if (hc > alto) { hc = alto; wc = Math.round(hc * asp * iw / ih); } }
       wc = Math.max(8, wc); hc = Math.max(4, hc);
       const cv = document.createElement("canvas"); cv.width = wc; cv.height = hc;
-      const x = cv.getContext("2d", { willReadFrequently: true }); x.imageSmoothingQuality = "high"; x.drawImage(miaImg, 0, 0, wc, hc);
+      const x = cv.getContext("2d", { willReadFrequently: true }); x.imageSmoothingQuality = "high";
+      if (ajuste === "cubrir") { const s = Math.max(wc / iw, hc / (ih / asp)); x.drawImage(miaImg, (wc - iw * s) / 2, (hc - ih / asp * s) / 2, iw * s, ih / asp * s); }
+      else x.drawImage(miaImg, 0, 0, wc, hc);
       let px; try { px = x.getImageData(0, 0, wc, hc).data; } catch (e) { mia = null; return; }
       const porBrillo = op.imagenModo === "brillo", v = new Float32Array(wc * hc), q = new Uint8Array(wc * hc), suma = Array.from({ length: 64 }, () => [0, 0, 0, 0]);
       for (let i = 0; i < wc * hc; i++) { const k = (px[i * 4] >> 6) * 16 + (px[i * 4 + 1] >> 6) * 4 + (px[i * 4 + 2] >> 6); q[i] = k; const s = suma[k]; s[0] += px[i * 4]; s[1] += px[i * 4 + 1]; s[2] += px[i * 4 + 2]; s[3]++; }

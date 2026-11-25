@@ -14,6 +14,7 @@ const ESQUEMA = {
     "velocidad": { "t": "num", "n": "Velocidad (visualización 2000 y MilkDrop)", "min": 20, "max": 150, "def": 100, "u": " %" },
     "tema": { "t": "enum", "n": "Tema (ASCII)", "v": { "terminal": "Terminal", "psicodelico": "Psicodélico", "juegos": "Juegos (arcade)" }, "def": "terminal" },
     "imagenModo": { "t": "enum", "n": "Tu imagen en ASCII: cómo se convierte", "v": { "fondo": "Quitar el color de fondo (el más común)", "brillo": "Por brillo" }, "def": "fondo" },
+    "imagenAjuste": { "t": "enum", "n": "Tu imagen en ASCII: cómo ocupa la pantalla", "v": { "estirar": "Estirar a todo el ancho", "cubrir": "Llenar recortando", "contener": "Entera, con sus proporciones" }, "def": "estirar" },
     "imagenColor": { "t": "bool", "n": "Tu imagen en ASCII: usar los colores de la imagen", "def": false },
     "imagenSola": { "t": "bool", "n": "Tu imagen en ASCII: mostrar solo ella (sin las otras escenas)", "def": false },
     "cambio": { "t": "num", "n": "Cambio de visual (MilkDrop)", "min": 8, "max": 120, "def": 40, "u": " s" },
