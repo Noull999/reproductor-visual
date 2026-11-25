@@ -59,7 +59,9 @@ const Ascii = (() => {
     // ---- "Tu imagen" / "Tu video": se convierte en caracteres en este PC. Con "ampliado" lo que sobra a los lados se llena con la misma imagen (o el mismo video) ampliada y atenuada ----
     const PAL_TONO = Array.from({ length: 64 }, (_, k) => { const [r, g, b] = [k >> 4, (k >> 2) & 3, k & 3].map(x => (x + .5) / 4), m = Math.max(r, g, b); return `rgb(${r / m * 255 | 0},${g / m * 255 | 0},${b / m * 255 | 0})`; });
     const lienzoMia = (w, h) => { const c = document.createElement("canvas"); c.width = w; c.height = h; const x = c.getContext("2d", { willReadFrequently: true }); x.imageSmoothingQuality = "high"; return x; };
-    const cubrirMia = (x, src, sw, sh, wc, hc) => { const s = Math.max(wc / sw, hc / (sh / (ch / cw))); x.drawImage(src, (wc - sw * s) / 2, (hc - sh / (ch / cw) * s) / 2, sw * s, sh / (ch / cw) * s); };   // llena el lienzo recortando lo que sobre
+    // el recorte que eligió la persona (izquierda, arriba, derecha, abajo, en %): la parte de la imagen o del video que se usa
+    const recorteMia = (iw, ih) => { const [l, t, r, b] = (op.imagenRec || [0, 0, 0, 0]).map(n => Math.max(0, Math.min(90, +n || 0))), sw = iw * (1 - (l + r) / 100), sh = ih * (1 - (t + b) / 100); return sw < iw * .08 || sh < ih * .08 ? { sx: 0, sy: 0, sw: iw, sh: ih } : { sx: iw * l / 100, sy: ih * t / 100, sw, sh }; };
+    const cubrirMia = (x, src, R, wc, hc) => { const a = ch / cw, s = Math.max(wc / R.sw, hc / (R.sh / a)); x.drawImage(src, R.sx, R.sy, R.sw, R.sh, (wc - R.sw * s) / 2, (hc - R.sh / a * s) / 2, R.sw * s, R.sh / a * s); };   // llena el lienzo recortando lo que sobre
     function convertirPx(px, wc, hc) {
       const porBrillo = op.imagenModo === "brillo", v = new Float32Array(wc * hc), q = new Uint8Array(wc * hc), suma = Array.from({ length: 64 }, () => [0, 0, 0, 0]);
       for (let i = 0; i < wc * hc; i++) { const k = (px[i * 4] >> 6) * 16 + (px[i * 4 + 1] >> 6) * 4 + (px[i * 4 + 2] >> 6); q[i] = k; const s = suma[k]; s[0] += px[i * 4]; s[1] += px[i * 4 + 1]; s[2] += px[i * 4 + 2]; s[3]++; }
@@ -81,17 +83,17 @@ const Ascii = (() => {
     function prepararMia() {
       if (miaImg instanceof HTMLVideoElement) return prepararVideo();
       if (!miaImg || !miaImg.naturalWidth || !cols) return;
-      const asp = ch / cw, iw = miaImg.naturalWidth, ih = miaImg.naturalHeight;
+      const asp = ch / cw, R = recorteMia(miaImg.naturalWidth, miaImg.naturalHeight), iw = R.sw, ih = R.sh;
       const ajuste = op.imagenAjuste || "estirar", alto = filas - 3;   // estirar: todo el ancho y el alto · cubrir: llena recortando · contener: entera · ampliado: entera y los costados con la misma imagen ampliada
       let wc = cols, hc = alto;
       if (ajuste === "contener" || ajuste === "ampliado") { wc = cols - 2; hc = Math.round(wc * ih / iw / asp); if (hc > alto) { hc = alto; wc = Math.round(hc * asp * iw / ih); } }
       wc = Math.max(8, wc); hc = Math.max(4, hc);
       const x = lienzoMia(wc, hc);
-      if (ajuste === "cubrir") cubrirMia(x, miaImg, iw, ih, wc, hc); else x.drawImage(miaImg, 0, 0, wc, hc);
+      if (ajuste === "cubrir") cubrirMia(x, miaImg, R, wc, hc); else x.drawImage(miaImg, R.sx, R.sy, R.sw, R.sh, 0, 0, wc, hc);
       let px; try { px = x.getImageData(0, 0, wc, hc).data; } catch (e) { mia = null; return; }
       const { v, q, suma } = convertirPx(px, wc, hc);
       let bg = null;
-      if (ajuste === "ampliado") { const xb = lienzoMia(cols, filas); cubrirMia(xb, miaImg, iw, ih, cols, filas); const o = convertirPx(xb.getImageData(0, 0, cols, filas).data, cols, filas); bg = { v: o.v, q: o.q }; }
+      if (ajuste === "ampliado") { const xb = lienzoMia(cols, filas); cubrirMia(xb, miaImg, R, cols, filas); const o = convertirPx(xb.getImageData(0, 0, cols, filas).data, cols, filas); bg = { v: o.v, q: o.q }; }
       miaPal = suma.map(([a, b_, c_, n]) => { if (!n) return "#fff"; let r_ = a / n, g_ = b_ / n, bb = c_ / n; const m = Math.max(r_, g_, bb, 1), f = Math.max(1, 150 / m); return `rgb(${Math.min(255, r_ * f) | 0},${Math.min(255, g_ * f) | 0},${Math.min(255, bb * f) | 0})`; });
       mia = { wc, hc, ox: (cols - wc) >> 1, oy: ((filas - hc) >> 1) + 1, v, q, bg };
     }
@@ -109,20 +111,20 @@ const Ascii = (() => {
     }
     function prepararVideo() {
       const vd = miaImg; if (!vd.videoWidth || !cols) return;
-      const asp = ch / cw, iw = vd.videoWidth, ih = vd.videoHeight, alto = filas - 3, ajuste = op.imagenAjuste || "estirar";
+      const asp = ch / cw, R = recorteMia(vd.videoWidth, vd.videoHeight), iw = R.sw, ih = R.sh, alto = filas - 3, ajuste = op.imagenAjuste || "estirar";
       let wc = cols, hc = alto;
       if (ajuste === "contener" || ajuste === "ampliado") { wc = cols - 2; hc = Math.round(wc * ih / iw / asp); if (hc > alto) { hc = alto; wc = Math.round(hc * asp * iw / ih); } }
       wc = Math.max(8, wc); hc = Math.max(4, hc);
-      mia = { wc, hc, ox: (cols - wc) >> 1, oy: ((filas - hc) >> 1) + 1, v: new Float32Array(wc * hc), q: new Uint8Array(wc * hc), x: lienzoMia(wc, hc),
+      mia = { wc, hc, R, ox: (cols - wc) >> 1, oy: ((filas - hc) >> 1) + 1, v: new Float32Array(wc * hc), q: new Uint8Array(wc * hc), x: lienzoMia(wc, hc),
         bg: ajuste === "ampliado" ? { v: new Float32Array(cols * filas), q: new Uint8Array(cols * filas), x: lienzoMia(cols, filas) } : null, cubrir: ajuste === "cubrir" };
       miaPal = PAL_TONO; miaT = -1;
     }
     function cuadroVideo(t) {
       const vd = miaImg; if (!mia || !mia.x || vd.readyState < 2 || t - miaT < .045) return; miaT = t;
       try {
-        if (mia.cubrir) cubrirMia(mia.x, vd, vd.videoWidth, vd.videoHeight, mia.wc, mia.hc); else mia.x.drawImage(vd, 0, 0, mia.wc, mia.hc);
+        const R = mia.R; if (mia.cubrir) cubrirMia(mia.x, vd, R, mia.wc, mia.hc); else mia.x.drawImage(vd, R.sx, R.sy, R.sw, R.sh, 0, 0, mia.wc, mia.hc);
         estirar(mia.x.getImageData(0, 0, mia.wc, mia.hc).data, mia.wc * mia.hc, mia.v, mia.q);
-        if (mia.bg) { cubrirMia(mia.bg.x, vd, vd.videoWidth, vd.videoHeight, cols, filas); estirar(mia.bg.x.getImageData(0, 0, cols, filas).data, cols * filas, mia.bg.v, mia.bg.q); }
+        if (mia.bg) { cubrirMia(mia.bg.x, vd, R, cols, filas); estirar(mia.bg.x.getImageData(0, 0, cols, filas).data, cols * filas, mia.bg.v, mia.bg.q); }
       } catch (e) { mia = null; }
     }
     const escenasAct = () => (mia ? (op.imagenSola ? ["MIA"] : ["MIA", ...T().escenas]) : T().escenas);

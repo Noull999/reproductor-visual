@@ -194,6 +194,12 @@ def test_el_degradado_y_el_acento_automatico_se_validan():
     assert e["acentoAuto"] is True and e["deformacion"] == 70
 
 
+def test_el_recorte_de_tu_imagen_se_acota():
+    spec = base(fondo={"tipo": "ascii", "color": "#020503", "brillo": 100, "imagenRecIzq": 41, "imagenRecArr": 500, "imagenRecDer": -3, "imagenRecAba": 22})
+    f = P.validar(spec, "exportar")["fondo"]
+    assert (f["imagenRecIzq"], f["imagenRecArr"], f["imagenRecDer"], f["imagenRecAba"]) == (41, 90, 0, 22)   # se acota a 0..90 %
+
+
 def test_fondo_milkdrop_se_acepta_y_se_acota():
     spec = base(fondo={"tipo": "milkdrop", "color": "#000000", "brillo": 65, "cambio": 9999, "script": "x"})
     f = P.validar(spec, "exportar")["fondo"]
