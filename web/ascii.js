@@ -10,7 +10,7 @@ const Ascii = (() => {
     terminal: { nombre: "ASCII", escenas: ["LLUVIA", "DONA", "ONDAS", "FUEGO", "TUNEL", "CARATULA"], demonio: true,
       alertas: ["SENAL FUERTE DETECTADA", "BAJO >> MAXIMO", "SINCRONIZANDO RITMO...", "NUCLEO ESTABLE", "ANOMALIA EN EL ESPECTRO"],
       arranque: ["> boot reproductor.sys", "> cargando visuales ........ OK", "> senal de audio ........... OK", "> modo ascii activado"] },
-    psicodelico: { nombre: "PSICO", escenas: ["KALEIDO", "PRISMA", "ESPIRAL", "MALLA", "INFINITO", "OJO"], multicolor: true,
+    psicodelico: { nombre: "PSICO", escenas: ["KALEIDO", "ESPIRAL", "MALLA", "INFINITO", "OJO"], multicolor: true,
       alertas: ["TODO ES UN ESPIRAL", "RESPIRA", "MIRA FIJO", "EL COLOR TIENE SONIDO", "NO PARPADEES"],
       arranque: ["> abriendo la percepcion ...", "> filtro de realidad ....... OFF", "> espiral .................. ON", "> mira fijo"] },
     juegos: { nombre: "ARCADE", escenas: ["PONG", "SNAKE", "INVADERS", "BREAKOUT"], glifos: true,
@@ -221,19 +221,6 @@ const Ascii = (() => {
           const X = c - cx, Y = (r - cyy) * asp, px = (X * ca - Y * sa) / F, py = (X * sa + Y * ca) / F; let mejor = 9, rr = 0;
           for (const q of seg) { const vx = q[2] - q[0], vy = q[3] - q[1], tt = Math.max(0, Math.min(1, ((px - q[0]) * vx + (py - q[1]) * vy) / (vx * vx + vy * vy + 1e-9))), dd = Math.hypot(px - q[0] - vx * tt, py - q[1] - vy * tt) - q[4]; if (dd < mejor) { mejor = dd; rr = q[4]; } }
           if (mejor < 0) { const i = r * cols + c; A[i] = mejor > -.055 ? 1 : .55 + .3 * (1 - Math.min(1, Math.abs(px))); H[i] = 2.9 + .04 * py; }
-        }
-      },
-      PRISMA(A, t, dt, d, b) {   // túnel de ocho lados con rayos y cambio de color según el radio: veloz e hipnótico
-        juego.zp = (juego.zp || 0) + dt * (1.3 + b * 3.4); const z0 = juego.zp, asp = ch / cw, S = Math.min(cols * .5, filas * asp * .52);
-        for (let r = 0; r < filas; r++) for (let c = 0; c < cols; c++) {
-          const X = (c - cols / 2) / S, Y = (r - filas / 2) * asp / S, i = r * cols + c;
-          const d8 = Math.max(Math.abs(X), Math.abs(Y), (Math.abs(X) + Math.abs(Y)) * .7071) + .0001, ang = Math.atan2(Y, X), z = 1 / (d8 + .12);
-          const sec = (ang / TAU + .5) * 16, fs = sec - Math.floor(sec), anillo = (((z * 1.5 - z0 * 1.1) % 1) + 1) % 1;
-          let v = (Math.floor(sec) % 2 ? .75 : .22) + (fs < .07 || fs > .93 ? .3 : 0);   // rayos alternados con un filo brillante
-          if (anillo < .16) v = Math.max(v, .95);                                          // anillos que se acercan
-          if (d8 < .17) v = .25 + .75 * Math.abs(Math.sin(X * 44)) * Math.abs(Math.sin(Y * 44));   // el centro: rombos
-          v *= Math.min(1, d8 * 3.5 + .3);
-          A[i] = Math.min(1.1, v * (.75 + b * .55)); H[i] = (Math.floor(sec) * .07 + z * .11 - t * .25 + d8 * .3) % 1;
         }
       },
       OJO(A, t, dt, d, b) {   // un ojo que parpadea, mira de lado y dilata la pupila con el bajo; rayos alrededor
