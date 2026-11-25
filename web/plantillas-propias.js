@@ -121,9 +121,11 @@ const Propias = (() => {
   // "anime" y "psicodelico" (ids de plantillas incluidas) se arman solas: la Biblioteca la abre en libre.html sin copiarla a localStorage
   // la escena elegida en la Biblioteca (las incluidas que traen escenas: Frutiger Aero) pone su fondo y su color
   const escenaElegida = (id) => { const e = INCLUIDAS[id].escenas; if (!e) return null; let n = ""; try { n = localStorage.getItem(`escena-${id}`) || ""; } catch (x) {} return e.find(x => x[0] === n) || e[0]; };
-  const obtener = (id) => leer().find(x => x.id === id) || (SOLAS.includes(id) ? (() => { const es = escenaElegida(id);
+  const obtener = (id) => leer().find(x => x.id === id) || (SOLAS.includes(id) ? conTema((() => { const es = escenaElegida(id);
     return { id, nombre: INCLUIDAS[id].nombre, base: id, fondo: es ? { ...INCLUIDAS[id].fondo, imagen: es[1] } : INCLUIDAS[id].fondo,
-      estilo: { ...INCLUIDAS[id].estilo, acento: es ? es[2] : colorElegido(id) }, piezas: INCLUIDAS[id].piezas() }; })() : null);
+      estilo: { ...INCLUIDAS[id].estilo, acento: es ? es[2] : colorElegido(id) }, piezas: INCLUIDAS[id].piezas() }; })()) : null);
+  // el tema elegido en la Biblioteca (ASCII: terminal, psicodelico, juegos); fondo.tema lo lee ascii.js
+  const conTema = (spec) => { if (spec && spec.id === "ascii" && spec.fondo.tipo === "ascii") { let t = ""; try { t = localStorage.getItem("tema-ascii") || ""; } catch (x) {} if (E.fondo.tema.v[t]) spec.fondo.tema = t; } return spec; };
   const borrar = (id) => escribir(leer().filter(x => x.id !== id));
   function duplicar(id) {
     const o = obtener(id); if (!o) return null;

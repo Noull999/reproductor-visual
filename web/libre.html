@@ -99,6 +99,9 @@
   #variantes { position: fixed; top: 6px; right: 140px; z-index: 900; display: flex; gap: 9px; padding: 7px 10px; border-radius: 999px; background: rgba(0,0,0,.35); }
   #variantes button { width: 15px; height: 15px; padding: 0; border: none; border-radius: 50%; background: var(--c); cursor: pointer; opacity: .55; transition: transform .2s, opacity .2s; }
   #variantes button:hover { opacity: 1; }
+  #variantes .sep { width: 1px; background: rgba(255,255,255,.3); margin: 0 3px; }
+  #variantes button.tema { width: auto; height: auto; padding: 1px 9px; border-radius: 999px; background: none; color: #fff; font: 600 11px system-ui, sans-serif; opacity: .55; }
+  #variantes button.tema.elegido { background: rgba(255,255,255,.18); transform: none; box-shadow: 0 0 0 1px rgba(255,255,255,.7); }
   #variantes button.elegido { opacity: 1; transform: scale(1.25); box-shadow: 0 0 0 2px rgba(255,255,255,.85), 0 0 12px var(--c); }
   #vacio { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; color: #aaa; z-index: 5; }
 
@@ -342,10 +345,20 @@ function puntosColores(colores, id) {
     b.onclick = () => { ponerAcento(rgb(c)); try { localStorage.setItem("color-" + id, c); } catch (e) {} d.querySelectorAll("button").forEach(x => x.classList.toggle("elegido", x === b)); };
     d.appendChild(b);
   });
+  if (id === "ascii" && spec.fondo.tipo === "ascii") {   // los temas del fondo ASCII, al lado de los colores (letras en vez de puntos)
+    const sep = document.createElement("span"); sep.className = "sep"; d.appendChild(sep);
+    Object.entries(ESQUEMA.fondo.tema.v).forEach(([k, n]) => {
+      const b = document.createElement("button"); b.className = "tema"; b.textContent = n.split(" ")[0]; b.title = "Tema: " + n;
+      b.classList.toggle("elegido", k === fv("tema"));
+      b.onclick = () => { if (asciiVivo) asciiVivo.tema(k); try { localStorage.setItem("tema-ascii", k); } catch (e) {} d.querySelectorAll("button.tema").forEach(x => x.classList.toggle("elegido", x === b)); };
+      d.appendChild(b);
+    });
+  }
 }
 
 // ---- Fondos ----
 function ajustar(c) { const w = innerWidth, h = innerHeight; if (c.width !== w || c.height !== h) { c.width = w; c.height = h; } return c.getContext("2d"); }
+let asciiVivo = null;   // el fondo ASCII en marcha: deja cambiar de tema sin recargar
 function fondo() {
   const c = document.getElementById("fondoL");
   let tipo = MD ? (MD.modo === 1 ? "milkdrop" : "visu2000") : spec.fondo.tipo;
@@ -400,7 +413,7 @@ function dibujarFondo(tipo, c, segunda = false) {
 
   if (tipo === "ascii") {   // caracteres que reaccionan a la música y cambian con el tiempo (ascii.js)
     if (!segunda) capa(fv("color"));
-    Ascii.montar(c, { color: () => acento, cambio: fv("cambio"), eventos: fv("eventos") }); return;
+    asciiVivo = Ascii.montar(c, { color: () => acento, cambio: fv("cambio"), eventos: fv("eventos"), tema: fv("tema") }); return;
   }
   if (tipo === "pompas") {   // pompas de jabón que se reventan al tocarlas (burbujas.js)
     if (!segunda) capa(fv("color"));

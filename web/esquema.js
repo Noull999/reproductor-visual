@@ -12,6 +12,7 @@ const ESQUEMA = {
     "brillo": { "t": "num", "n": "Brillo", "min": 20, "max": 130, "def": 100, "u": " %" },
     "tinte": { "t": "color", "n": "Tinte del agujero negro", "def": "", "vacio": true },
     "velocidad": { "t": "num", "n": "Velocidad (visualización 2000 y MilkDrop)", "min": 20, "max": 150, "def": 100, "u": " %" },
+    "tema": { "t": "enum", "n": "Tema (ASCII)", "v": { "terminal": "Terminal", "psicodelico": "Psicodélico", "juegos": "Juegos (arcade)" }, "def": "terminal" },
     "cambio": { "t": "num", "n": "Cambio de visual (MilkDrop)", "min": 8, "max": 120, "def": 40, "u": " s" },
     "eventos": { "t": "bool", "n": "Eventos con el tiempo (ASCII: glitch, alertas, escaneo)", "def": true },
     "pompas": { "t": "num", "n": "Cantidad de pompas", "min": 6, "max": 40, "def": 20, "u": "" },

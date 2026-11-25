@@ -45,10 +45,11 @@ const PLANTILLAS = [
     desc: "Metal derretido que fluye y se sacude con cada bombo, con reflejos de tu color. Botones, barras y lista de cromo pulido y el título en letras metálicas.",
     guardar: (x) => ({ "color-cromo": x.color }),
     grupos: [{ titulo: "Color", items: Propias.INCLUIDAS.cromo.colores.map(([n, c]) => v(n, c, `cromo-${n.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")}`, { color: c })) }] },
-  { id: "ascii", nombre: "ASCII", pagina: "libre.html?plantilla=ascii", predeterminada: "Verde",
-    desc: "Una terminal con arte ASCII que late con la música: lluvia de caracteres, ondas, un túnel y tu carátula hecha de letras. Cambia de escena sola y cada tanto pasa algo (glitch, alertas, un barrido de escaneo).",
-    guardar: (x) => ({ "color-ascii": x.color }),
-    grupos: [{ titulo: "Color", items: Propias.INCLUIDAS.ascii.colores.map(([n, c]) => v(n, c, `ascii-${n.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")}`, { color: c })) }] },
+  { id: "ascii", nombre: "ASCII", pagina: "libre.html?plantilla=ascii", predeterminada: "Terminal · Verde",
+    desc: "Una terminal con arte ASCII que late con la música. Tres temas: Terminal (lluvia, dona 3D, túnel, tu carátula en letras y un demonio que se come la pantalla), Psicodélico (caleidoscopio, espiral, plasma y un ojo en color) y Juegos (Pong, Snake, Space Invaders y Breakout jugando solos). Cada tema se combina con el color que quieras, y puedes cambiar ambos en vivo.",
+    guardar: (x) => ({ "tema-ascii": x.tema, "color-ascii": x.color }),
+    grupos: [["terminal", "Terminal"], ["psicodelico", "Psicodélico"], ["juegos", "Juegos"]].map(([t, tn]) => ({ titulo: `Tema ${tn}`,
+      items: Propias.INCLUIDAS.ascii.colores.map(([n, c]) => v(`${tn} · ${n}`, c, `ascii-${t}-${n.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")}`, { tema: t, color: c })) })) },
   { id: "pixel", nombre: "Pixel", pagina: "pixel.html", predeterminada: "Sangre",
     desc: "8 bits: espectro en bloques y carátula pixelada, con paletas de color a elegir.",
     guardar: (x) => ({ "paleta-pixel": x.nombre }),
@@ -64,8 +65,9 @@ const gruposDe = (p) => {
   }
   const libre = CON_COLOR_LIBRE.includes(p.id) && Props.colorLibre(p.id);
   if (libre) {   // el color de la persona: una variante más (la vista previa es la de la predeterminada)
-    const base = g[0].items.find(x => x.nombre === p.predeterminada) || g[0].items[0];
-    g = [...g, { titulo: "Tu color", items: [{ ...base, nombre: "Propio", color: libre, cuerpo: guardado("cuerpo-headspace", "Y2K"), color2: "Propio" }] }];
+    const tema = p.id === "ascii" ? guardado("tema-ascii", "terminal") : null;   // ASCII: la vista previa es la del tema que está puesto
+    const base = (tema && g.flatMap(q => q.items).find(x => x.tema === tema && x.nombre.endsWith("Verde"))) || g[0].items.find(x => x.nombre === p.predeterminada) || g[0].items[0];
+    g = [...g, { titulo: "Tu color", items: [{ ...base, nombre: "Propio", color: libre, cuerpo: guardado("cuerpo-headspace", "Y2K"), color2: "Propio", ...(p.id === "ascii" ? { tema: guardado("tema-ascii", "terminal") } : {}) }] }];
   }
   return g;
 };

@@ -1,28 +1,40 @@
-// Fondo ASCII: una cuadrícula de caracteres que reacciona a la música. Seis escenas que se turnan con fundido (lluvia, dona 3D que gira, ondas con
-// el espectro, fuego, túnel y tu carátula hecha de caracteres) y "cosas que pasan en el tiempo": una secuencia de arranque que se tipea y, cada 10-20 s, un
+// Fondo ASCII: una cuadrícula de caracteres que reacciona a la música, con TRES TEMAS (cada uno con sus escenas, carteles y arranque):
+//   terminal: lluvia, dona 3D, ondas, fuego, túnel y tu carátula en caracteres · psicodelico: caleidoscopio, espiral, plasma y un ojo (color por celda)
+//   juegos: Pong, Snake, Space Invaders y Breakout jugando solos.  Las escenas se turnan con fundido y pasan "cosas con el tiempo": una secuencia de arranque que se tipea y, cada 10-20 s, un
 // evento (glitch, alerta, barrido de escaneo o inversión) y, muy de vez en cuando, EL DEMONIO: aparece, se mueve, abre la boca y se come la pantalla (la interfaz también). Todo con código propio; se dibuja a ~30 cuadros para pesar poco.
-//   Ascii.montar(contenedor, { color: () => [r, g, b], cambio: segundos entre escenas, eventos: true|false })
+//   Ascii.montar(contenedor, { color: () => [r, g, b], cambio: segundos entre escenas, eventos: true|false, tema: "terminal"|"psicodelico"|"juegos" }) → { tema(nombre) }
 "use strict";
 const Ascii = (() => {
   const RAMPA = " .:-=+*#%@", CABEZA = "01ABCDEFXYZ#@$%&*+<>/\\|", TAU = Math.PI * 2;
-  const ESCENAS = ["LLUVIA", "DONA", "ONDAS", "FUEGO", "TUNEL", "CARATULA"];
-  const ALERTAS = ["SENAL FUERTE DETECTADA", "BAJO >> MAXIMO", "SINCRONIZANDO RITMO...", "NUCLEO ESTABLE", "ANOMALIA EN EL ESPECTRO"];
-  const ARRANQUE = ["> boot reproductor.sys", "> cargando visuales ........ OK", "> senal de audio ........... OK", "> modo ascii activado"];
+  const TEMAS = {
+    terminal: { nombre: "ASCII", escenas: ["LLUVIA", "DONA", "ONDAS", "FUEGO", "TUNEL", "CARATULA"], demonio: true,
+      alertas: ["SENAL FUERTE DETECTADA", "BAJO >> MAXIMO", "SINCRONIZANDO RITMO...", "NUCLEO ESTABLE", "ANOMALIA EN EL ESPECTRO"],
+      arranque: ["> boot reproductor.sys", "> cargando visuales ........ OK", "> senal de audio ........... OK", "> modo ascii activado"] },
+    psicodelico: { nombre: "PSICO", escenas: ["KALEIDO", "ESPIRAL", "PLASMA", "OJO"], multicolor: true,
+      alertas: ["TODO ES UN ESPIRAL", "RESPIRA", "MIRA FIJO", "EL COLOR TIENE SONIDO", "NO PARPADEES"],
+      arranque: ["> abriendo la percepcion ...", "> filtro de realidad ....... OFF", "> espiral .................. ON", "> mira fijo"] },
+    juegos: { nombre: "ARCADE", escenas: ["PONG", "SNAKE", "INVADERS", "BREAKOUT"], glifos: true,
+      alertas: ["INSERT COIN", "GAME OVER   CONTINUE? 9", "NUEVO RECORD!", "LEVEL UP", "PLAYER 2 ENTRA"],
+      arranque: ["> insert coin ...", "> cargando cartucho ........ OK", "> player 1 listo", "> press start"] },
+  };
+  const tonoDe = ([r, g, b]) => { const mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn; if (!d) return 0; const h = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; return (h * 60 + 360) % 360; };
   const hash = (a, b, c) => { let h = (a * 374761393 + b * 668265263 + c * 2147483647) | 0; h = (h ^ (h >>> 13)) * 1274126177; return ((h ^ (h >>> 16)) >>> 0) / 4294967296; };
 
   function montar(cont, op = {}) {
     const lienzo = document.createElement("canvas"); lienzo.style.pointerEvents = "none"; cont.appendChild(lienzo);
     const g = lienzo.getContext("2d");
     const cambio = Math.max(8, Math.min(120, +op.cambio || 26)), conEventos = op.eventos !== false;
-    let factorTam = 1, criatura = null, demonioAntes = -1e9, velo = null, info = null, calor = null, giroA = 0, giroB = 0, cols = 0, filas = 0, cw = 8, ch = 14, tam = 16, I = null, J = null, lluvia = null, ultimo = 0, esc = 0, sig = -1, tFundido = 0, tCambio = 1e9, t0 = null;
+    let tema = TEMAS[op.tema] ? op.tema : "terminal", G = null, H = null, juego = {}, factorTam = 1, criatura = null, demonioAntes = -1e9, velo = null, info = null, calor = null, giroA = 0, giroB = 0, cols = 0, filas = 0, cw = 8, ch = 14, tam = 16, I = null, J = null, lluvia = null, ultimo = 0, esc = 0, sig = -1, tFundido = 0, tCambio = 1e9, t0 = null;
     let imgOk = false, mini = null, caratula = new Image(), prox = 9 + Math.random() * 8, ev = null, suaveB = 0, suaveM = 0, suaveA = 0;
+    const T = () => TEMAS[tema];
     const fuente = () => `${tam}px "VT323", "Cascadia Mono", Consolas, monospace`;
 
     function medir() {
-      tam = Math.max(10, Math.round(innerHeight / 46 * factorTam)); g.font = fuente(); cw = Math.max(5, g.measureText("M").width); ch = tam * .92;
+      tam = Math.max(10, Math.round(innerHeight / 46 * factorTam * (T().glifos ? 1.7 : 1)));   // los juegos usan letras más grandes: se ven mejor las piezas
+      g.font = fuente(); cw = Math.max(5, g.measureText("M").width); ch = tam * .92;
       cols = Math.max(20, Math.floor(innerWidth / cw)); filas = Math.max(10, Math.floor(innerHeight / ch));
       lienzo.width = innerWidth; lienzo.height = innerHeight; I = new Float32Array(cols * filas); J = new Float32Array(cols * filas);
-      calor = new Float32Array(cols * (filas + 2));
+      calor = new Float32Array(cols * (filas + 2)); G = new Uint16Array(cols * filas); H = new Float32Array(cols * filas); juego = {};
       lluvia = { y: Float32Array.from({ length: cols }, () => Math.random() * filas), v: Float32Array.from({ length: cols }, () => 6 + Math.random() * 14), l: Float32Array.from({ length: cols }, () => 6 + Math.random() * 16) };
       mini = document.createElement("canvas"); mini.width = cols; mini.height = filas;
     }
@@ -37,7 +49,126 @@ const Ascii = (() => {
     });
 
     // ---- escenas: cada una llena el arreglo de intensidades (0..1, y más de 1 = punta brillante) ----
+    // glifos propios (juegos): se escriben en G y la intensidad en A
+    const pon = (A, c, r, chr, v) => { c = Math.round(c); r = Math.round(r); if (c >= 0 && c < cols && r >= 0 && r < filas) { A[r * cols + c] = v; G[r * cols + c] = chr.charCodeAt(0); } };
+    const txt = (A, c, r, str, v) => { for (let k = 0; k < str.length; k++) if (str[k] !== " ") pon(A, c + k, r, str[k], v); };
     const escena = {
+      // ======== PSICODÉLICO: cada celda lleva su tono (H) ========
+      KALEIDO(A, t, dt, d, b) {   // caleidoscopio de 8 espejos
+        const cx = cols / 2, cy = filas / 2, asp = ch / cw, sector = TAU / 8;
+        for (let r = 0; r < filas; r++) for (let c = 0; c < cols; c++) {
+          const dx = c - cx, dy = (r - cy) * asp, rad = Math.hypot(dx, dy); let a = Math.atan2(dy, dx) % sector; if (a < 0) a += sector; if (a > sector / 2) a = sector - a;
+          const x = rad * Math.cos(a), y = rad * Math.sin(a), i = r * cols + c, v = .5 + .5 * Math.sin(x * .12 + Math.sin(y * .14 + t * .7) * 2 + t * .9 + b * 3);
+          A[i] = Math.pow(v, 1.8) * (.7 + b * .5); H[i] = (rad * .005 + t * .05 + a * .15) % 1;
+        }
+      },
+      ESPIRAL(A, t, dt, d, b) {   // brazos de espiral hipnótica que giran más rápido con el bajo
+        const cx = cols / 2, cy = filas / 2, asp = ch / cw;
+        for (let r = 0; r < filas; r++) for (let c = 0; c < cols; c++) {
+          const dx = c - cx, dy = (r - cy) * asp, rad = Math.hypot(dx, dy), ang = Math.atan2(dy, dx), i = r * cols + c, v = .5 + .5 * Math.sin(ang * 3 + Math.log(rad + 1) * 7 - t * (2.4 + b * 3));
+          A[i] = Math.min(1.1, Math.pow(v, 2) * Math.min(1, rad / 6) * Math.max(0, 1 - rad / (cols * .75)) * (.9 + b * .5) * 1.3); H[i] = (ang / TAU + t * .06 + rad * .004) % 1;
+        }
+      },
+      PLASMA(A, t, dt, d, b) {
+        const cx = cols / 2, cy = filas / 2, asp = ch / cw;
+        for (let r = 0; r < filas; r++) for (let c = 0; c < cols; c++) {
+          const v = (Math.sin(c * .07 + t) + Math.sin(r * .2 + t * 1.3) + Math.sin((c + r * 2) * .05 + t * .7) + Math.sin(Math.hypot(c - cx, (r - cy) * asp) * .08 - t * 1.6)) / 4 * .5 + .5, i = r * cols + c;
+          A[i] = Math.pow(v, 1.5) * (.6 + b * .7); H[i] = v + t * .03;
+        }
+      },
+      OJO(A, t, dt, d, b) {   // un ojo que parpadea, mira de lado y dilata la pupila con el bajo; rayos alrededor
+        A.fill(0); const cx = cols / 2, cy = filas * .5, asp = ch / cw, S = Math.min(cols * .2, filas * asp * .4), ciclo = t % 4.5, parp = ciclo > 4.2 ? Math.sin((ciclo - 4.2) / .3 * Math.PI) : 0, abierto = Math.max(.06, 1 - parp);
+        const ix = Math.sin(t * .5) * .18, iy = Math.sin(t * .37) * .08;
+        for (let r = 0; r < filas; r++) for (let c = 0; c < cols; c++) {
+          const X = (c - cx) / S, Y = (r - cy) * asp / S, i = r * cols + c, ang = Math.atan2(Y, X), rad = Math.hypot(X, Y), lid = (1 - Math.min(1, X * X)) * .55 * abierto, dist = Math.abs(Y) - lid;
+          H[i] = (ang / TAU + t * .07 + rad * .1) % 1;
+          if (Math.abs(X) < 1 && Math.abs(dist) < .05) { A[i] = 1.05; continue; }
+          if (Math.abs(X) < 1 && dist < 0) {
+            const ox = X - ix, oy = Y - iy, ir = Math.hypot(ox, oy), pupila = .12 + b * .12;
+            A[i] = ir < pupila ? 0 : ir < .34 ? (Math.abs(ir - .34) < .04 ? 1 : .25 + .5 * (.5 + .5 * Math.sin(Math.atan2(oy, ox) * 14 + t))) : .1; continue;
+          }
+          if (rad > 1.1 && Math.sin(ang * 22 + t * .6) > .82) A[i] = .08 + .35 * Math.max(0, 1 - (rad - 1.1) / 2);
+        }
+      },
+      // ======== ARCADE: cuatro juegos que juegan solos; los caracteres propios van en G ========
+      PONG(A, t, dt, d, b) {
+        const X0 = Math.round(cols * .25), W = cols - X0 - 2, po = (a, c, r, k, v) => pon(a, c + X0, r, k, v), tx = (a, c, r, str, v) => txt(a, c + X0, r, str, v);   // el campo de juego queda a la derecha de la carátula
+        A.fill(0);
+        const nueva = () => ({ c: W, f: filas, bx: W / 2, by: filas / 2, vx: 34 * (Math.random() < .5 ? 1 : -1), vy: (8 + Math.random() * 8) * (Math.random() < .5 ? 1 : -1), y1: filas / 2, y2: filas / 2, e1: 0, e2: 0, s1: 0, s2: 0 });
+        let P = juego.pong; if (!P || P.c !== W || P.f !== filas) P = juego.pong = nueva();
+        const alto = Math.max(4, Math.round(filas * .2)), v = 1 + b * .9, sirve = () => { P.bx = W / 2; P.by = filas / 2; P.vx = 34 * (Math.random() < .5 ? 1 : -1); P.vy = (8 + Math.random() * 8) * (Math.random() < .5 ? 1 : -1); };
+        P.bx += P.vx * dt * v; P.by += P.vy * dt * v;
+        if (P.by < 2) { P.by = 2; P.vy = Math.abs(P.vy); } if (P.by > filas - 2) { P.by = filas - 2; P.vy = -Math.abs(P.vy); }
+        const sigue = (y, objetivo) => y + Math.max(-24 * dt, Math.min(24 * dt, objetivo - y));
+        P.y1 = sigue(P.y1, P.by + P.e1); P.y2 = sigue(P.y2, P.by + P.e2);
+        if (P.bx < 4.5 && P.vx < 0 && Math.abs(P.by - P.y1) <= alto / 2 + 1) { P.vx = Math.min(70, Math.abs(P.vx) * 1.05); P.vy = Math.max(-22, Math.min(22, P.vy + (P.by - P.y1) * 1.6)); P.e2 = (Math.random() - .5) * alto * 1.9; }
+        if (P.bx > W - 5.5 && P.vx > 0 && Math.abs(P.by - P.y2) <= alto / 2 + 1) { P.vx = -Math.min(70, Math.abs(P.vx) * 1.05); P.vy = Math.max(-22, Math.min(22, P.vy + (P.by - P.y2) * 1.6)); P.e1 = (Math.random() - .5) * alto * 1.9; }
+        if (P.bx < 0) { P.s2 = (P.s2 + 1) % 100; sirve(); } if (P.bx > W) { P.s1 = (P.s1 + 1) % 100; sirve(); }
+        for (let r = 2; r < filas - 1; r += 2) po(A, W >> 1, r, "|", .3);
+        for (let k = -alto / 2; k <= alto / 2; k++) { po(A, 3, Math.round(P.y1 + k), "#", .95); po(A, W - 4, Math.round(P.y2 + k), "#", .95); }
+        tx(A, (W >> 1) - 9, 3, String(P.s1).padStart(2, "0"), .8); tx(A, (W >> 1) + 7, 3, String(P.s2).padStart(2, "0"), .8);
+        po(A, Math.round(P.bx), Math.round(P.by), "O", 1.25);
+      },
+      SNAKE(A, t, dt, d, b) {
+        const X0 = Math.round(cols * .25), W = cols - X0 - 2, po = (a, c, r, k, v) => pon(a, c + X0, r, k, v), tx = (a, c, r, str, v) => txt(a, c + X0, r, str, v);   // el campo de juego queda a la derecha de la carátula
+        A.fill(0);
+        const dentro = (S, x, y) => S.cuerpo.some(q => q.x === x && q.y === y);
+        const comida = (S) => { let x, y, n = 0; do { x = 3 + Math.floor(Math.random() * (W - 6)); y = 4 + Math.floor(Math.random() * (filas - 7)); } while (dentro(S, x, y) && ++n < 50); return { x, y }; };
+        const nueva = () => { const x = W >> 1, y = filas >> 1, S = { c: W, f: filas, cuerpo: [{ x, y }, { x: x - 1, y }, { x: x - 2, y }], dir: [1, 0], acc: 0 }; S.comida = comida(S); return S; };
+        let S = juego.snake; if (!S || S.c !== W || S.f !== filas) S = juego.snake = nueva();
+        S.acc += dt * (16 + b * 22);
+        while (S.acc >= 1) {
+          S.acc -= 1; const h = S.cuerpo[0]; let mejor = null;
+          for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+            if (dx === -S.dir[0] && dy === -S.dir[1]) continue; const nx = h.x + dx, ny = h.y + dy;
+            if (nx < 2 || nx > W - 3 || ny < 3 || ny > filas - 3 || dentro(S, nx, ny)) continue;
+            const sc = Math.abs(nx - S.comida.x) + Math.abs(ny - S.comida.y) * 2.1 + Math.random() * .5; if (!mejor || sc < mejor.sc) mejor = { dx, dy, sc };
+          }
+          if (!mejor || S.cuerpo.length > 80) { S = juego.snake = nueva(); break; }   // choca (o gana): empieza de nuevo
+          S.dir = [mejor.dx, mejor.dy]; S.cuerpo.unshift({ x: h.x + mejor.dx, y: h.y + mejor.dy });
+          if (S.cuerpo[0].x === S.comida.x && S.cuerpo[0].y === S.comida.y) S.comida = comida(S); else S.cuerpo.pop();
+        }
+        for (let c = 1; c < W - 1; c++) { po(A, c, 2, "-", .4); po(A, c, filas - 2, "-", .4); } for (let r = 2; r < filas - 1; r++) { po(A, 1, r, "|", .4); po(A, W - 2, r, "|", .4); }
+        S.cuerpo.forEach((q, i) => po(A, q.x, q.y, i ? "o" : "@", i ? .35 + .5 * (1 - i / S.cuerpo.length) : .98));
+        po(A, S.comida.x, S.comida.y, "*", 1.1); tx(A, 4, 1, "LARGO " + String(S.cuerpo.length).padStart(3, "0"), .7);
+      },
+      INVADERS(A, t, dt, d, b) {
+        const X0 = Math.round(cols * .25), W = cols - X0 - 2, po = (a, c, r, k, v) => pon(a, c + X0, r, k, v), tx = (a, c, r, str, v) => txt(a, c + X0, r, str, v);   // el campo de juego queda a la derecha de la carátula
+        A.fill(0);
+        const SPR = [["{o}", "/ \\"], ["<O>", "/^\\"], ["(@)", "|||"], ["[#]", "/ \\"], ["\\_/", "-|-"]], FIL = 5;
+        const nueva = () => { const n = Math.max(4, Math.min(11, Math.floor((W - 12) / 6))); return { c: W, f: filas, n, vivos: Array.from({ length: FIL }, () => Array(n).fill(true)), ox: 4, oy: 4, dir: 1, nave: W / 2, balas: [], expl: [], disp: 0, fin: 0 }; };
+        let V = juego.inv; if (!V || V.c !== W || V.f !== filas) V = juego.inv = nueva();
+        let vivos = 0; V.vivos.forEach(f => f.forEach(x => { if (x) vivos++; }));
+        if (!vivos || V.oy + FIL * 3 > filas - 6) { V.fin += dt; if (V.fin > 1.2) { juego.inv = nueva(); return; } tx(A, (W >> 1) - 5, filas >> 1, vivos ? "GAME  OVER" : "LEVEL  UP!", 1.2); }
+        else {
+          const ancho = V.n * 6, vel = 5 + 18 * (1 - vivos / (FIL * V.n)) + b * 4; V.ox += V.dir * vel * dt;
+          if (V.ox + ancho > W - 3 || V.ox < 3) { V.dir = -V.dir; V.ox = Math.max(3, Math.min(W - 3 - ancho, V.ox)); V.oy += 2; }
+          let objetivo = null; V.vivos.forEach((f, i) => f.forEach((x, j) => { if (x) { const cx = V.ox + j * 6 + 1; if (objetivo === null || Math.abs(cx - V.nave) < Math.abs(objetivo - V.nave)) objetivo = cx; } }));
+          V.nave += Math.max(-24 * dt, Math.min(24 * dt, objetivo - V.nave)); V.disp -= dt;
+          if (Math.abs(objetivo - V.nave) < 1.5 && V.disp <= 0) { V.balas.push({ x: Math.round(V.nave), y: filas - 4 }); V.disp = .42 / (1 + b * 1.8); }
+          V.balas.forEach(q => { q.y -= 40 * dt; V.vivos.forEach((f, i) => f.forEach((x, j) => { const ix = Math.round(V.ox + j * 6), iy = Math.round(V.oy + i * 3); if (x && !q.muerta && q.x >= ix && q.x <= ix + 2 && q.y >= iy && q.y <= iy + 1.5) { f[j] = false; q.muerta = true; V.expl.push({ x: ix + 1, y: iy, t: .25 }); } })); });
+          V.balas = V.balas.filter(q => q.y > 0 && !q.muerta); V.expl.forEach(e => { e.t -= dt; }); V.expl = V.expl.filter(e => e.t > 0);
+        }
+        V.vivos.forEach((f, i) => f.forEach((x, j) => { if (!x) return; const ix = Math.round(V.ox + j * 6), iy = Math.round(V.oy + i * 3), s = SPR[i % 5], pata = Math.floor(t * 2) % 2 ? s[1] : s[1].replace(/./g, (m, k) => (k === 1 ? " " : m)); tx(A, ix, iy, s[0], .85); tx(A, ix, iy + 1, pata, .6); }));
+        V.expl.forEach(e => tx(A, e.x - 1, e.y, "\\*/", 1.2)); V.balas.forEach(q => po(A, q.x, Math.round(q.y), "|", 1.2));
+        tx(A, Math.round(V.nave) - 1, filas - 3, "/A\\", .98); for (let c = 2; c < W - 2; c++) po(A, c, filas - 2, "_", .35);
+      },
+      BREAKOUT(A, t, dt, d, b) {
+        const X0 = Math.round(cols * .25), W = cols - X0 - 2, po = (a, c, r, k, v) => pon(a, c + X0, r, k, v), tx = (a, c, r, str, v) => txt(a, c + X0, r, str, v);   // el campo de juego queda a la derecha de la carátula
+        A.fill(0);
+        const nueva = () => { const bw = 5, n = Math.floor((W - 6) / bw); return { c: W, f: filas, bw, n, vivos: Array.from({ length: 6 }, () => Array(n).fill(true)), bx: W / 2, by: filas * .7, vx: 22, vy: -14, px: W / 2 }; };
+        let K = juego.brk; if (!K || K.c !== W || K.f !== filas) K = juego.brk = nueva();
+        const pw = Math.max(8, Math.round(W * .09)), v = 1 + b * .8, top = 3; K.bx += K.vx * dt * v; K.by += K.vy * dt * v;
+        if (K.bx < 1) { K.bx = 1; K.vx = Math.abs(K.vx); } if (K.bx > W - 2) { K.bx = W - 2; K.vx = -Math.abs(K.vx); } if (K.by < 1) { K.by = 1; K.vy = Math.abs(K.vy); }
+        K.px += Math.max(-38 * dt, Math.min(38 * dt, K.bx - K.px)); K.px = Math.max(pw / 2 + 1, Math.min(W - pw / 2 - 1, K.px));
+        if (K.by >= filas - 4 && K.vy > 0 && Math.abs(K.bx - K.px) <= pw / 2 + 1) { K.vy = -Math.abs(K.vy); K.vx = Math.max(-34, Math.min(34, K.vx + (K.bx - K.px) * 1.8)); }
+        if (K.by > filas) { K.bx = K.px; K.by = filas - 5; K.vy = -14; }
+        const ci = Math.floor((K.bx - 3) / K.bw), ri = Math.floor(K.by - top);
+        if (ri >= 0 && ri < 6 && ci >= 0 && ci < K.n && K.vivos[ri][ci]) { K.vivos[ri][ci] = false; K.vy = -K.vy; }
+        if (K.vivos.every(f => f.every(x => !x))) { juego.brk = nueva(); return; }
+        K.vivos.forEach((f, i) => f.forEach((x, j) => { if (x) tx(A, 3 + j * K.bw, top + i, "[==]", .95 - i * .1); }));
+        for (let k = -pw / 2; k <= pw / 2; k++) po(A, Math.round(K.px + k), filas - 3, "=", .98); po(A, Math.round(K.bx), Math.round(K.by), "O", 1.25);
+      },
       LLUVIA(A, t, dt, d, b) {
         A.fill(0); const vel = 1 + b * 2.4;
         for (let c = 0; c < cols; c++) {
@@ -190,10 +321,10 @@ const Ascii = (() => {
     function lanzar(t, forzado) {   // un evento nuevo con el tiempo
       const tipos = ["glitch", "alerta", "scan", "invertir"];
       let tipo = tipos[Math.floor(Math.random() * tipos.length)];
-      if (forzado) tipo = forzado; else if (t - t0 > 30 && t - demonioAntes > 80 && Math.random() < .3) tipo = "demonio";   // muy de vez en cuando
+      if (forzado) tipo = forzado; else if (T().demonio && t - t0 > 30 && t - demonioAntes > 80 && Math.random() < .3) tipo = "demonio";   // muy de vez en cuando
       if (tipo === "demonio") demonioAntes = t;
       if (tipo === "demonio" && criatura) { factorTam = .7; medir(); }   // más celdas y más chicas: el sprite se aprecia con más detalle
-      ev = { tipo, t0: t, dur: { glitch: .55, alerta: 2.6, scan: 1.2, invertir: .22, demonio: 18.6 }[tipo], criatura: tipo === "demonio" && !!criatura, msg: ALERTAS[Math.floor(Math.random() * ALERTAS.length)], filas: Array.from({ length: filas }, () => (Math.random() < .3 ? Math.round((Math.random() - .5) * 26) : 0)) };
+      ev = { tipo, t0: t, dur: { glitch: .55, alerta: 2.6, scan: 1.2, invertir: .22, demonio: 18.6 }[tipo], criatura: tipo === "demonio" && !!criatura, msg: T().alertas[Math.floor(Math.random() * T().alertas.length)], filas: Array.from({ length: filas }, () => (Math.random() < .3 ? Math.round((Math.random() - .5) * 26) : 0)) };
     }
 
     function dibujar(t, dt, d) {
@@ -201,11 +332,13 @@ const Ascii = (() => {
       const b = suaveB;
       // mezcla de escenas con fundido
       if (t0 === null) t0 = t;
-      if (sig < 0 && t - tCambio > cambio) { sig = (esc + 1) % ESCENAS.length; if (ESCENAS[sig] === "CARATULA" && !imgOk) sig = (sig + 1) % ESCENAS.length; tFundido = t; }
+      const ESC = T().escenas; if (esc >= ESC.length) esc = 0;
+      G.fill(0);
+      if (sig < 0 && t - tCambio > cambio) { sig = (esc + 1) % ESC.length; if (ESC[sig] === "CARATULA" && !imgOk) sig = (sig + 1) % ESC.length; tFundido = t; }
       if (tCambio === 1e9) tCambio = t;
-      escena[ESCENAS[esc]](I, t, dt, d, b);
+      escena[ESC[esc]](I, t, dt, d, b);
       let k = 0;
-      if (sig >= 0) { k = Math.min(1, (t - tFundido) / 1.6); escena[ESCENAS[sig]](J, t, dt, d, b); if (k >= 1) { esc = sig; sig = -1; tCambio = t; I.set(J); k = 0; } }
+      if (sig >= 0) { k = Math.min(1, (t - tFundido) / 1.6); escena[ESC[sig]](J, t, dt, d, b); if (k >= 1) { esc = sig; sig = -1; tCambio = t; I.set(J); k = 0; } }
       if (conEventos) {
         if (!ev && t - t0 > 5 && t > prox) { lanzar(t); prox = t + ev.dur + 10 + Math.random() * 10; }
         if (ev && t - ev.t0 > ev.dur) { if (ev.criatura) { factorTam = 1; medir(); } ev = null; }
@@ -217,21 +350,23 @@ const Ascii = (() => {
       g.clearRect(0, 0, lienzo.width, lienzo.height);
       if (invertido) { g.fillStyle = cadena(.9); g.fillRect(0, 0, lienzo.width, lienzo.height); }
       g.font = fuente(); g.textBaseline = "top";
-      const cubos = [[], [], [], [], [], [], []], u = ev && ev.tipo === "scan" ? (t - ev.t0) / ev.dur * (filas + 6) - 3 : -99;
+      const multi = !!T().multicolor, base = multi ? tonoDe(col) : 0, cubos = multi ? Array.from({ length: 84 }, () => []) : [[], [], [], [], [], [], []], u = ev && ev.tipo === "scan" ? (t - ev.t0) / ev.dur * (filas + 6) - 3 : -99;
       for (let rr = 0; rr < filas; rr++) {
         const desp = ev && (ev.tipo === "glitch" || (ev.tipo === "demonio" && t - ev.t0 > 16.4 && t - ev.t0 < 17.6)) ? ev.filas[rr] : 0;
         for (let c = 0; c < cols; c++) {
           const i = rr * cols + c; let v = k > 0 ? I[i] * (1 - k) + J[i] * k : I[i];
           if (Math.abs(rr - u) < 1.6) v += .9 * (1 - Math.abs(rr - u) / 1.6);
           if (v < .07) continue;
-          const chr = v >= 1 ? CABEZA[Math.floor(hash(c, rr, Math.floor(t * 9)) * CABEZA.length)] : RAMPA[Math.min(RAMPA.length - 1, Math.floor(v * (RAMPA.length - 1) + .4))];
+          const chr = G[i] ? String.fromCharCode(G[i]) : v >= 1 ? CABEZA[Math.floor(hash(c, rr, Math.floor(t * 9)) * CABEZA.length)] : RAMPA[Math.min(RAMPA.length - 1, Math.floor(v * (RAMPA.length - 1) + .4))];
           if (chr === " ") continue;
-          cubos[Math.min(6, Math.floor(v * 5))].push((c + desp) * cw, rr * ch, chr);
+          const nv = Math.min(6, Math.floor(v * 5));
+          cubos[multi ? nv * 12 + (Math.floor((((H[i] % 1) + 1) % 1) * 12) % 12) : nv].push((c + desp) * cw, rr * ch, chr);
         }
       }
-      for (let l = 0; l < 7; l++) {
+      for (let l = 0; l < cubos.length; l++) {
         const q = cubos[l]; if (!q.length) continue;
-        g.fillStyle = invertido ? "#000" : l === 6 ? "#e8fff0" : cadena(.18 + l * .14);
+        if (multi) { const nv = Math.floor(l / 12), hb = l % 12; g.fillStyle = invertido ? "#000" : `hsl(${(base + hb * 30) % 360},95%,${nv >= 6 ? 86 : 30 + nv * 9}%)`; }
+        else g.fillStyle = invertido ? "#000" : l === 6 ? "#e8fff0" : cadena(.18 + l * .14);
         for (let n = 0; n < q.length; n += 3) g.fillText(q[n + 2], q[n], q[n + 1]);
       }
       if (ev && ev.tipo === "glitch") {   // fantasma de color desplazado
@@ -241,10 +376,10 @@ const Ascii = (() => {
       // línea de estado arriba y arranque que se tipea
       g.fillStyle = cadena(.85);
       const barra = "|".repeat(Math.round(b * 12)).padEnd(12, ".");
-      g.fillText(`[ ASCII ]  ESCENA: ${ESCENAS[sig >= 0 && k > .5 ? sig : esc]}${ev ? "  EVENTO: " + ev.tipo.toUpperCase() : ""}  BAJO [${barra}]  T+${String(Math.floor(t - t0)).padStart(4, "0")}s`, cw, ch * .3);
+      g.fillText(`[ ${T().nombre} ]  ESCENA: ${ESC[sig >= 0 && k > .5 ? sig : esc]}${ev ? "  EVENTO: " + ev.tipo.toUpperCase() : ""}  BAJO [${barra}]  T+${String(Math.floor(t - t0)).padStart(4, "0")}s`, cw, ch * .3);
       const ta = t - t0;
       if (ta < 7) { g.globalAlpha = ta > 5.5 ? Math.max(0, (7 - ta) / 1.5) : 1; let n = Math.floor(ta * 34);
-        ARRANQUE.forEach((linea, i) => { const mostrar = linea.slice(0, Math.max(0, n)); n -= linea.length + 6; g.fillStyle = "#e8fff0"; g.fillText(mostrar + (mostrar.length < linea.length && mostrar.length ? "█" : ""), cw, ch * (2 + i)); }); g.globalAlpha = 1; }
+        T().arranque.forEach((linea, i) => { const mostrar = linea.slice(0, Math.max(0, n)); n -= linea.length + 6; g.fillStyle = "#e8fff0"; g.fillText(mostrar + (mostrar.length < linea.length && mostrar.length ? "█" : ""), cw, ch * (2 + i)); }); g.globalAlpha = 1; }
       if (ev && ev.tipo === "alerta") {
         const prog = Math.min(1, (t - ev.t0) / .5), txt = ev.msg.split("").map((x, i) => (i < prog * ev.msg.length ? x : CABEZA[Math.floor(Math.random() * CABEZA.length)])).join("");
         const ancho = txt.length + 6, x0 = Math.floor((cols - ancho) / 2) * cw, y0 = Math.floor(filas * .68) * ch, parpadeo = Math.floor((t - ev.t0) * 6) % 2 === 0;
@@ -253,7 +388,9 @@ const Ascii = (() => {
       }
     }
 
+    const setTema = (n) => { if (!TEMAS[n] || n === tema) return; tema = n; esc = 0; sig = -1; tCambio = 1e9; ev = null; t0 = null; juego = {}; factorTam = 1; medir(); };   // vuelve a empezar: arranque y primera escena del tema
     cont.__lanzar = (tipo) => lanzar(performance.now() / 1000, tipo);   // para pruebas   // para pruebas
+    cont.__escena = (n) => { esc = n % T().escenas.length; sig = -1; tCambio = 1e9; };   // para pruebas y vistas previas
     cont.__ascii = () => ({ t0, esc, sig, tCambio, cambio, ev: ev && ev.tipo, prox, cols, filas, ultimo });   // para pruebas
     R.cadaCuadro(() => {   // el tiempo de la app avanza por cuadro (más lento si el equipo va a menos de 60); aquí se usa el reloj real para que escenas y eventos duren lo que dicen
       const t = performance.now() / 1000;
@@ -262,6 +399,7 @@ const Ascii = (() => {
       const d = R.espectro(); suaveB += (Math.min(1, R.energia(d, 1, 8) * 1.2) - suaveB) * .25; suaveM += (R.energia(d, 10, 60) - suaveM) * .2; suaveA += (R.energia(d, 60, 200) - suaveA) * .2;
       dibujar(t, dt, d);
     });
+    return { tema: setTema };
   }
   return { montar };
 })();

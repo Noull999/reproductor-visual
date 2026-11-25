@@ -18,7 +18,7 @@ VERSION = 1
 # Qué claves de variante guarda cada plantilla (las mismas que lee al abrirse)
 AJUSTABLES = {
     "liquido": ["tema-liquido"], "headspace": ["cuerpo-headspace", "color-headspace"], "dosmil": ["skin-2000s"], "ambiente": ["tema-ambiente"],
-    "pixel": ["paleta-pixel"], "neoy2k": ["tema-neoy2k"], "psicodelico": ["color-psicodelico"], "dreamcore": ["escena-dreamcore"], "anime": [], "aero": ["escena-aero"], "cromo": ["color-cromo"], "ascii": ["color-ascii"],
+    "pixel": ["paleta-pixel"], "neoy2k": ["tema-neoy2k"], "psicodelico": ["color-psicodelico"], "dreamcore": ["escena-dreamcore"], "anime": [], "aero": ["escena-aero"], "cromo": ["color-cromo"], "ascii": ["color-ascii", "tema-ascii"],
 }
 _HEX = re.compile(r"^#[0-9a-fA-F]{6}$")
 _NOMBRE = re.compile(r"^[\w ·.-]{1,32}$")
