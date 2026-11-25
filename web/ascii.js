@@ -71,11 +71,18 @@ const Ascii = (() => {
       const porBrillo = op.imagenModo === "brillo", v = new Float32Array(wc * hc), q = new Uint8Array(wc * hc), suma = Array.from({ length: 64 }, () => [0, 0, 0, 0]);
       for (let i = 0; i < wc * hc; i++) { const k = (px[i * 4] >> 6) * 16 + (px[i * 4 + 1] >> 6) * 4 + (px[i * 4 + 2] >> 6); q[i] = k; const s = suma[k]; s[0] += px[i * 4]; s[1] += px[i * 4 + 1]; s[2] += px[i * 4 + 2]; s[3]++; }
       const dom = suma.reduce((m, s, k) => (s[3] > suma[m][3] ? k : m), 0), [fr, fg, fb] = [0, 1, 2].map(o => suma[dom][o] / Math.max(1, suma[dom][3]));   // el fondo = el color más común de la imagen
-      for (let i = 0; i < wc * hc; i++) {
-        const R_ = px[i * 4], G_ = px[i * 4 + 1], B_ = px[i * 4 + 2], lum = (.299 * R_ + .587 * G_ + .114 * B_) / 255;
-        const dist = Math.max(Math.abs(R_ - fr), Math.abs(G_ - fg), Math.abs(B_ - fb)) / 255;
-        v[i] = px[i * 4 + 3] < 40 ? 0 : porBrillo ? Math.pow(lum, 1.2) : Math.min(1, Math.max(0, dist - .1) * 2.6);   // lo casi igual al fondo se descarta
+      const lumC = new Float32Array(wc * hc), claro = (.299 * fr + .587 * fg + .114 * fb) / 255 > .5;   // fondo claro: la tinta oscura es la que se densifica
+      for (let i = 0; i < wc * hc; i++) lumC[i] = (.299 * px[i * 4] + .587 * px[i * 4 + 1] + .114 * px[i * 4 + 2]) / 255;
+      for (let r = 0; r < hc; r++) for (let c = 0; c < wc; c++) {
+        const i = r * wc + c, o = i * 4, lum = lumC[i];
+        if (px[o + 3] < 40) continue;
+        if (porBrillo) { v[i] = Math.pow(lum, 1.2); continue; }
+        const dist = Math.max(Math.abs(px[o] - fr), Math.abs(px[o + 1] - fg), Math.abs(px[o + 2] - fb)) / 255, mascara = Math.min(1, Math.max(0, (dist - .2) / .2));
+        const gx = (lumC[r * wc + Math.min(wc - 1, c + 1)] - lumC[r * wc + Math.max(0, c - 1)]), gy = (lumC[Math.min(hc - 1, r + 1) * wc + c] - lumC[Math.max(0, r - 1) * wc + c]);
+        const borde = Math.min(1, Math.max(0, Math.hypot(gx, gy) * 2.6 - .45) * 1.6), densidad = claro ? 1 - lum : lum;   // sombras con la luminosidad de la imagen + contornos marcados
+        v[i] = Math.min(1, Math.max(mascara * (.1 + .32 * densidad), borde));   // relleno tenue y contornos brillantes: el sujeto se separa de las manchas
       }
+      const kc = (op.imagenContraste || 140) / 100; if (kc !== 1) for (let i = 0; i < v.length; i++) v[i] = Math.min(1, Math.max(0, (v[i] - .45) * kc + .45));   // más contraste: desaparecen los grises medios
       miaPal = suma.map(([a, b_, c_, n]) => { if (!n) return "#fff"; let r_ = a / n, g_ = b_ / n, bb = c_ / n; const m = Math.max(r_, g_, bb, 1), f = Math.max(1, 150 / m); return `rgb(${Math.min(255, r_ * f) | 0},${Math.min(255, g_ * f) | 0},${Math.min(255, bb * f) | 0})`; });
       mia = { wc, hc, ox: (cols - wc) >> 1, oy: ((filas - hc) >> 1) + 1, v, q };
     }
