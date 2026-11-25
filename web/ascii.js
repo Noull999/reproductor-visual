@@ -14,18 +14,20 @@ const Ascii = (() => {
     const lienzo = document.createElement("canvas"); lienzo.style.pointerEvents = "none"; cont.appendChild(lienzo);
     const g = lienzo.getContext("2d");
     const cambio = Math.max(8, Math.min(120, +op.cambio || 26)), conEventos = op.eventos !== false;
-    let demonioAntes = -1e9, velo = null, info = null, calor = null, giroA = 0, giroB = 0, cols = 0, filas = 0, cw = 8, ch = 14, tam = 16, I = null, J = null, lluvia = null, ultimo = 0, esc = 0, sig = -1, tFundido = 0, tCambio = 1e9, t0 = null;
+    let factorTam = 1, criatura = null, demonioAntes = -1e9, velo = null, info = null, calor = null, giroA = 0, giroB = 0, cols = 0, filas = 0, cw = 8, ch = 14, tam = 16, I = null, J = null, lluvia = null, ultimo = 0, esc = 0, sig = -1, tFundido = 0, tCambio = 1e9, t0 = null;
     let imgOk = false, mini = null, caratula = new Image(), prox = 9 + Math.random() * 8, ev = null, suaveB = 0, suaveM = 0, suaveA = 0;
     const fuente = () => `${tam}px "VT323", "Cascadia Mono", Consolas, monospace`;
 
     function medir() {
-      tam = Math.max(14, Math.round(innerHeight / 46)); g.font = fuente(); cw = Math.max(5, g.measureText("M").width); ch = tam * .92;
+      tam = Math.max(10, Math.round(innerHeight / 46 * factorTam)); g.font = fuente(); cw = Math.max(5, g.measureText("M").width); ch = tam * .92;
       cols = Math.max(20, Math.floor(innerWidth / cw)); filas = Math.max(10, Math.floor(innerHeight / ch));
       lienzo.width = innerWidth; lienzo.height = innerHeight; I = new Float32Array(cols * filas); J = new Float32Array(cols * filas);
       calor = new Float32Array(cols * (filas + 2));
       lluvia = { y: Float32Array.from({ length: cols }, () => Math.random() * filas), v: Float32Array.from({ length: cols }, () => 6 + Math.random() * 14), l: Float32Array.from({ length: cols }, () => 6 + Math.random() * 16) };
       mini = document.createElement("canvas"); mini.width = cols; mini.height = filas;
     }
+    // la criatura del evento: un sprite hecho con tools/imagen_a_sprite.py (web/criaturas/*.json); si no está, se usa el demonio dibujado con código
+    (window.__CRIATURA ? Promise.resolve(window.__CRIATURA) : fetch("criaturas/oni.json").then(r => (r.ok ? r.json() : null))).then(d => { if (d && Array.isArray(d.v) && d.v.length && d.boca && d.ojos) criatura = d; }).catch(() => {});
     if (document.fonts && document.fonts.load) document.fonts.load('20px "VT323"').then(medir).catch(() => {});
     medir();
 
@@ -135,6 +137,30 @@ const Ascii = (() => {
       }
       return { mx: (cx) * cw, my: (cy + mY * S / asp) * ch, grow };
     }
+
+    // el sprite (imagen convertida a caracteres): se balancea, los ojos brillan con el bajo, la mandíbula se parte en el "corte" y se separa al abrir la boca,
+    // y al devorar se acerca a la cámara (zoom hacia la boca). Mismo guion que el demonio de código.
+    function sprite(A, u, t, b) {
+      A.fill(0); const D = criatura, asp = ch / cw, entra = ease(u / 2), abre = ease((u - 9) / 3), grow = ease((u - 12) / 2.2);
+      const s0 = filas * .93 / D.filas, sx0 = s0 * asp / 2.1;   // celdas de pantalla por celda de sprite (alto y ancho; el sprite se generó con celdas 2,1 veces más altas que anchas)
+      const cxS = cols / 2 + Math.sin(t * .9) * cols * .02 + (abre > .1 && u < 12 ? (Math.random() - .5) * .8 * abre : 0), cyS = filas * .5 + (1 - entra) * filas * .6 + Math.sin(t * 1.7) * filas * .01;
+      const [bx, by] = D.boca, mxS = cxS + (bx - D.cols / 2) * sx0, myS = cyS + (by - D.filas / 2) * s0;   // la boca es el pivote del zoom
+      const f = 1 + grow * 2.4, s = s0 * f, sx = sx0 * f, desp = abre * D.filas * .11, gan = .88 + b * .12;
+      const muestra = (px, py) => { if (py >= D.corte) { if (py < D.corte + desp) return 0; py -= desp; } const ix = Math.floor(px), iy = Math.floor(py); return ix < 0 || iy < 0 || iy >= D.filas || ix >= D.cols ? 0 : D.v[iy].charCodeAt(ix) - 48; };
+      for (let r = 0; r < filas; r++) for (let c = 0; c < cols; c++) {
+        const px = bx + (c - mxS) / sx, py = by + (r - myS) / s; if (px < -1 || px > D.cols + 1 || py < -1 || py > D.filas + D.filas * .2) continue;
+        const hw = Math.max(0, (1 / sx - 1) / 2), hh = Math.max(0, (1 / s - 1) / 2);   // al achicar se toma el máximo de varios puntos para no perder líneas finas; a tamaño normal, uno solo
+        const m = hw || hh ? Math.max(muestra(px - hw, py - hh), muestra(px + hw, py - hh), muestra(px - hw, py + hh), muestra(px + hw, py + hh)) : muestra(px, py);
+        if (m) A[r * cols + c] = Math.min(.98, Math.pow(m / 9, 1.25) * 1.18 * gan);   // se acentúan las líneas fuertes y se apagan los restos
+      }
+      for (const [ex, ey] of D.ojos) {   // ojos que brillan con el bajo
+        const ox = mxS + (ex - bx) * sx, oy = myS + (ey - by) * s + (ey > D.corte ? desp * s : 0), rc = D.cols * .05 * sx, rr = rc * cw / ch;
+        for (let r = Math.max(0, Math.floor(oy - rr)); r <= Math.min(filas - 1, Math.ceil(oy + rr)); r++) for (let c = Math.max(0, Math.floor(ox - rc)); c <= Math.min(cols - 1, Math.ceil(ox + rc)); c++) {
+          const q = Math.hypot((c - ox) / rc, (r - oy) / rr); if (q < 1) A[r * cols + c] = Math.max(A[r * cols + c], q < .45 ? 1.35 : (.25 + b * .75) * (1 - q));
+        }
+      }
+      return { mx: mxS * cw, my: (myS + ((D.corte + desp / 2) - by) * s) * ch, grow };
+    }
     // lo que cubre la pantalla entera (por encima de la interfaz): el círculo negro que sale de la boca, caracteres aspirados y los ojos en la oscuridad
     function dibujarVelo(u, t, col) {
       if (!velo) { velo = document.createElement("canvas"); velo.style.cssText = "position:fixed;inset:0;z-index:80;pointer-events:none"; document.body.appendChild(velo); }
@@ -154,17 +180,20 @@ const Ascii = (() => {
         for (let i = 0; i < n; i++) { const a = i / n * TAU, rr = R * (1 + (hash(i, 7, Math.floor(t * 10)) - .5) * .025); g2.fillText(CABEZA[Math.floor(hash(i, 9, Math.floor(t * 6)) * CABEZA.length)], info.mx + Math.cos(a) * rr, info.my + Math.sin(a) * rr); }
       }
       if (u > 14.2 && u < 16.6 && R > Rmax * .9) {   // oscuridad: solo se ven los ojos
-        const al = Math.min(1, (u - 14.2) / .4) * Math.min(1, (16.6 - u) / .4); g2.fillStyle = vivo + al + ")"; g2.font = `${tam * 3}px "VT323", monospace`;
+        const al = Math.min(1, (u - 14.2) / .4) * Math.min(1, (16.6 - u) / .4); g2.fillStyle = vivo + al + ")"; g2.font = `${Math.round(innerHeight / 46 * 3)}px "VT323", monospace`;
         const ojo = Math.floor(t * 3) % 8 === 0 ? "-  -" : "(O)  (O)"; g2.fillText(ojo, innerWidth / 2, innerHeight * .46);
-        if (u > 14.8) { g2.font = `${tam * 1.4}px "VT323", monospace`; g2.fillStyle = `rgba(232,255,240,${al * .8})`; g2.fillText(u < 15.6 ? "*GULP*" : "...tenia hambre.", innerWidth / 2, innerHeight * .46 + tam * 3.2); }
+        const unidad = innerHeight / 46;
+        if (u > 14.8) { g2.font = `${Math.round(innerHeight / 46 * 1.4)}px "VT323", monospace`; g2.fillStyle = `rgba(232,255,240,${al * .8})`; g2.fillText(u < 15.6 ? "*GULP*" : "...tenia hambre.", innerWidth / 2, innerHeight * .46 + unidad * 3.2); }
       }
     }
 
-    function lanzar(t) {   // un evento nuevo con el tiempo
+    function lanzar(t, forzado) {   // un evento nuevo con el tiempo
       const tipos = ["glitch", "alerta", "scan", "invertir"];
       let tipo = tipos[Math.floor(Math.random() * tipos.length)];
-      if (t - t0 > 30 && t - demonioAntes > 80 && Math.random() < .3) { tipo = "demonio"; demonioAntes = t; }   // muy de vez en cuando
-      ev = { tipo, t0: t, dur: { glitch: .55, alerta: 2.6, scan: 1.2, invertir: .22, demonio: 18.6 }[tipo], msg: ALERTAS[Math.floor(Math.random() * ALERTAS.length)], filas: Array.from({ length: filas }, () => (Math.random() < .3 ? Math.round((Math.random() - .5) * 26) : 0)) };
+      if (forzado) tipo = forzado; else if (t - t0 > 30 && t - demonioAntes > 80 && Math.random() < .3) tipo = "demonio";   // muy de vez en cuando
+      if (tipo === "demonio") demonioAntes = t;
+      if (tipo === "demonio" && criatura) { factorTam = .7; medir(); }   // más celdas y más chicas: el sprite se aprecia con más detalle
+      ev = { tipo, t0: t, dur: { glitch: .55, alerta: 2.6, scan: 1.2, invertir: .22, demonio: 18.6 }[tipo], criatura: tipo === "demonio" && !!criatura, msg: ALERTAS[Math.floor(Math.random() * ALERTAS.length)], filas: Array.from({ length: filas }, () => (Math.random() < .3 ? Math.round((Math.random() - .5) * 26) : 0)) };
     }
 
     function dibujar(t, dt, d) {
@@ -179,9 +208,9 @@ const Ascii = (() => {
       if (sig >= 0) { k = Math.min(1, (t - tFundido) / 1.6); escena[ESCENAS[sig]](J, t, dt, d, b); if (k >= 1) { esc = sig; sig = -1; tCambio = t; I.set(J); k = 0; } }
       if (conEventos) {
         if (!ev && t - t0 > 5 && t > prox) { lanzar(t); prox = t + ev.dur + 10 + Math.random() * 10; }
-        if (ev && t - ev.t0 > ev.dur) ev = null;
+        if (ev && t - ev.t0 > ev.dur) { if (ev.criatura) { factorTam = 1; medir(); } ev = null; }
       }
-      if (ev && ev.tipo === "demonio") { info = demonio(I, t - ev.t0, t, b); k = 0; } else info = null;
+      if (ev && ev.tipo === "demonio") { info = (ev.criatura ? sprite : demonio)(I, t - ev.t0, t, b); k = 0; } else info = null;
       dibujarVelo(ev && ev.tipo === "demonio" ? t - ev.t0 : -1, t, col);
       document.body.classList.toggle("demonioActivo", !!(ev && ev.tipo === "demonio" && t - ev.t0 < 16.4));   // la interfaz se esconde para que se vea el demonio
       const invertido = ev && ev.tipo === "invertir";
@@ -224,7 +253,7 @@ const Ascii = (() => {
       }
     }
 
-    cont.__lanzar = (tipo) => { lanzar(performance.now() / 1000); if (tipo) ev.tipo = tipo, ev.dur = { glitch: .55, alerta: 2.6, scan: 1.2, invertir: .22, demonio: 18.6 }[tipo]; };   // para pruebas
+    cont.__lanzar = (tipo) => lanzar(performance.now() / 1000, tipo);   // para pruebas   // para pruebas
     cont.__ascii = () => ({ t0, esc, sig, tCambio, cambio, ev: ev && ev.tipo, prox, cols, filas, ultimo });   // para pruebas
     R.cadaCuadro(() => {   // el tiempo de la app avanza por cuadro (más lento si el equipo va a menos de 60); aquí se usa el reloj real para que escenas y eventos duren lo que dicen
       const t = performance.now() / 1000;

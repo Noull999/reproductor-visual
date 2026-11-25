@@ -7,3 +7,6 @@ capturas/
 keyspoti*
 key*.txt
 _entrantes/
+
+# criaturas: sprites ASCII hechos con tools/imagen_a_sprite.py. Quedan solo en tu PC (la imagen original puede tener derechos); sin ellos la app usa el demonio dibujado con codigo
+web/criaturas/*.json

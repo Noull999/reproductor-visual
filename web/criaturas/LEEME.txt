@@ -1,0 +1,4 @@
+Aqui van las criaturas del evento "demonio" de la plantilla ASCII (oni.json es la que busca la app).
+Se hacen con:  python tools/imagen_a_sprite.py imagen.png web/criaturas/oni.json --filas 64 --ojos "x,y;x,y" --boca "x,y" --corte y
+Los archivos .json de esta carpeta NO se suben al repositorio (la imagen original puede tener derechos de autor).
+Si no hay oni.json, el evento usa el demonio dibujado con codigo.
