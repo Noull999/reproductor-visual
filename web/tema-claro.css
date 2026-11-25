@@ -30,3 +30,6 @@ html[data-tema="claro"] .ranura .mini { background-color: #e4e2dc; }
 html[data-tema="claro"] .carpeta { background: #faf9f7; border: 1px solid var(--borde); }
 html[data-tema="claro"] .tema-op { background: #fff; }
 html[data-tema="claro"] .tema-op.sel { background: #141414; color: #fff; border-color: #141414; }
+html[data-tema="claro"] .audio-pc select { background: #fff; color: var(--texto); color-scheme: light; }
+html[data-tema="claro"] .audio-pc option { background: #fff; color: #141414; }
+html[data-tema="claro"] .audio-pc { color: #5b5851; }
