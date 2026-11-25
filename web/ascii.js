@@ -10,7 +10,7 @@ const Ascii = (() => {
     terminal: { nombre: "ASCII", escenas: ["LLUVIA", "DONA", "ONDAS", "FUEGO", "TUNEL", "CARATULA"], demonio: true,
       alertas: ["SENAL FUERTE DETECTADA", "BAJO >> MAXIMO", "SINCRONIZANDO RITMO...", "NUCLEO ESTABLE", "ANOMALIA EN EL ESPECTRO"],
       arranque: ["> boot reproductor.sys", "> cargando visuales ........ OK", "> senal de audio ........... OK", "> modo ascii activado"] },
-    psicodelico: { nombre: "PSICO", escenas: ["KALEIDO", "ESPIRAL", "PLASMA", "OJO"], multicolor: true,
+    psicodelico: { nombre: "PSICO", escenas: ["KALEIDO", "ESPIRAL", "INFINITO", "OJO"], multicolor: true,
       alertas: ["TODO ES UN ESPIRAL", "RESPIRA", "MIRA FIJO", "EL COLOR TIENE SONIDO", "NO PARPADEES"],
       arranque: ["> abriendo la percepcion ...", "> filtro de realidad ....... OFF", "> espiral .................. ON", "> mira fijo"] },
     juegos: { nombre: "ARCADE", escenas: ["PONG", "SNAKE", "INVADERS", "BREAKOUT"], glifos: true,
@@ -163,11 +163,28 @@ const Ascii = (() => {
           A[i] = Math.min(1.1, Math.pow(v, 2) * Math.min(1, rad / 6) * Math.max(0, 1 - rad / (cols * .75)) * (.9 + b * .5) * 1.3); H[i] = (ang / TAU + t * .06 + rad * .004) % 1;
         }
       },
-      PLASMA(A, t, dt, d, b) {
-        const cx = cols / 2, cy = filas / 2, asp = ch / cw;
+      INFINITO(A, t, dt, d, b) {   // un ojo dentro de otro, sin fin: el zoom cae hacia la pupila (efecto Droste); el bajo acelera la caída
+        juego.zo = (juego.zo || 0) + dt * (.14 + b * .55); const f = juego.zo % 1, asp = ch / cw, S = cols * .4, RP = .24, s = Math.pow(RP, f);
         for (let r = 0; r < filas; r++) for (let c = 0; c < cols; c++) {
-          const v = (Math.sin(c * .07 + t) + Math.sin(r * .2 + t * 1.3) + Math.sin((c + r * 2) * .05 + t * .7) + Math.sin(Math.hypot(c - cx, (r - cy) * asp) * .08 - t * 1.6)) / 4 * .5 + .5, i = r * cols + c;
-          A[i] = Math.pow(v, 1.5) * (.6 + b * .7); H[i] = v + t * .03;
+          let X = (c - cols / 2) / S * s, Y = (r - filas / 2) * asp / S * s, v = .5, tono = 0, hecho = false, nivel = 0;
+          for (; nivel < 6 && !hecho; nivel++) {
+            const rad = Math.hypot(X, Y), ang = Math.atan2(Y, X);
+            if (rad < RP) { X /= RP; Y /= RP; continue; }   // dentro de la pupila va un ojo igual, más chico
+            const ax = Math.abs(X), lid = ax < 1 ? .62 * Math.pow(1 - ax * ax, .8) : -1, dist = Math.abs(Y) - lid;
+            if (lid >= 0 && dist < 0) {   // el ojo: párpado, esclerótica, iris con estrías y el borde de la pupila
+              if (dist > -.07) v = 1;
+              else if (Math.abs(rad - RP) < .035) v = 1;
+              else if (Math.abs(rad - .5) < .04) v = .95;
+              else if (rad < .5) v = .22 + .4 * (.5 + .5 * Math.sin(ang * 18 + nivel * 2));
+              else v = .06;
+            } else if (lid >= 0 && dist < .1 && dist > .05) v = .95;   // pliegue del párpado
+            else if (lid >= 0 && dist < .4 && Math.sin(ang * 26) > .45) v = 1;   // pestañas
+            else v = .1;
+            tono = nivel * .16 + t * .04 + rad * .25 + f * .16; hecho = true;
+          }
+          const i = r * cols + c;
+          if (!hecho) { v = .45; tono = t * .04 + nivel * .16; }
+          A[i] = Math.min(1.1, v * (.85 + b * .35)); H[i] = tono % 1;
         }
       },
       OJO(A, t, dt, d, b) {   // un ojo que parpadea, mira de lado y dilata la pupila con el bajo; rayos alrededor
