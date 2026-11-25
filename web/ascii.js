@@ -27,6 +27,8 @@ const Ascii = (() => {
     const cambio = Math.max(8, Math.min(120, +op.cambio || 26)), conEventos = op.eventos !== false;
     let tema = TEMAS[op.tema] ? op.tema : "terminal", G = null, H = null, juego = {}, factorTam = 1, criatura = null, demonioAntes = -1e9, velo = null, info = null, calor = null, giroA = 0, giroB = 0, cols = 0, filas = 0, cw = 8, ch = 14, tam = 16, I = null, J = null, lluvia = null, ultimo = 0, esc = 0, sig = -1, tFundido = 0, tCambio = 1e9, t0 = null;
     let mia = null, miaImg = null, miaPal = [], K = null;   // la imagen propia (op.imagen) ya convertida
+    // efectos al ritmo (ritmo.js): onda con el bombo, corte con la caja, chispas con los platillos, destello y sacudida en la caída
+    const ritmo = typeof Ritmo !== "undefined" && op.ritmo !== false ? Ritmo.crear() : null; let ondas = [], chispas = [], sacT = -9, flashT = -9, corte = null;
     let imgOk = false, mini = null, caratula = new Image(), prox = 9 + Math.random() * 8, ev = null, suaveB = 0, suaveM = 0, suaveA = 0;
     const T = () => TEMAS[tema];
     const fuente = () => `${tam}px "VT323", "Cascadia Mono", Consolas, monospace`;
@@ -496,14 +498,19 @@ const Ascii = (() => {
       g.clearRect(0, 0, lienzo.width, lienzo.height);
       if (invertido) { g.fillStyle = cadena(.9); g.fillRect(0, 0, lienzo.width, lienzo.height); }
       g.font = fuente(); g.textBaseline = "top";
+      const asp = ch / cw, rMax = Math.hypot(cols / 2, filas / 2 * asp), anillos = ondas.filter(o => t >= o).map(o => ({ R: (t - o) / .7 * rMax, k: .75 * (1 - (t - o) / .7) }));
+      const sac = Math.max(0, 1 - Math.abs(t - sacT) / .14) * (t >= sacT ? 1 : 0), conCorte = corte && t - corte.t < .12;
+      if (sac) g.setTransform(1, 0, 0, 1, (Math.random() - .5) * 7 * sac, (Math.random() - .5) * 5 * sac);   // sacudida corta
       const multi = !!T().multicolor, base = multi ? tonoDe(col) : 0, L0 = multi ? 168 : 7, cubos = Array.from({ length: L0 + 65 }, () => []), u = ev && ev.tipo === "scan" ? (t - ev.t0) / ev.dur * (filas + 6) - 3 : -99;
       for (let rr = 0; rr < filas; rr++) {
-        const desp = ev && (ev.tipo === "glitch" || (ev.tipo === "demonio" && t - ev.t0 > 16.4 && t - ev.t0 < 17.6)) ? ev.filas[rr] : 0;
+        const desp = (ev && (ev.tipo === "glitch" || (ev.tipo === "demonio" && t - ev.t0 > 16.4 && t - ev.t0 < 17.6)) ? ev.filas[rr] : 0) + (conCorte ? corte.f[rr] || 0 : 0);
         for (let c = 0; c < cols; c++) {
           const i = rr * cols + c; let v = k > 0 ? I[i] * (1 - k) + J[i] * k : I[i];
           if (Math.abs(rr - u) < 1.6) v += .9 * (1 - Math.abs(rr - u) / 1.6);
+          let forz = 0;   // el anillo del bombo lleva sus propias letras: se lee como un círculo aunque el fondo esté cargado
+          if (anillos.length) { const dist = Math.hypot(c - cols / 2, (rr - filas / 2) * asp); for (const a of anillos) { const dd = Math.abs(dist - a.R); if (dd < 2.2) { const q = 1 - dd / 2.2; v = Math.max(v + a.k * q, a.k * 1.4 * q); forz = dd < .9 ? 64 : 43; } } }
           if (v < .07) continue;
-          const chr = G[i] ? String.fromCharCode(G[i]) : v >= 1 ? CABEZA[Math.floor(hash(c, rr, Math.floor(t * 9)) * CABEZA.length)] : RAMPA[Math.min(RAMPA.length - 1, Math.floor(v * (RAMPA.length - 1) + .4))];
+          const chr = forz && v > .3 ? String.fromCharCode(forz) : G[i] ? String.fromCharCode(G[i]) : v >= 1 ? CABEZA[Math.floor(hash(c, rr, Math.floor(t * 9)) * CABEZA.length)] : RAMPA[Math.min(RAMPA.length - 1, Math.floor(v * (RAMPA.length - 1) + .4))];
           if (chr === " ") continue;
           const nv = Math.min(6, Math.floor(v * 5));
           if (K[i]) { cubos[L0 + K[i]].push((c + desp) * cw, rr * ch, chr); continue; }
@@ -518,6 +525,9 @@ const Ascii = (() => {
         else g.fillStyle = invertido ? "#000" : l === 6 ? "#e8fff0" : cadena(.18 + l * .14);
         for (let n = 0; n < q.length; n += 3) g.fillText(q[n + 2], q[n], q[n + 1]);
       }
+      for (const [cx, cy, t0c] of chispas) { g.fillStyle = `rgba(232,255,240,${(1 - (t - t0c) / .3).toFixed(2)})`; g.fillText("*+x"[(cx + cy) % 3], cx * cw, cy * ch); }   // chispas de los platillos
+      const fl = Math.max(0, 1 - (t - flashT) / .3); if (fl) { g.fillStyle = `rgba(255,255,255,${(fl * .4).toFixed(2)})`; g.fillRect(0, 0, lienzo.width, lienzo.height); }   // destello de la caída
+      g.setTransform(1, 0, 0, 1, 0, 0);
       if (ev && ev.tipo === "glitch") {   // fantasma de color desplazado
         g.globalCompositeOperation = "screen"; g.fillStyle = "rgba(255,40,90,.35)"; for (let n = 0; n < cubos[4].length; n += 3) if (hash(n, 3, 1) < .25) g.fillText(cubos[4][n + 2], cubos[4][n] + cw * 2, cubos[4][n + 1]);
         g.globalCompositeOperation = "source-over";
@@ -547,13 +557,25 @@ const Ascii = (() => {
     }
     cont.__lanzar = (tipo) => lanzar(performance.now() / 1000, tipo);   // para pruebas   // para pruebas
     cont.__mia = () => miaImg;   // para pruebas
+    let cuentaRitmo = { bombo: 0, caja: 0, platillo: 0, caida: 0 }; cont.__onda = () => { ondas.push(performance.now() / 1000); sacT = performance.now() / 1000; };   // para pruebas
+    cont.__ritmo = () => ({ activo: !!ritmo, ondas: ondas.length, chispas: chispas.length, ...cuentaRitmo });   // para pruebas
     cont.__escena = (n) => { esc = n % T().escenas.length; sig = -1; tCambio = 1e9; };   // para pruebas y vistas previas
     cont.__ascii = () => ({ t0, esc, sig, tCambio, cambio, ev: ev && ev.tipo, prox, cols, filas, ultimo });   // para pruebas
     R.cadaCuadro(() => {   // el tiempo de la app avanza por cuadro (más lento si el equipo va a menos de 60); aquí se usa el reloj real para que escenas y eventos duren lo que dicen
       const t = performance.now() / 1000;
       if (lienzo.width !== innerWidth || lienzo.height !== innerHeight) medir();
       if (t - ultimo < 1 / 30) return; const dt = Math.min(.1, t - ultimo || 1 / 30); ultimo = t;
-      const d = R.espectro(); suaveB += (Math.min(1, R.energia(d, 1, 8) * 1.2) - suaveB) * .25; suaveM += (R.energia(d, 10, 60) - suaveM) * .2; suaveA += (R.energia(d, 60, 200) - suaveA) * .2;
+      const d = R.espectro();
+      if (ritmo) {
+        const e = ritmo(d, t);
+        for (const k in e.golpes) cuentaRitmo[k]++; if (e.caida) cuentaRitmo.caida++;
+        if (e.golpes.bombo) { ondas.push(t); sacT = t; }
+        if (e.golpes.caja) corte = { t, f: Array.from({ length: filas }, () => (Math.random() < .22 ? Math.round((Math.random() - .5) * 8) : 0)) };
+        if (e.golpes.platillo) for (let k = 0; k < 14; k++) chispas.push([Math.floor(Math.random() * cols), Math.floor(Math.random() * filas), t]);
+        if (e.caida) { flashT = t; sacT = t + .1; for (let k = 0; k < 4; k++) ondas.push(t + k * .1); }
+        ondas = ondas.filter(o => t - o < .7); chispas = chispas.filter(c => t - c[2] < .3);
+      }
+      suaveB += (Math.min(1, R.energia(d, 1, 8) * 1.2) - suaveB) * .25; suaveM += (R.energia(d, 10, 60) - suaveM) * .2; suaveA += (R.energia(d, 60, 200) - suaveA) * .2;
       dibujar(t, dt, d);
     });
     return { tema: setTema };

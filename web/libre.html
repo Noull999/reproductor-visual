@@ -237,7 +237,7 @@
 </style>
 </head>
 <body data-panel="vidrio">
-<svg width="0" height="0" style="position:absolute"><filter id="liquido" x="0%" y="0%" width="100%" height="100%" color-interpolation-filters="sRGB">
+<svg width="0" height="0" style="position:absolute"><filter id="aberracion" color-interpolation-filters="sRGB"><feColorMatrix in="SourceGraphic" values="1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0" result="r"/><feOffset in="r" result="r2"/><feColorMatrix in="SourceGraphic" values="0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 1 0" result="g"/><feColorMatrix in="SourceGraphic" values="0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 1 0" result="b"/><feOffset in="b" result="b2"/><feBlend in="r2" in2="g" mode="screen" result="rg"/><feBlend in="rg" in2="b2" mode="screen"/></filter><filter id="liquido" x="0%" y="0%" width="100%" height="100%" color-interpolation-filters="sRGB">
   <feTurbulence type="fractalNoise" baseFrequency="0.006 0.009" numOctaves="2" seed="11" result="ruido"/>
   <feGaussianBlur in="ruido" stdDeviation="2.5" result="suave"/>
   <feDisplacementMap id="desplaza" in="SourceGraphic" in2="suave" scale="70" xChannelSelector="R" yChannelSelector="G"/>
@@ -253,6 +253,7 @@
 <script src="cromo.js"></script>
 <script src="adornos.js"></script>
 <script src="burbujas.js"></script>
+<script src="ritmo.js"></script>
 <script src="ascii.js"></script>
 <script src="haz.js"></script>
 <script src="nucleo.js"></script>
@@ -378,10 +379,20 @@ function fondo() {
 // El bombo sacude el fondo: un destello del color de acento, un zoom corto o los dos (GOLPE lo calcula el detector de golpes)
 function golpeFondo(c) {
   const modo = fv("golpe"); if (!modo) return;
+  const en = (...m) => m.includes(modo), zoom = en("zoom", "ambos", "todo"), destello = en("destello", "ambos", "todo"), sacude = en("sacudida", "todo"), cromatico = en("cromatico", "todo");
   const fl = document.createElement("div"); fl.style.cssText = "z-index:6;pointer-events:none;mix-blend-mode:screen;opacity:0"; c.appendChild(fl);
+  const rit = Ritmo.crear(), filtroBase = c.style.filter, desv = document.querySelectorAll("#aberracion feOffset");
   R.cadaCuadro(() => {
-    if (modo !== "destello") c.style.transform = `scale(${(1 + GOLPE * .035).toFixed(4)})`;
-    if (modo !== "zoom") { fl.style.background = `radial-gradient(ellipse at center, rgba(${acento},.5), rgba(255,255,255,.12) 62%, transparent 85%)`; fl.style.opacity = (GOLPE * .65).toFixed(3); }
+    const e = rit(R.espectro(), performance.now() / 1000), gb = Math.max(GOLPE, e.bombo), caida = Math.max(0, 1 - e.desdeCaida / .6);   // caída: el drop pega más fuerte
+    let tr = "";
+    if (zoom) tr += `scale(${(1 + gb * .035 + caida * .07).toFixed(4)}) `;
+    if (sacude) { const s = e.bombo * 7 + caida * 14; tr += `translate(${((Math.random() - .5) * s).toFixed(1)}px, ${((Math.random() - .5) * s * .7).toFixed(1)}px)`; }
+    c.style.transform = tr;
+    if (destello) { fl.style.background = `radial-gradient(ellipse at center, rgba(${acento},.5), rgba(255,255,255,.12) 62%, transparent 85%)`; fl.style.opacity = Math.max(gb * .65, caida * .9).toFixed(3); }
+    if (cromatico) {   // la caja separa los colores (rojo a un lado, azul al otro) un instante
+      const a = Math.max(e.caja, caida);
+      if (a > .05) { desv[0].setAttribute("dx", (a * 9).toFixed(1)); desv[1].setAttribute("dx", (-a * 9).toFixed(1)); c.style.filter = `${filtroBase} url(#aberracion)`; } else if (c.style.filter !== filtroBase) c.style.filter = filtroBase;
+    }
   });
 }
 function dibujarFondo(tipo, c, segunda = false) {
@@ -413,7 +424,7 @@ function dibujarFondo(tipo, c, segunda = false) {
 
   if (tipo === "ascii") {   // caracteres que reaccionan a la música y cambian con el tiempo (ascii.js)
     if (!segunda) capa(fv("color"));
-    asciiVivo = Ascii.montar(c, { color: () => acento, cambio: fv("cambio"), eventos: fv("eventos"), tema: fv("tema"), imagen: fv("imagen"), imagenModo: fv("imagenModo"), imagenAjuste: fv("imagenAjuste"), imagenRec: [fv("imagenRecIzq"), fv("imagenRecArr"), fv("imagenRecDer"), fv("imagenRecAba")], imagenContraste: fv("imagenContraste"), imagenColor: fv("imagenColor"), imagenSola: fv("imagenSola") }); return;
+    asciiVivo = Ascii.montar(c, { color: () => acento, cambio: fv("cambio"), eventos: fv("eventos"), tema: fv("tema"), ritmo: fv("ritmo"), imagen: fv("imagen"), imagenModo: fv("imagenModo"), imagenAjuste: fv("imagenAjuste"), imagenRec: [fv("imagenRecIzq"), fv("imagenRecArr"), fv("imagenRecDer"), fv("imagenRecAba")], imagenContraste: fv("imagenContraste"), imagenColor: fv("imagenColor"), imagenSola: fv("imagenSola") }); return;
   }
   if (tipo === "pompas") {   // pompas de jabón que se reventan al tocarlas (burbujas.js)
     if (!segunda) capa(fv("color"));
