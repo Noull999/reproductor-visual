@@ -124,7 +124,7 @@ const PALETAS = {
 const CLAVES = ["fondo", "panel", "tenue", "texto", "acento", "brillo"];
 const rgb = (h) => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
 const luz = ([r, g, b]) => 0.299 * r + 0.587 * g + 0.114 * b;
-let pal = {}, rampa = [];
+let pal = {}, rampa = [], nombreEscena = "Sangre", escenaLista = false;   // la escena de paisaje sigue a la paleta
 
 function usarPaleta(nombre) {
   const c = PALETAS[nombre] || PALETAS.Sangre;
@@ -133,6 +133,7 @@ function usarPaleta(nombre) {
   rampa = [...new Set(c)].map(rgb).sort((a, b) => luz(a) - luz(b));
   document.querySelectorAll("#paletas button").forEach(b => b.classList.toggle("elegida", b.dataset.p === nombre));
   try { localStorage.setItem("paleta-pixel", nombre); } catch (e) {}
+  nombreEscena = nombre; escenaLista = false;
   pintarPortada();
 }
 for (const [nombre, c] of Object.entries(PALETAS)) {
@@ -196,18 +197,114 @@ function medir() {
 addEventListener("resize", medir); medir();
 const mezcla = (a, b, t) => a.map((v, i) => Math.round(v + (b[i] - v) * t));
 
+// ---- Paisaje en capas: una escena por paleta. Tres planos que avanzan a distinta velocidad (más rápido con el bajo), un astro que late, y detalles propios ----
+const ESCENAS = {
+  "Sangre":    { perfil: "bosque",   astro: "luna", astroCol: "brillo", niebla: true },
+  "Game Boy":  { perfil: "colinas",  astro: "sol",  astroCol: "brillo", nubes: true },
+  "NES":       { perfil: "ciudad" },
+  "Vaporwave": { perfil: "montanas", astro: "solrayas", rejilla: true },
+  "Matrix":    { lluvia: true },
+  "Hielo":     { perfil: "montanas", astro: "luna", astroCol: "texto", nieve: true, cimas: true },
+  "Ámbar":     { perfil: "dunas",    astro: "sol",  astroCol: "brillo" },
+  "Propio":    { perfil: "colinas",  astro: "luna", astroCol: "texto" },
+};
+const LW = 768, TAU = Math.PI * 2;
+let capas = [], gotas = [], copos = [], nubes = [], fase = [0, 0, 0], tPrev = 0, esc = ESCENAS.Sangre;
+const azar = (sem) => { let q = sem >>> 0; return () => (q = (Math.imul(q, 1664525) + 1013904223) >>> 0) / 4294967296; };
+const mod = (a, n) => ((a % n) + n) % n;
+function perfilDe(tipo, R, k) {   // alturas de 0 a 1 en LW columnas (se repite sin corte); k = plano (0 lejos, 2 cerca)
+  const p = new Float32Array(LW);
+  if (tipo === "colinas" || tipo === "dunas") {
+    const f1 = tipo === "dunas" ? 2 + k : 3 + k * 2, f2 = f1 * 2 + 1, a = R() * TAU, b = R() * TAU;
+    for (let x = 0; x < LW; x++) p[x] = .5 + (tipo === "dunas" ? .34 : .3) * Math.sin(f1 * TAU * x / LW + a) + .16 * Math.sin(f2 * TAU * x / LW + b);
+  } else if (tipo === "montanas") {
+    for (let n = 0; n < 5 + k * 2; n++) {
+      const cx = R() * LW, ht = .45 + .5 * R(), ancho = 40 + R() * 70;
+      for (let dx = -ancho; dx <= ancho; dx++) { const i = mod(Math.round(cx + dx), LW); p[i] = Math.max(p[i], ht * (1 - Math.abs(dx) / ancho)); }
+    }
+  } else if (tipo === "bosque") {
+    for (let n = 0; n < 38 + k * 22; n++) {
+      const cx = R() * LW, ht = .3 + .55 * R(), ancho = 4 + ht * 9;
+      for (let dx = -ancho; dx <= ancho; dx++) { const i = mod(Math.round(cx + dx), LW); p[i] = Math.max(p[i], ht * (1 - Math.abs(dx) / ancho) * .95 + .04); }
+    }
+  } else if (tipo === "ciudad") {
+    for (let x = 0; x < LW;) { const w = 8 + Math.floor(R() * 18), h = (.2 + .7 * R()) * (k ? 1 : .8); for (let i = 0; i < w && x + i < LW; i++) p[x + i] = h; x += w + (R() < .25 ? 2 : 0); }
+  }
+  for (let x = 0; x < LW; x++) p[x] = Math.round(p[x] * 36) / 36;   // alturas en escalones: se ve a píxeles
+  return p;
+}
+function generarEscena() {
+  const R = azar(7 + [...nombreEscena].reduce((a, c) => a + c.charCodeAt(0), 0)); esc = ESCENAS[nombreEscena] || ESCENAS.Propio;
+  capas = esc.perfil ? [0, 1, 2].map(k => ({ p: perfilDe(esc.perfil, R, k), vel: [5, 11, 22][k], base: [.6, .68, .77][k], alto: [.3, .28, .3][k], mezcla: [.14, .28, .46][k] })) : [];
+  if (esc.perfil === "ciudad") capas = capas.slice(1);
+  gotas = Array.from({ length: Math.floor(W / 3) }, () => ({ y: R() * H, v: 30 + R() * 70, l: 6 + Math.floor(R() * 12) }));
+  copos = Array.from({ length: Math.round(W * H / 420) }, () => [R() * W, R() * H, 8 + R() * 22, R() * TAU]);
+  nubes = Array.from({ length: 5 }, () => ({ x: R() * W, y: H * (.08 + R() * .26), w: 14 + R() * 20, v: 1.5 + R() * 3 }));
+  escenaLista = true;
+}
+const col = (c) => `rgb(${c})`;
+function paisaje(t, bajo) {
+  const dt = Math.min(.1, t - tPrev || .016); tPrev = t;
+  if (!escenaLista) generarEscena();
+  const lluvia = !!esc.lluvia, horizonte = H * (esc.rejilla ? .66 : .72);
+  // cielo en bandas (degradado a píxeles) y estrellas
+  if (lluvia) { g.fillStyle = col(pal.fondo); g.fillRect(0, 0, W, H); }
+  else for (let i = 0; i < 6; i++) { g.fillStyle = col(mezcla(pal.fondo, pal.panel, (i / 5) * .8)); const y0 = Math.floor(horizonte * i / 6), y1 = Math.floor(horizonte * (i + 1) / 6); g.fillRect(0, y0, W, y1 - y0 + 1); }
+  if (!lluvia) { g.fillStyle = col(pal.fondo); g.fillRect(0, horizonte, W, H - horizonte); }
+  g.fillStyle = col(pal.tenue);
+  for (const e of estrellas) {
+    e[0] -= (.05 + e[2] * .25) * (1 + bajo * 6); if (e[0] < 0) e[0] += W;
+    if (e[1] < horizonte * .8 && (t * 3 + e[2] * 10) % 4 > .6) g.fillRect(e[0] | 0, e[1] | 0, 1, 1);
+  }
+  // astro: late con cada golpe
+  if (esc.astro) {
+    const cx = W * .47, cy = H * .26, Rr = H * .1 * (1 + bajo * .2), c0 = esc.astro === "solrayas" ? pal.brillo : pal[esc.astroCol || "texto"];
+    g.fillStyle = col(mezcla(pal.fondo, c0, .16)); for (let dy = -Rr * 1.5; dy <= Rr * 1.5; dy++) { const hw = Math.sqrt(Math.max(0, Rr * Rr * 2.25 - dy * dy)) | 0; g.fillRect(cx - hw, (cy + dy) | 0, hw * 2, 1); }
+    for (let dy = -Rr; dy <= Rr; dy++) {
+      if (esc.astro === "solrayas" && dy > 0 && Math.floor(dy) % 6 < Math.min(5, dy / Rr * 7)) continue;   // franjas del sol Vaporwave
+      g.fillStyle = col(esc.astro === "solrayas" ? mezcla(pal.brillo, pal.acento, (dy + Rr) / (2 * Rr)) : c0);
+      const hw = Math.sqrt(Rr * Rr - dy * dy) | 0; g.fillRect(cx - hw, (cy + dy) | 0, hw * 2, 1);
+    }
+  }
+  if (esc.nubes) { g.fillStyle = col(mezcla(pal.fondo, pal.tenue, .55)); for (const n of nubes) { n.x -= n.v * dt * (1 + bajo * 2); if (n.x < -n.w) n.x = W + 4; g.fillRect(n.x | 0, n.y | 0, n.w | 0, 3); g.fillRect((n.x + 4) | 0, (n.y - 2) | 0, (n.w - 9) | 0, 2); } }
+  // los tres planos
+  capas.forEach((c, k) => {
+    fase[k] = (fase[k] + c.vel * dt * (1 + bajo * 2.2)) % LW;
+    const base = H * c.base, fondoCol = col(mezcla(pal.fondo, pal.acento, c.mezcla));
+    for (let x = 0; x < W; x++) {
+      const i = mod(Math.floor(x + fase[k]), LW), h = Math.round(c.p[i] * H * c.alto), y = base - h;
+      g.fillStyle = fondoCol; g.fillRect(x, y, 1, H - y);
+      if (esc.cimas && k > 0 && h > H * .12) { g.fillStyle = col(mezcla(pal.fondo, pal.texto, .8)); g.fillRect(x, y, 1, 2); }
+    }
+    if (esc.perfil === "ciudad" && k === capas.length - 1) {   // ventanas: se encienden más con el bajo
+      for (let x = 1; x < W; x += 4) {
+        const i = mod(Math.floor(x + fase[k]), LW), h = Math.round(c.p[i] * H * c.alto);
+        for (let y = base - h + 3; y < base - 3; y += 5) { const q = (Math.imul(mod(Math.floor(x + fase[k]), LW) * 31 + y, 2654435761) >>> 0) % 100; if (q < 35 + bajo * 55) { g.fillStyle = col(q % 3 ? pal.brillo : pal.texto); g.fillRect(x, y, 2, 2); } }
+      }
+    }
+  });
+  if (esc.niebla) { g.globalAlpha = .1 + bajo * .07; g.fillStyle = col(pal.tenue); for (let k = 0; k < 3; k++) g.fillRect(0, horizonte - 6 + k * 7 + Math.sin(t * .5 + k) * 2, W, 4); g.globalAlpha = 1; }
+  if (esc.rejilla) {   // suelo con rejilla en perspectiva que avanza hacia ti
+    g.strokeStyle = col(mezcla(pal.fondo, pal.acento, .75)); g.lineWidth = 1; g.beginPath();
+    for (let j = -14; j <= 14; j++) { g.moveTo(W / 2 + j * 7, horizonte); g.lineTo(W / 2 + j * W / 5, H); }
+    const f = (t * (.35 + bajo * .9)) % 1;
+    for (let i = 0; i < 12; i++) { const z = (i + f) / 12, y = horizonte + (H - horizonte) * z * z; g.moveTo(0, y | 0); g.lineTo(W, y | 0); }
+    g.stroke();
+  }
+  if (lluvia) {   // lluvia digital: cada columna deja una estela que se apaga
+    for (let i = 0; i < gotas.length; i++) {
+      const d = gotas[i]; d.y += d.v * dt * (1 + bajo * 3); if (d.y - d.l * 3 > H) { d.y = -Math.random() * 40; d.v = 30 + Math.random() * 70; }
+      for (let k = 0; k < d.l; k++) { g.fillStyle = col(k === 0 ? pal.texto : mezcla(pal.fondo, pal.brillo, (1 - k / d.l) * .9)); g.fillRect(i * 3, (d.y - k * 3) | 0, 2, 2); }
+    }
+  }
+  if (esc.nieve) { g.fillStyle = col(pal.texto); for (const c of copos) { c[1] += c[2] * dt * (1 + bajo * 1.5); c[0] += Math.sin(t * .8 + c[3]) * .25; if (c[1] > H) { c[1] = -2; c[0] = Math.random() * W; } g.fillRect(c[0] | 0, c[1] | 0, 1, 1); } }
+}
+
 R.cadaCuadro((t) => {
   document.documentElement.style.setProperty("--p", (R.progreso() * 100).toFixed(2) + "%");
   if (!W || !H) return medir();
   const d = R.espectro(), bajo = R.energia(d, 1, 8);
-  g.fillStyle = `rgb(${pal.fondo})`; g.fillRect(0, 0, W, H);
-  // Estrellas: corren más rápido con el bajo
-  g.fillStyle = `rgb(${pal.tenue})`;
-  for (const s of estrellas) {
-    s[0] -= (0.05 + s[2] * 0.25) * (1 + bajo * 6);
-    if (s[0] < 0) s[0] += W;
-    if ((t * 3 + s[2] * 10) % 4 > 0.6) g.fillRect(s[0] | 0, s[1] | 0, 1, 1);
-  }
+  paisaje(t, bajo);
   // Barras: columnas de 4 px y bloques de 3 px, de frecuencias bajas a altas (escala logarítmica)
   const cols = Math.floor(W / 5), alto = H * 0.7, filas = Math.floor(alto / 4);
   if (topes.length !== cols) topes = new Array(cols).fill(0);
