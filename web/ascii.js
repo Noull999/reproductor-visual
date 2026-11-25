@@ -10,7 +10,7 @@ const Ascii = (() => {
     terminal: { nombre: "ASCII", escenas: ["LLUVIA", "DONA", "ONDAS", "FUEGO", "TUNEL", "CARATULA"], demonio: true,
       alertas: ["SENAL FUERTE DETECTADA", "BAJO >> MAXIMO", "SINCRONIZANDO RITMO...", "NUCLEO ESTABLE", "ANOMALIA EN EL ESPECTRO"],
       arranque: ["> boot reproductor.sys", "> cargando visuales ........ OK", "> senal de audio ........... OK", "> modo ascii activado"] },
-    psicodelico: { nombre: "PSICO", escenas: ["KALEIDO", "ESPIRAL", "MALLA", "INFINITO", "OJO"], multicolor: true,
+    psicodelico: { nombre: "PSICO", escenas: ["KALEIDO", "ESPIRAL", "MALLA", "LAVA", "INFINITO"], multicolor: true,
       alertas: ["TODO ES UN ESPIRAL", "RESPIRA", "MIRA FIJO", "EL COLOR TIENE SONIDO", "NO PARPADEES"],
       arranque: ["> abriendo la percepcion ...", "> filtro de realidad ....... OFF", "> espiral .................. ON", "> mira fijo"] },
     juegos: { nombre: "ARCADE", escenas: ["PONG", "SNAKE", "INVADERS", "BREAKOUT"], glifos: true,
@@ -163,6 +163,18 @@ const Ascii = (() => {
           A[i] = Math.min(1.1, Math.pow(v, 2) * Math.min(1, rad / 6) * Math.max(0, 1 - rad / (cols * .75)) * (.9 + b * .5) * 1.3); H[i] = (ang / TAU + t * .06 + rad * .004) % 1;
         }
       },
+      LAVA(A, t, dt, d, b) {   // manchas que se deforman, en bandas planas: huecos negros, borde rosa, contorno verde y relleno violeta
+        juego.zl = (juego.zl || 0) + dt * (.5 + b * 1.7); const z = juego.zl, asp = ch / cw;
+        for (let r = 0; r < filas; r++) for (let c = 0; c < cols; c++) {
+          const X = c * .9, Y = r * asp * .9, wx = X + 7 * Math.sin(Y * .09 + z * .8), wy = Y + 7 * Math.sin(X * .08 - z * .6), i = r * cols + c;
+          const f = .5 + .5 * (.6 * Math.sin(wx * .14) * Math.sin(wy * .14 + z * .3) + .4 * Math.sin((wx + wy) * .09 + z * .5));
+          if (f < .31) { A[i] = 0; continue; }                                      // hueco negro
+          if (f < .38) { A[i] = .9; H[i] = 2.93; }                                   // borde rosa
+          else if (f < .4) { A[i] = 0; }                                            // línea negra fina
+          else if (f < .53) { A[i] = .96; H[i] = 2.4; }                               // contorno verde
+          else { A[i] = .72; H[i] = 2.78; }                                           // relleno violeta
+        }
+      },
       INFINITO(A, t, dt, d, b) {   // un ojo dentro de otro, sin fin: el zoom cae hacia la pupila (efecto Droste); el bajo acelera la caída
         juego.zo = (juego.zo || 0) + dt * (.14 + b * .55); const f = juego.zo % 1, asp = ch / cw, S = cols * .4, RP = .24, s = Math.pow(RP, f);
         for (let r = 0; r < filas; r++) for (let c = 0; c < cols; c++) {
@@ -223,21 +235,6 @@ const Ascii = (() => {
           if (mejor < 0) { const i = r * cols + c; A[i] = mejor > -.055 ? 1 : .55 + .3 * (1 - Math.min(1, Math.abs(px))); H[i] = 2.9 + .04 * py; }
         }
       },
-      OJO(A, t, dt, d, b) {   // un ojo que parpadea, mira de lado y dilata la pupila con el bajo; rayos alrededor
-        A.fill(0); const cx = cols / 2, cy = filas * .5, asp = ch / cw, S = Math.min(cols * .2, filas * asp * .4), ciclo = t % 4.5, parp = ciclo > 4.2 ? Math.sin((ciclo - 4.2) / .3 * Math.PI) : 0, abierto = Math.max(.06, 1 - parp);
-        const ix = Math.sin(t * .5) * .18, iy = Math.sin(t * .37) * .08;
-        for (let r = 0; r < filas; r++) for (let c = 0; c < cols; c++) {
-          const X = (c - cx) / S, Y = (r - cy) * asp / S, i = r * cols + c, ang = Math.atan2(Y, X), rad = Math.hypot(X, Y), lid = (1 - Math.min(1, X * X)) * .55 * abierto, dist = Math.abs(Y) - lid;
-          H[i] = (ang / TAU + t * .07 + rad * .1) % 1;
-          if (Math.abs(X) < 1 && Math.abs(dist) < .05) { A[i] = 1.05; continue; }
-          if (Math.abs(X) < 1 && dist < 0) {
-            const ox = X - ix, oy = Y - iy, ir = Math.hypot(ox, oy), pupila = .12 + b * .12;
-            A[i] = ir < pupila ? 0 : ir < .34 ? (Math.abs(ir - .34) < .04 ? 1 : .25 + .5 * (.5 + .5 * Math.sin(Math.atan2(oy, ox) * 14 + t))) : .1; continue;
-          }
-          if (rad > 1.1 && Math.sin(ang * 22 + t * .6) > .82) A[i] = .08 + .35 * Math.max(0, 1 - (rad - 1.1) / 2);
-        }
-      },
-      // ======== ARCADE: cuatro juegos que juegan solos; los caracteres propios van en G ========
       PONG(A, t, dt, d, b) {
         const X0 = Math.round(cols * .25), W = cols - X0 - 2, po = (a, c, r, k, v) => pon(a, c + X0, r, k, v), tx = (a, c, r, str, v) => txt(a, c + X0, r, str, v);   // el campo de juego queda a la derecha de la carátula
         A.fill(0);
