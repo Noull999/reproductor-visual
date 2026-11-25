@@ -56,18 +56,11 @@ const Ascii = (() => {
 
     // ---- "Tu imagen": cualquier imagen que la persona elige se convierte en caracteres (en su PC, al cargarla). Pierde el fondo plano, late con el bajo y se
     // "rompe" en líneas con cada golpe. Con "colores de la imagen" cada letra lleva el color de su zona (paleta de 64) ----
-    function prepararMia() {
-      if (!miaImg || !miaImg.naturalWidth || !cols) return;
-      const asp = ch / cw, iw = miaImg.naturalWidth, ih = miaImg.naturalHeight;
-      const ajuste = op.imagenAjuste || "estirar", alto = filas - 3;   // estirar: ocupa todo el ancho y el alto · cubrir: llena la pantalla recortando · contener: se ve entera con sus proporciones
-      let wc = cols, hc = alto;
-      if (ajuste === "contener") { wc = cols - 2; hc = Math.round(wc * ih / iw / asp); if (hc > alto) { hc = alto; wc = Math.round(hc * asp * iw / ih); } }
-      wc = Math.max(8, wc); hc = Math.max(4, hc);
-      const cv = document.createElement("canvas"); cv.width = wc; cv.height = hc;
-      const x = cv.getContext("2d", { willReadFrequently: true }); x.imageSmoothingQuality = "high";
-      if (ajuste === "cubrir") { const s = Math.max(wc / iw, hc / (ih / asp)); x.drawImage(miaImg, (wc - iw * s) / 2, (hc - ih / asp * s) / 2, iw * s, ih / asp * s); }
-      else x.drawImage(miaImg, 0, 0, wc, hc);
-      let px; try { px = x.getImageData(0, 0, wc, hc).data; } catch (e) { mia = null; return; }
+    // ---- "Tu imagen" / "Tu video": se convierte en caracteres en este PC. Con "ampliado" lo que sobra a los lados se llena con la misma imagen (o el mismo video) ampliada y atenuada ----
+    const PAL_TONO = Array.from({ length: 64 }, (_, k) => { const [r, g, b] = [k >> 4, (k >> 2) & 3, k & 3].map(x => (x + .5) / 4), m = Math.max(r, g, b); return `rgb(${r / m * 255 | 0},${g / m * 255 | 0},${b / m * 255 | 0})`; });
+    const lienzoMia = (w, h) => { const c = document.createElement("canvas"); c.width = w; c.height = h; const x = c.getContext("2d", { willReadFrequently: true }); x.imageSmoothingQuality = "high"; return x; };
+    const cubrirMia = (x, src, sw, sh, wc, hc) => { const s = Math.max(wc / sw, hc / (sh / (ch / cw))); x.drawImage(src, (wc - sw * s) / 2, (hc - sh / (ch / cw) * s) / 2, sw * s, sh / (ch / cw) * s); };   // llena el lienzo recortando lo que sobre
+    function convertirPx(px, wc, hc) {
       const porBrillo = op.imagenModo === "brillo", v = new Float32Array(wc * hc), q = new Uint8Array(wc * hc), suma = Array.from({ length: 64 }, () => [0, 0, 0, 0]);
       for (let i = 0; i < wc * hc; i++) { const k = (px[i * 4] >> 6) * 16 + (px[i * 4 + 1] >> 6) * 4 + (px[i * 4 + 2] >> 6); q[i] = k; const s = suma[k]; s[0] += px[i * 4]; s[1] += px[i * 4 + 1]; s[2] += px[i * 4 + 2]; s[3]++; }
       const dom = suma.reduce((m, s, k) => (s[3] > suma[m][3] ? k : m), 0), [fr, fg, fb] = [0, 1, 2].map(o => suma[dom][o] / Math.max(1, suma[dom][3]));   // el fondo = el color más común de la imagen
@@ -83,14 +76,65 @@ const Ascii = (() => {
         v[i] = Math.min(1, Math.max(mascara * (.1 + .32 * densidad), borde));   // relleno tenue y contornos brillantes: el sujeto se separa de las manchas
       }
       const kc = (op.imagenContraste || 140) / 100; if (kc !== 1) for (let i = 0; i < v.length; i++) v[i] = Math.min(1, Math.max(0, (v[i] - .45) * kc + .45));   // más contraste: desaparecen los grises medios
+      return { v, q, suma };
+    }
+    function prepararMia() {
+      if (miaImg instanceof HTMLVideoElement) return prepararVideo();
+      if (!miaImg || !miaImg.naturalWidth || !cols) return;
+      const asp = ch / cw, iw = miaImg.naturalWidth, ih = miaImg.naturalHeight;
+      const ajuste = op.imagenAjuste || "estirar", alto = filas - 3;   // estirar: todo el ancho y el alto · cubrir: llena recortando · contener: entera · ampliado: entera y los costados con la misma imagen ampliada
+      let wc = cols, hc = alto;
+      if (ajuste === "contener" || ajuste === "ampliado") { wc = cols - 2; hc = Math.round(wc * ih / iw / asp); if (hc > alto) { hc = alto; wc = Math.round(hc * asp * iw / ih); } }
+      wc = Math.max(8, wc); hc = Math.max(4, hc);
+      const x = lienzoMia(wc, hc);
+      if (ajuste === "cubrir") cubrirMia(x, miaImg, iw, ih, wc, hc); else x.drawImage(miaImg, 0, 0, wc, hc);
+      let px; try { px = x.getImageData(0, 0, wc, hc).data; } catch (e) { mia = null; return; }
+      const { v, q, suma } = convertirPx(px, wc, hc);
+      let bg = null;
+      if (ajuste === "ampliado") { const xb = lienzoMia(cols, filas); cubrirMia(xb, miaImg, iw, ih, cols, filas); const o = convertirPx(xb.getImageData(0, 0, cols, filas).data, cols, filas); bg = { v: o.v, q: o.q }; }
       miaPal = suma.map(([a, b_, c_, n]) => { if (!n) return "#fff"; let r_ = a / n, g_ = b_ / n, bb = c_ / n; const m = Math.max(r_, g_, bb, 1), f = Math.max(1, 150 / m); return `rgb(${Math.min(255, r_ * f) | 0},${Math.min(255, g_ * f) | 0},${Math.min(255, bb * f) | 0})`; });
-      mia = { wc, hc, ox: (cols - wc) >> 1, oy: ((filas - hc) >> 1) + 1, v, q };
+      mia = { wc, hc, ox: (cols - wc) >> 1, oy: ((filas - hc) >> 1) + 1, v, q, bg };
+    }
+    // video: cada cuadro se achica a la cuadricula y se pasa a letras; el brillo se estira solo (percentiles suavizados) para que no parpadee
+    let miaT = -1, hist = new Float32Array(48), lo = .1, hi = .85;
+    function estirar(px, n, v, q) {
+      hist.fill(0); for (let i = 0; i < n; i++) hist[Math.min(47, ((.299 * px[i * 4] + .587 * px[i * 4 + 1] + .114 * px[i * 4 + 2]) / 255 * 47.99) | 0)]++;
+      const pc = (p) => { let a = 0; for (let k = 0; k < 48; k++) { a += hist[k]; if (a >= n * p) return k / 47.99; } return 1; };
+      lo += (pc(.25) - lo) * .02; hi += (pc(.997) - hi) * .02;   // muy lentos: un sujeto grande no se come el contraste de ese cuadro
+      const gam = 1.7 * (op.imagenContraste || 140) / 140;   // mas contraste = curva mas empinada (solo quedan los reflejos)
+      for (let i = 0; i < n; i++) {
+        const R_ = px[i * 4], G_ = px[i * 4 + 1], B_ = px[i * 4 + 2], l = (.299 * R_ + .587 * G_ + .114 * B_) / 255, a = Math.pow(Math.min(1, Math.max(0, (l - lo) / Math.max(.05, hi - lo))), gam);
+        v[i] = a; const mx = Math.max(R_, G_, B_, 1); q[i] = Math.min(3, (R_ / mx * 4) | 0) * 16 + Math.min(3, (G_ / mx * 4) | 0) * 4 + Math.min(3, (B_ / mx * 4) | 0);
+      }
+    }
+    function prepararVideo() {
+      const vd = miaImg; if (!vd.videoWidth || !cols) return;
+      const asp = ch / cw, iw = vd.videoWidth, ih = vd.videoHeight, alto = filas - 3, ajuste = op.imagenAjuste || "estirar";
+      let wc = cols, hc = alto;
+      if (ajuste === "contener" || ajuste === "ampliado") { wc = cols - 2; hc = Math.round(wc * ih / iw / asp); if (hc > alto) { hc = alto; wc = Math.round(hc * asp * iw / ih); } }
+      wc = Math.max(8, wc); hc = Math.max(4, hc);
+      mia = { wc, hc, ox: (cols - wc) >> 1, oy: ((filas - hc) >> 1) + 1, v: new Float32Array(wc * hc), q: new Uint8Array(wc * hc), x: lienzoMia(wc, hc),
+        bg: ajuste === "ampliado" ? { v: new Float32Array(cols * filas), q: new Uint8Array(cols * filas), x: lienzoMia(cols, filas) } : null, cubrir: ajuste === "cubrir" };
+      miaPal = PAL_TONO; miaT = -1;
+    }
+    function cuadroVideo(t) {
+      const vd = miaImg; if (!mia || !mia.x || vd.readyState < 2 || t - miaT < .045) return; miaT = t;
+      try {
+        if (mia.cubrir) cubrirMia(mia.x, vd, vd.videoWidth, vd.videoHeight, mia.wc, mia.hc); else mia.x.drawImage(vd, 0, 0, mia.wc, mia.hc);
+        estirar(mia.x.getImageData(0, 0, mia.wc, mia.hc).data, mia.wc * mia.hc, mia.v, mia.q);
+        if (mia.bg) { cubrirMia(mia.bg.x, vd, vd.videoWidth, vd.videoHeight, cols, filas); estirar(mia.bg.x.getImageData(0, 0, cols, filas).data, cols * filas, mia.bg.v, mia.bg.q); }
+      } catch (e) { mia = null; }
     }
     const escenasAct = () => (mia ? (op.imagenSola ? ["MIA"] : ["MIA", ...T().escenas]) : T().escenas);
     const escena = {
       MIA(A, t, dt, d, b) {   // tu imagen en caracteres
         A.fill(0); if (!mia) return;
+        if (miaImg instanceof HTMLVideoElement) { cuadroVideo(t); if (!mia) return; }
         const gan = .82 + Math.min(.4, b * .5), color = !!op.imagenColor;
+        if (mia.bg) for (let r = 0; r < filas; r++) for (let c = 0; c < cols; c++) {   // los costados: lo mismo, ampliado y atenuado
+          if (r >= mia.oy && r < mia.oy + mia.hc && c >= mia.ox && c < mia.ox + mia.wc) continue;
+          const i = r * cols + c, v = mia.bg.v[i] * .45; if (v < .05) continue; A[i] = v; if (color) K[i] = mia.bg.q[i] + 1;
+        }
         for (let r = 0; r < mia.hc; r++) {
           const golpe = b > .45 && hash(r, Math.floor(t * 14), 5) < .1 ? Math.round((hash(r, Math.floor(t * 14), 6) - .5) * 6) : 0, y = mia.oy + r;
           if (y < 0 || y >= filas) continue;
@@ -384,6 +428,7 @@ const Ascii = (() => {
       G.fill(0); K.fill(0);
       if (sig < 0 && ESC.length > 1 && t - tCambio > cambio) { sig = (esc + 1) % ESC.length; if (ESC[sig] === "CARATULA" && !imgOk) sig = (sig + 1) % ESC.length; tFundido = t; }
       if (tCambio === 1e9) tCambio = t;
+      if (miaImg instanceof HTMLVideoElement) { const vista = ESC[esc] === "MIA" || ESC[sig] === "MIA"; if (vista && miaImg.paused) miaImg.play().catch(() => {}); else if (!vista && !miaImg.paused) miaImg.pause(); }
       escena[ESC[esc]](I, t, dt, d, b);
       let k = 0;
       if (sig >= 0) { k = Math.min(1, (t - tFundido) / 1.6); escena[ESC[sig]](J, t, dt, d, b); if (k >= 1) { esc = sig; sig = -1; tCambio = t; I.set(J); k = 0; } }
@@ -439,8 +484,15 @@ const Ascii = (() => {
     }
 
     const setTema = (n) => { if (!TEMAS[n] || n === tema) return; tema = n; esc = 0; sig = -1; tCambio = 1e9; ev = null; t0 = null; juego = {}; factorTam = 1; medir(); };   // vuelve a empezar: arranque y primera escena del tema
-    if (op.imagen) { miaImg = new Image(); miaImg.onload = () => { prepararMia(); if (mia) { esc = 0; sig = -1; tCambio = 1e9; } }; miaImg.src = op.imagen; }
+    if (op.imagen) {
+      if (/\.(mp4|webm)(&|$)/i.test(op.imagen)) {   // video propio: en bucle y sin sonido (suena la música)
+        const vd = Object.assign(document.createElement("video"), { muted: true, loop: true, playsInline: true, preload: "auto" });
+        vd.addEventListener("loadeddata", () => { miaImg = vd; prepararMia(); if (mia) { esc = 0; sig = -1; tCambio = 1e9; } });
+        vd.src = op.imagen;
+      } else { miaImg = new Image(); miaImg.onload = () => { prepararMia(); if (mia) { esc = 0; sig = -1; tCambio = 1e9; } }; miaImg.src = op.imagen; }
+    }
     cont.__lanzar = (tipo) => lanzar(performance.now() / 1000, tipo);   // para pruebas   // para pruebas
+    cont.__mia = () => miaImg;   // para pruebas
     cont.__escena = (n) => { esc = n % T().escenas.length; sig = -1; tCambio = 1e9; };   // para pruebas y vistas previas
     cont.__ascii = () => ({ t0, esc, sig, tCambio, cambio, ev: ev && ev.tipo, prox, cols, filas, ultimo });   // para pruebas
     R.cadaCuadro(() => {   // el tiempo de la app avanza por cuadro (más lento si el equipo va a menos de 60); aquí se usa el reloj real para que escenas y eventos duren lo que dicen
