@@ -150,7 +150,7 @@
         <a class="enlace" href="guia.html">Guía de imágenes: medidas y qué pedirle al generador →</a>
         <div id="msgProps"></div>
       </div>
-      <div class="acciones"><button class="btn btn-principal" id="usar">Usar esta</button><button class="suave" id="editar" hidden>Editar</button><button class="suave" id="hacerEditable" title="Crea una copia tuya hecha de piezas, con las reglas de esta plantilla">Editar esta plantilla</button><button class="suave" id="exportar" hidden>Exportar</button><button class="suave" id="exportarAjustes" title="Guarda tu variante, tu color y tus ajustes en un archivo para compartirlos">Exportar mis ajustes</button><button class="suave" id="compartirComunidad" title="Prepara tu archivo y la captura, y abre la web de la comunidad para enviarlos">Compartir en la comunidad</button><button class="suave" id="restablecer">Restablecer</button></div>
+      <div class="acciones"><button class="btn btn-principal" id="usar">Usar esta</button><button class="suave" id="grabarDemo" title="Abre la plantilla con canciones y carátulas inventadas y un ritmo de prueba, sin sonido: para grabar videos sin mostrar tu música">Modo demo (para grabar)</button><button class="suave" id="editar" hidden>Editar</button><button class="suave" id="hacerEditable" title="Crea una copia tuya hecha de piezas, con las reglas de esta plantilla">Editar esta plantilla</button><button class="suave" id="exportar" hidden>Exportar</button><button class="suave" id="exportarAjustes" title="Guarda tu variante, tu color y tus ajustes en un archivo para compartirlos">Exportar mis ajustes</button><button class="suave" id="compartirComunidad" title="Prepara tu archivo y la captura, y abre la web de la comunidad para enviarlos">Compartir en la comunidad</button><button class="suave" id="restablecer">Restablecer</button></div>
     </section>
   </main>
 </div>
@@ -444,6 +444,11 @@ $("importar").onclick = async () => {
 };
 $("hacerEditable").onclick = () => { const s = Propias.desdeBase(actual.id); if (s) location.href = `editor.html?id=${s.id}`; };
 $("editar").onclick = () => { location.href = `editor.html?id=${actual.idPropia}`; };
+$("grabarDemo").onclick = () => {   // la plantilla a pantalla completa con la música inventada de la vista previa
+  const x = elegida[actual.id];
+  if (x) try { Object.entries(actual.guardar(x)).forEach(([k, val]) => localStorage.setItem(k, val)); } catch (e) {}
+  location.href = urlDe(actual, "demo");
+};
 $("usar").onclick = () => {
   const x = elegida[actual.id];
   if (x) try { Object.entries(actual.guardar(x)).forEach(([k, val]) => localStorage.setItem(k, val)); } catch (e) {}

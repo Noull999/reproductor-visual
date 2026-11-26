@@ -355,7 +355,7 @@ const R = (() => {
   }
 
   async function arrancar() {
-    if (!demo) botonVolver();
+    if (!demo || window.top === window) botonVolver();   // el demo a pantalla completa (para grabar) también tiene volver, solo visual y propiedades
     const on = (id, ev, fn) => { const e = $(id); if (e) e.addEventListener(ev, fn); };
     on("bPlay", "click", alternar);
     on("bSig", "click", siguiente);
