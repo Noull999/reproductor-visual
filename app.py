@@ -1,5 +1,5 @@
 """
-Reproductor visual (nombre pendiente). Ejecutar:  python app.py
+Sonix2K. Ejecutar:  python app.py
 
 Una ventana con las páginas de web/; Python entrega la música (SoundCloud, tus
 carpetas o lo que suena en el PC) por medio de la clase Api.
@@ -506,12 +506,29 @@ class Api:
                 "error": self._captura.error}
 
 
+def comprobar() -> None:
+    """Para el empaquetado: carga todo lo que la app usa y deja el resultado en %TEMP%/sonix2k_comprobar.txt, sin abrir ventana."""
+    import tempfile
+    import traceback
+    salida = Path(tempfile.gettempdir()) / "sonix2k_comprobar.txt"
+    try:
+        import mutagen, numpy, PIL, pyaudiowpatch, requests, yt_dlp  # noqa: F401
+        from winrt.windows.media.control import GlobalSystemMediaTransportControlsSessionManager  # noqa: F401
+        import webview.platforms.edgechromium  # noqa: F401
+        faltan = [n for n in ("index.html", "libre.html", "esquema.js", "ritmo.js", "ascii.js") if not (servidor.WEB / n).is_file()]
+        salida.write_text("ok" if not faltan else f"faltan en web/: {faltan}", encoding="utf-8")
+    except Exception:
+        salida.write_text(traceback.format_exc(), encoding="utf-8")
+
+
 def main():
+    if "--comprobar" in sys.argv:
+        return comprobar()
     if sys.platform != "win32":
         logger.warning("Por ahora la app está pensada para Windows.")
     api = Api()
     puerto = servidor.iniciar(api.cfg.get("carpetas") or [])
-    webview.create_window("Reproductor", f"http://127.0.0.1:{puerto}/index.html", js_api=api,
+    webview.create_window("Sonix2K", f"http://127.0.0.1:{puerto}/index.html", js_api=api,
                           width=1280, height=800, min_size=(900, 600), background_color="#070405")
     # Sin modo privado: así el navegador interno recuerda la plantilla elegida, Personalizar y las plantillas propias
     webview.start(debug="--debug" in sys.argv, private_mode=False, storage_path=str(Path.home() / ".visualizador" / "navegador"))

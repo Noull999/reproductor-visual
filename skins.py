@@ -131,7 +131,7 @@ def desde_url(url: str) -> dict:
     m = URL_MUSEO.match((url or "").strip())
     if not m:
         raise SkinInvalido("Pega un link de skins.webamp.org/skin/…")
-    pedido = urllib.request.Request(f"https://r2.webampskins.org/skins/{m.group(1).lower()}.wsz", headers={"User-Agent": "Reproductor"})
+    pedido = urllib.request.Request(f"https://r2.webampskins.org/skins/{m.group(1).lower()}.wsz", headers={"User-Agent": "Sonix2K"})
     with urllib.request.urlopen(pedido, timeout=30) as r:
         datos = r.read(MAX_ZIP + 1)
     nombre = re.sub(r"\s+", " ", unquote(m.group(2)).replace("_", " ")).strip()

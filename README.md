@@ -1,6 +1,8 @@
-# Reproductor visual
+<img src="empaque/icono.png" width="120" align="right" alt="Ícono de Sonix2K">
 
-> Nombre provisional. Un reproductor de música para Windows que pone **pantallas que reaccionan al sonido**, con plantillas que puedes **personalizar, crear y compartir**: una especie de Wallpaper Engine para tu música.
+# Sonix2K
+
+> Un reproductor de música para Windows que pone **pantallas que reaccionan al sonido**, con plantillas que puedes **personalizar, crear y compartir**: una especie de Wallpaper Engine para tu música.
 
 Escuchas lo de siempre (Spotify, SoundCloud, tus carpetas, o cualquier cosa que suene en el PC) y la app lo muestra con la pantalla que elijas: un haz de luz que late con el bajo, una cabeza Y2K con el reproductor adentro, un equipo de metal con pantalla LCD, píxeles de 8 bits… o la que armes tú.
 
@@ -131,7 +133,8 @@ tests/              Pruebas
 | Exportar e importar plantillas y ajustes | ✅ |
 | Comunidad: pestaña en la app, repositorio y galería web | ✅ Envíos directo en la web (entrando con GitHub, con cola de aprobación) o por pull request |
 | Visuales con el sonido del PC | ⚠️ Funciona con sonido saliendo por el dispositivo por defecto; con la salida de Windows **silenciada** la captura recibe silencio (la app avisa); falta probarlo con audio real |
-| Nombre definitivo, ícono y ejecutable (.exe) | ⏳ Pendiente |
+| Nombre e ícono | ✅ Sonix2K |
+| Versión empaquetada (.exe, sin Python) | ✅ De prueba (`python empaque/construir.py`); falta el instalador |
 | Versión Mac | ⏳ No planificada aún |
 
 Detalle y decisiones en [PLAN.md](PLAN.md).
@@ -166,6 +169,14 @@ python tools/capturar_previas.py pixel   # solo las de una o más páginas
 ```
 
 `python app.py --debug` abre las herramientas de desarrollo de la ventana.
+
+Para armar la versión de Windows sin Python (necesita `pip install pyinstaller`):
+
+```powershell
+python empaque/construir.py   # deja dist/Sonix2K/Sonix2K.exe y dist/Sonix2K-prueba.zip
+```
+
+Solo empaqueta lo que está en git dentro de `web/` y deja fuera «Quitar fondo» (pesa ~650 MB). `Sonix2K.exe --comprobar` revisa que todo cargue sin abrir la ventana (resultado en `%TEMP%\sonix2k_comprobar.txt`).
 
 ## Créditos y licencias de terceros
 

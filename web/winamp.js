@@ -73,14 +73,14 @@ const Winamp = (() => {
       if (listo("main")) g.drawImage(img.main, 0, 0, AN, MAIN, 0, 0, AN, MAIN);
       else { caja3d(0, 0, AN, MAIN, "#2b2f45", "#5a6080", "#10121c"); g.fillStyle = "#000"; g.fillRect(9, 22, 256, 44); }
       if (listo("titlebar")) pieza("titlebar", 27, 0, 275, 14, 0, 0);
-      else { g.fillStyle = "#3a4268"; g.fillRect(0, 0, AN, 14); g.fillStyle = "#cfd6ff"; g.font = "bold 8px Arial"; g.fillText("REPRODUCTOR", 110, 10); }
+      else { g.fillStyle = "#3a4268"; g.fillRect(0, 0, AN, 14); g.fillStyle = "#cfd6ff"; g.font = "bold 8px Arial"; g.fillText("SONIX2K", 110, 10); }
       // tiempo con los números del skin
       const s = Math.floor(R.tiempoActual() || 0), dig = [Math.floor(s / 600) % 10, Math.floor(s / 60) % 10, Math.floor(s % 60 / 10), s % 10];
       const nums = listo("numbers") ? "numbers" : listo("nums_ex") ? "nums_ex" : "";
       [48, 60, 78, 90].forEach((x, i) => { if (nums) pieza(nums, dig[i] * 9, 0, 9, 13, x, 26); else { g.fillStyle = "#5ef0ff"; g.font = "bold 13px monospace"; g.fillText(dig[i], x, 38); } });
       pieza("playpaus", sonando() ? 0 : 9, 0, 9, 9, 26, 28);
       // marquesina con el nombre del tema (letras del skin)
-      const tema = `${(R.actual ?? 0) + 1}. ${art.textContent ? art.textContent + " - " : ""}${tit.textContent || "Reproductor"}`.toUpperCase();
+      const tema = `${(R.actual ?? 0) + 1}. ${art.textContent ? art.textContent + " - " : ""}${tit.textContent || "Sonix2K"}`.toUpperCase();
       if (t - ultimoPaso > .16) { ultimoPaso = t; paso++; }
       const largo = tema + "  ***  ", desde = tema.length > 31 ? paso % largo.length : 0;
       if (listo("text")) texto((largo + largo).substr(desde, 31), 111, 27, 154);

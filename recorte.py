@@ -5,6 +5,7 @@ Es opcional porque pesa: rembg y sus dependencias ~480 MB, y el modelo ~180 MB q
 """
 import importlib.util
 import io
+import sys
 
 MAX_LADO = 1600
 _sesion = None
@@ -22,6 +23,8 @@ def quitar_fondo(datos: bytes) -> bytes:
     """Imagen (bytes) → WebP con el fondo transparente y recortado a lo que quedó."""
     global _sesion
     if not disponible():
+        if getattr(sys, "frozen", False):   # la versión instalable no lo trae: pesa ~650 MB
+            raise RecorteNoDisponible("Quitar fondo no viene en esta versión (pesa unos 650 MB). Está en la versión de código de GitHub.")
         raise RecorteNoDisponible("Para quitar fondos falta el complemento de recorte (unos 650 MB con su modelo). "
                                   "Se instala con: pip install -r requirements-recorte.txt")
     from PIL import Image
