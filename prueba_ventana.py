@@ -1,5 +1,5 @@
 """Abre la app de verdad, recorre las plantillas y revisa que carguen y suenen."""
-import json, threading, time
+import threading, time
 import webview
 import app as A, servidor
 

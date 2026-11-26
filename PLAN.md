@@ -1,6 +1,6 @@
 # Plan — reproductor visual personalizable
 
-Estado: prototipo de 4 plantillas funcionando con likes de SoundCloud (`prototipo/`).
+Estado (nov. 2026): app funcionando con 12 plantillas, Editor, Comunidad (repositorio y galería web), reacción al ritmo y Serato. Las fases de abajo quedan como historia de cómo se llegó aquí; el prototipo original se retiró del repositorio (sigue en el historial de git).
 Este plan se ajusta según prioridades: lo de arriba se hace primero.
 
 ## Cómo se usa la app (flujo)

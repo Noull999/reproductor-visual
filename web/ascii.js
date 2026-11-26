@@ -555,7 +555,7 @@ const Ascii = (() => {
         vd.src = op.imagen;
       } else { miaImg = new Image(); miaImg.onload = () => { prepararMia(); if (mia) { esc = 0; sig = -1; tCambio = 1e9; } }; miaImg.src = op.imagen; }
     }
-    cont.__lanzar = (tipo) => lanzar(performance.now() / 1000, tipo);   // para pruebas   // para pruebas
+    cont.__lanzar = (tipo) => lanzar(performance.now() / 1000, tipo);   // para pruebas
     cont.__mia = () => miaImg;   // para pruebas
     let cuentaRitmo = { bombo: 0, caja: 0, platillo: 0, caida: 0 }; cont.__onda = () => { ondas.push(performance.now() / 1000); sacT = performance.now() / 1000; };   // para pruebas
     cont.__ritmo = () => ({ activo: !!ritmo, ondas: ondas.length, chispas: chispas.length, ...cuentaRitmo });   // para pruebas

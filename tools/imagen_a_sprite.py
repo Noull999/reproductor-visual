@@ -11,7 +11,6 @@ Convierte una imagen en un sprite ASCII para los eventos de la plantilla ASCII (
 """
 import argparse
 import json
-import sys
 from pathlib import Path
 
 import numpy as np
